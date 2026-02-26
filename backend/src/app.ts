@@ -1,6 +1,5 @@
 import fastify from "fastify";
-import dotenv from "dotenv";
-dotenv.config();
+import dotenv from "dotenv/config";
 import routes from "./routes";
 import errorHandler from "./plugins/errorHandler.plugin";
 import { ApiError } from "@/utils/Error";
@@ -12,7 +11,7 @@ export function buildApp() {
   app.register(errorHandler);
 
   app.get("/test", async (request, reply) => {
-    throw new ApiError("Testing Error Message", 499);
+    throw new ApiError("Testing Error Message", 400, "My Error");
   });
 
   app.register(routes, { prefix: "/api/v1" });

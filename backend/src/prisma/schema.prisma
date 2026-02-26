@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  avatar    String?
+  createdAt DateTime @default(now())
+
+  workspaces  Workspace[]       @relation("WorkspaceOwner")
+  memberships WorkspaceMember[]
+  messages    Message[]
+}
+
+model Workspace {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+
+  owner   User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  members WorkspaceMember[]
+  rooms   Room[]
+}
+
+model WorkspaceMember {
+  userId      String
+  workspaceId String
+  role        String
+
+  user      User      @relation(fields: [userId], references: [id])
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+
+  @@id([userId, workspaceId]) // composite PK
+}
+
+model Room {
+  id          String @id @default(uuid())
+  workspaceId String
+  name        String
+  type        String
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  messages  Message[]
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  roomId    String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  room   Room @relation(fields: [roomId], references: [id])
+  sender User @relation(fields: [senderId], references: [id])
+}
