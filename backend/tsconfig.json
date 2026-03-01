@@ -18,6 +18,6 @@
     }
   },
 
-  "include": ["src"],
+  "include": ["src/**/*", "fastify.d.ts"],
   "exclude": ["node_modules", "prisma.config.ts"]
 }
