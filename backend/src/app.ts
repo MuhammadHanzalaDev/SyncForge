@@ -1,21 +1,15 @@
 import fastify from "fastify";
 import "dotenv/config";
 import routes from "./routes";
-import errorHandler from "./plugins/errorHandler.plugin";
-import { ApiError } from "@/utils/Error";
+import mainPlugin from "@/plugins/index";
 
-export function buildApp() {
+export async function buildApp() {
   const app = fastify();
 
   // Error Handler
-  app.register(errorHandler);
+  await app.register(mainPlugin);
 
-  app.get("/test", async (request, reply) => {
-    return { hello: "Testing response" }
-  });
-
-  app.register(routes, { prefix: "/api/v1" });
-
+  await app.register(routes, { prefix: "/api/v1" });
 
   return app;
 }
