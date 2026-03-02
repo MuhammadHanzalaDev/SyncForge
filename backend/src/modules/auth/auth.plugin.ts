@@ -1,8 +1,8 @@
 import fp from "fastify-plugin";
 import { FastifyPluginAsync, FastifyReply, FastifyRequest } from "fastify";
-import jwt from "jsonwebtoken";
-import { env } from "@/config/env";
 import { ApiError } from "@/utils/Error";
+import { AuthJwtPayload } from "./auth.types";
+import { verifyAccessToken } from "./auth.utils";
 
 declare module "fastify" {
   interface FastifyRequest {
@@ -23,16 +23,17 @@ const authPluggin: FastifyPluginAsync = async (app) => {
     async (request: FastifyRequest, reply: FastifyReply) => {
       try {
         const token = request.headers.authorization?.split(" ")[1];
-
         if (!token) {
-          throw new ApiError("Unauthorized", 401, "Unauthorized");
+          throw new ApiError("No Token", 401, "Unauthorized");
         }
 
-        const decoded = jwt.verify(token, env.AUTH_SECRET);
+        const decoded = verifyAccessToken(token) as AuthJwtPayload;
 
-        console.log("decoded", decoded);
+        if (typeof decoded === "string" || !decoded.userId) {
+          throw new ApiError("Invalid Token Payload", 401, "Unauthorized");
+        }
 
-        request.user = decoded; // attach user
+        request.user = { userId: decoded?.userId }; // attach user
       } catch (err) {
         throw new ApiError("Invalid Token", 401, "Unauthorized");
       }

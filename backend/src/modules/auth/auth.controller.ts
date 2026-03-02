@@ -1,7 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import prisma from "@/config/prisma";
 import { Prisma } from "@prisma/client";
-import jwt from "jsonwebtoken";
 import { validateRegister, validateLogin } from "./auth.validations";
 import { ApiError } from "@/utils/Error";
 import {
@@ -10,6 +9,7 @@ import {
   hashPassword,
   comparePassword,
   calculateCookieExpiry,
+  verifyRefreshToken,
 } from "./auth.utils";
 import { env } from "@/config/env";
 
@@ -113,7 +113,7 @@ const refreshToken = async (request: FastifyRequest, reply: FastifyReply) => {
 
   if (!refreshToken) throw new ApiError("Unauthorized", 401);
 
-  const decoded = jwt.verify(refreshToken, env.AUTH_REFRESH_SECRET) as {
+  const decoded = verifyRefreshToken(refreshToken) as {
     userId: string;
   };
   const userId = decoded.userId;

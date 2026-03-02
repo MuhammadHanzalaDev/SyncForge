@@ -15,6 +15,16 @@ const generateRefreshToken = (id: string) => {
   });
 };
 
+const verifyAccessToken = (token: string) => {
+  const decoded = jwt.verify(token, env.AUTH_SECRET);
+  return decoded;
+};
+
+const verifyRefreshToken = (token: string) => {
+  const decoded = jwt.verify(token, env.AUTH_REFRESH_SECRET);
+  return decoded;
+};
+
 const hashPassword = async (password: string) => {
   const hashed = await bcrypt.hash(password, 10);
   return hashed;
@@ -46,6 +56,8 @@ const calculateCookieExpiry = (expiresIn: SignOptions["expiresIn"]) => {
 export {
   generateAccessToken,
   generateRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
   hashPassword,
   comparePassword,
   calculateCookieExpiry,
