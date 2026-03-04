@@ -1,4 +1,6 @@
-import { LoginForm } from "@/shared/ui/login-form"
+"use client";
+
+import { LoginForm } from "@/modules/auth/components/login-form";
 
 export default function Page() {
   return (
@@ -7,5 +9,5 @@ export default function Page() {
         <LoginForm />
       </div>
     </div>
-  )
+  );
 }
