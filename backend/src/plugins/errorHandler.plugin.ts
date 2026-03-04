@@ -1,9 +1,33 @@
 import fp from "fastify-plugin";
 import { FastifyPluginAsync } from "fastify";
+import { ZodError } from "zod";
+import { formatZodError } from "@/utils/Error";
 
 const errorHandler: FastifyPluginAsync = async (app) => {
   app.setErrorHandler((error: any, request, reply) => {
     const status = error.status ?? error.statusCode ?? 500;
+    if (error instanceof ZodError) {
+      const formatted = formatZodError(error);
+      return reply.code(400).send({
+        success: false,
+        statusCode: status,
+        error: "ValidationError",
+        errors: formatted,
+      });
+    }
+
+    // Prisma errors
+    if (error.code === "P2002") {
+      // unique constraint
+      return reply.code(400).send({
+        success: false,
+        statusCode: status,
+        error: "PrismaError",
+        message: "Unique constraint failed",
+      });
+    }
+
+    console.log(error);
 
     reply.code(status).send({
       success: false,

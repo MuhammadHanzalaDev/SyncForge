@@ -1,51 +1,34 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import prisma from "@/config/prisma";
-import { Prisma } from "@prisma/client";
-import { validateRegister, validateLogin } from "./auth.validations";
-import { ApiError } from "@/utils/Error";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  hashPassword,
-  comparePassword,
-  calculateCookieExpiry,
-  verifyRefreshToken,
-} from "./auth.utils";
+import { calculateCookieExpiry } from "./auth.utils";
 import { env } from "@/config/env";
+import type {
+  RegisterValues,
+  LoginValues,
+  VerifyEmailValues,
+} from "./auth.types";
+import {
+  loginService,
+  refreshTokenService,
+  verifyEmailService,
+} from "./auth.service";
+import { registerService } from "./auth.service";
 
-type registerRequest = FastifyRequest<{
-  Body: Prisma.UserCreateInput;
-}>;
-
-const register = async (request: registerRequest, reply: FastifyReply) => {
+const register = async (request: FastifyRequest<{ Body: RegisterValues }>) => {
   const data = request.body;
 
-  const parsed = validateRegister.parse(data);
+  await registerService(data);
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email: parsed.email },
-  });
+  return { message: "An otp has been sent to your email address!" };
+};
 
-  if (existingUser) {
-    throw new ApiError("Email is already in use.", 400);
-  }
+const verifyEmail = async (
+  request: FastifyRequest<{ Body: VerifyEmailValues }>,
+  reply: FastifyReply,
+) => {
+  const data = request.body;
 
-  const hashedPassword = await hashPassword(parsed.password);
-
-  const user = await prisma.user.create({
-    data: {
-      ...parsed,
-      password: hashedPassword,
-    },
-  });
-
-  const accessToken = generateAccessToken(user.id);
-  const refreshToken = generateRefreshToken(user.id);
-
-  await prisma.user.update({
-    where: { email: user.email },
-    data: { refreshToken },
-  });
+  const { refreshToken, accessToken } = await verifyEmailService(data);
 
   reply.setCookie("refreshToken", refreshToken, {
     httpOnly: true,
@@ -57,31 +40,13 @@ const register = async (request: registerRequest, reply: FastifyReply) => {
   return { accessToken };
 };
 
-const login = async (request: registerRequest, reply: FastifyReply) => {
+const login = async (
+  request: FastifyRequest<{ Body: LoginValues }>,
+  reply: FastifyReply,
+) => {
   const data = request.body;
 
-  const parsed = validateLogin.parse(data);
-
-  const user = await prisma.user.findUnique({
-    where: { email: parsed.email },
-  });
-
-  if (!user) {
-    throw new ApiError("Invalid credentials", 400);
-  }
-
-  const isPasswordValid = await comparePassword(parsed.password, user.password);
-  if (!isPasswordValid) {
-    throw new ApiError("Invalid credentials", 400);
-  }
-
-  const accessToken = generateAccessToken(user.id);
-  const refreshToken = generateRefreshToken(user.id);
-
-  await prisma.user.update({
-    where: { email: user.email },
-    data: { refreshToken },
-  });
+  const { refreshToken, accessToken } = await loginService(data);
 
   reply.setCookie("refreshToken", refreshToken, {
     httpOnly: true,
@@ -108,32 +73,12 @@ const logout = async (request: FastifyRequest, reply: FastifyReply) => {
   return { message: "Logged out successfully." };
 };
 
-const refreshToken = async (request: FastifyRequest, reply: FastifyReply) => {
+const refreshToken = async (request: FastifyRequest) => {
   const refreshToken = request.cookies.refreshToken || "";
 
-  if (!refreshToken) throw new ApiError("Unauthorized", 401);
-
-  const decoded = verifyRefreshToken(refreshToken) as {
-    userId: string;
-  };
-  const userId = decoded.userId;
-
-  // Check if the refresh token has been revoked
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
-
-  if (!user || !user.refreshToken) {
-    throw new ApiError("Refresh token not found!", 401);
-  }
-
-  if (user.refreshToken !== refreshToken) {
-    throw new ApiError("Invalid Refresh Token!", 401);
-  }
-
-  const accessToken = generateAccessToken(user.id);
+  const accessToken = await refreshTokenService(refreshToken);
 
   return { accessToken };
 };
 
-export { register, login, logout, refreshToken };
+export { register, login, logout, refreshToken, verifyEmail };

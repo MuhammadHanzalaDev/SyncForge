@@ -2,6 +2,8 @@ import jwt from "jsonwebtoken";
 import { env } from "@/config/env";
 import bcrypt from "bcryptjs";
 import { SignOptions } from "jsonwebtoken";
+import crypto from "crypto";
+import { ApiError } from "@/utils/Error";
 
 const generateAccessToken = (id: string) => {
   return jwt.sign({ userId: id }, env.AUTH_SECRET, {
@@ -25,16 +27,16 @@ const verifyRefreshToken = (token: string) => {
   return decoded;
 };
 
-const hashPassword = async (password: string) => {
-  const hashed = await bcrypt.hash(password, 10);
+const hashString = async (string: string) => {
+  const hashed = await bcrypt.hash(string, 10);
   return hashed;
 };
 
-const comparePassword = async (
-  enteredPassword: string,
-  savedPassword: string | null,
+const compareHashedString = async (
+  enteredString: string,
+  hash: string | null,
 ) => {
-  const isValid = await bcrypt.compare(enteredPassword, savedPassword || "");
+  const isValid = await bcrypt.compare(enteredString, hash || "");
   return isValid;
 };
 
@@ -53,12 +55,40 @@ const calculateCookieExpiry = (expiresIn: SignOptions["expiresIn"]) => {
   return expireMs;
 };
 
+const generateOTP = (minutes = 3) => {
+  const otp = crypto.randomInt(100000, 999999).toString();
+
+  // Set expiry timestamp
+  const expiresAt = new Date(Date.now() + minutes * 60 * 1000);
+
+  return { otp, expiresAt };
+};
+
+const verifyOtp = async (
+  enteredOtp: string,
+  storedOtpHash: string,
+  otpExpiresAt: Date,
+) => {
+  if (!storedOtpHash || !otpExpiresAt) throw new ApiError("No OTP found!", 410);
+
+  if (new Date(otpExpiresAt).getTime() < Date.now()) {
+    throw new ApiError("OTP expired!", 403);
+  }
+
+  const isMatch = await compareHashedString(enteredOtp, storedOtpHash);
+  if (!isMatch) {
+    throw new ApiError("Invalid otp!", 400);
+  }
+};
+
 export {
   generateAccessToken,
   generateRefreshToken,
   verifyAccessToken,
   verifyRefreshToken,
-  hashPassword,
-  comparePassword,
+  hashString,
+  compareHashedString,
   calculateCookieExpiry,
+  generateOTP,
+  verifyOtp,
 };

@@ -1,3 +1,5 @@
+import { ZodError } from "zod";
+
 // Define a base ApiError class
 class ApiError extends Error {
   statusCode: number;
@@ -22,4 +24,11 @@ class BadRequestError extends ApiError {
   }
 }
 
-export { ApiError, NotFoundError, BadRequestError };
+function formatZodError(err: ZodError) {
+  return err.issues.map((e) => ({
+    field: e.path.join("."),
+    message: e.message,
+  }));
+}
+
+export { ApiError, NotFoundError, BadRequestError, formatZodError };

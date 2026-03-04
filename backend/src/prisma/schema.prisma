@@ -7,15 +7,16 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  firstName String
-  lastName  String
-  email     String   @unique
-  avatar    String?
-  password  String?
+  id           String   @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String   @unique
+  avatar       String?
+  password     String?
   refreshToken String?
-  createdAt DateTime @default(now())
-  updatedAt    DateTime @updatedAt @default(now())
+  isVerified   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 
   workspaces  Workspace[]       @relation("WorkspaceOwner")
   memberships WorkspaceMember[]
@@ -63,4 +64,12 @@ model Message {
 
   room   Room @relation(fields: [roomId], references: [id])
   sender User @relation(fields: [senderId], references: [id])
+}
+
+model Otp {
+  id        String   @id @default(uuid())
+  userId    String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
