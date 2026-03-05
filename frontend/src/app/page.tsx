@@ -1,7 +1,24 @@
-"use client";
+"use client"
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black"></div>
-  );
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+import { useAuthStore } from "@/shared/store/authStore"
+import { useAuthInit } from "@/modules/auth/hooks/useAuthInit"
+
+export default function RootPage() {
+  const router = useRouter()
+  const { isAuthenticated } = useAuthStore()
+  const { isLoading } = useAuthInit()
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (isAuthenticated) {
+        router.replace("/dashboard")
+      } else {
+        router.replace("/login")
+      }
+    }
+  }, [isAuthenticated, isLoading, router])
+
+  return <div>Loading...</div>
 }

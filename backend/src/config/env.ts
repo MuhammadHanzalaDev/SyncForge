@@ -10,4 +10,7 @@ export const env = {
   AUTH_REFRESH_SECRET: process.env.AUTH_REFRESH_SECRET!,
   AUTH_REFRESH_SECRET_EXPIRES_IN: process.env
     .AUTH_REFRESH_SECRET_EXPIRES_IN! as jwt.SignOptions["expiresIn"],
+  GMAIL_USER: process.env.GMAIL_USER!,
+  GMAIL_USER_PASS: process.env.GMAIL_USER_PASS!,
+  CLIENT_URL: process.env.CLIENT_URL!,
 };
