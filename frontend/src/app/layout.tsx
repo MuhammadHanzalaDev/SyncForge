@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/shared/components/theme-provider";
 import { ModeToggle } from "@/shared/components/ModeToggle";
 import { ReactQueryProvider } from "@/shared/providers/ReactQueryProvider";
+import { Toaster } from "@/shared/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,6 +40,7 @@ export default function RootLayout({
           >
             <ModeToggle />
             {children}
+            <Toaster />
           </ThemeProvider>
         </ReactQueryProvider>
       </body>

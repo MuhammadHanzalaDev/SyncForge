@@ -1,6 +1,6 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginFormValues, loginSchema } from "../schemas/signup.schema";
+import { LoginFormValues, loginSchema } from "../schemas/login.schema";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldDescription, FieldGroup } from "@/shared/ui/field";
 import CustomFormField from "@/shared/ui/form/CustomFormField";

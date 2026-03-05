@@ -19,13 +19,6 @@ const signupSchema = z
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 
-const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string(),
-});
+export { signupSchema };
 
-type LoginFormValues = z.infer<typeof loginSchema>;
-
-export { signupSchema, loginSchema };
-
-export type { SignupFormValues, LoginFormValues };
+export type { SignupFormValues };

@@ -1,15 +1,21 @@
 "use client";
-
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupSchema, SignupFormValues } from "../schemas/signup.schema";
 import { Button } from "@/shared/ui/button";
-import { Card } from "@/shared/ui/card";
 import { Field, FieldDescription, FieldGroup } from "@/shared/ui/field";
-import CustomFormField from "@/shared/ui/form/CustomFormField";
+import { CustomFormField, CustomButton } from "@/shared/ui";
 import Link from "next/link";
+import { useSignup } from "../queries/auth.mutation";
 
-export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
+interface SignupFormProps {
+  isVerifyScreen: boolean;
+  setIsVerifyScreen: (val: boolean) => void;
+}
+
+export function SignupForm({ setIsVerifyScreen }: SignupFormProps) {
+  const { mutate, isPending } = useSignup(onSuccess);
+
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -21,18 +27,23 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
     },
   });
 
+  function onSuccess() {
+    setIsVerifyScreen(true);
+  }
+
   const onSubmit = async (values: SignupFormValues) => {
     console.log(values);
 
-    // Later: send to backend
-    // await fetch("/api/signup", {...})
+    mutate(values);
   };
 
   return (
     <FormProvider {...form}>
       <div className="mb-5">
         <div className=" text-lg font-semibold">Create an account</div>
-        <div className="text-sm text-muted-foreground">Enter your information below to create your account</div>
+        <div className="text-sm text-muted-foreground">
+          Enter your information below to create your account
+        </div>
       </div>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FieldGroup>
@@ -68,7 +79,15 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
           />
           <FieldGroup>
             <Field>
-              <Button type="submit">Create Account</Button>
+              <CustomButton
+                type="submit"
+                disabled={isPending}
+                isLoading={isPending}
+                variant="default"
+                className="w-100"
+              >
+                Create Account
+              </CustomButton>
               {/* <Button variant="outline" type="button">
                     Sign up with Google
                   </Button> */}

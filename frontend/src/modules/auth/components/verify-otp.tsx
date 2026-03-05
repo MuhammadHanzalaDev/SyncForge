@@ -1,0 +1,62 @@
+import { Button } from "@/shared/ui/button";
+import { Field, FieldDescription, FieldLabel } from "@/shared/ui/field";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "@/shared/ui/input-otp";
+import { RefreshCwIcon } from "lucide-react";
+
+export default function VerifyOtp() {
+  return (
+    <div className="mx-auto max-w-md">
+      <div className="mb-5">
+        <div className=" text-lg font-semibold">Verify your login</div>
+        <div className="text-sm text-muted-foreground">
+          Enter the verification code we sent to your email address:{" "}
+          <span className="font-medium">m@example.com</span>
+        </div>
+      </div>
+      <Field>
+        <div className="flex items-center justify-between">
+          <FieldLabel htmlFor="otp-verification">Verification code</FieldLabel>
+          <Button variant="outline" size="xs">
+            <RefreshCwIcon />
+            Resend Code
+          </Button>
+        </div>
+        <InputOTP maxLength={6} id="otp-verification" required>
+          <InputOTPGroup className="*:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:w-11 *:data-[slot=input-otp-slot]:text-xl">
+            <InputOTPSlot index={0} />
+            <InputOTPSlot index={1} />
+            <InputOTPSlot index={2} />
+          </InputOTPGroup>
+          <InputOTPSeparator className="mx-2" />
+          <InputOTPGroup className="*:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:w-11 *:data-[slot=input-otp-slot]:text-xl">
+            <InputOTPSlot index={3} />
+            <InputOTPSlot index={4} />
+            <InputOTPSlot index={5} />
+          </InputOTPGroup>
+        </InputOTP>
+        <FieldDescription>
+          <a href="#">I no longer have access to this email address.</a>
+        </FieldDescription>
+      </Field>
+      <Field>
+        <Button type="submit" className="w-full">
+          Verify
+        </Button>
+        <div className="text-sm text-muted-foreground">
+          Having trouble signing in?{" "}
+          <a
+            href="#"
+            className="underline underline-offset-4 transition-colors hover:text-primary"
+          >
+            Contact support
+          </a>
+        </div>
+      </Field>
+    </div>
+  );
+}
