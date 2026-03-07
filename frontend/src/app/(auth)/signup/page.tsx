@@ -1,4 +1,5 @@
 "use client";
+
 import Image from "next/image";
 import { SignupForm } from "@/modules/auth/components/signup-form";
 import VerifyOtp from "@/modules/auth/components/verify-otp";
@@ -6,6 +7,7 @@ import { useState } from "react";
 
 export default function Page() {
   const [isVerifyScreen, setIsVerifyScreen] = useState(false);
+  const [email, setEmail] = useState("");
 
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
@@ -21,11 +23,11 @@ export default function Page() {
           />
         </div>
         {isVerifyScreen ? (
-          <VerifyOtp />
+          <VerifyOtp email={email} />
         ) : (
           <SignupForm
-            isVerifyScreen={isVerifyScreen}
             setIsVerifyScreen={setIsVerifyScreen}
+            setEmail={setEmail}
           />
         )}
       </div>

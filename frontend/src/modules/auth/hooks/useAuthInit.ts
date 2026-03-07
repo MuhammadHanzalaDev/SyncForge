@@ -17,9 +17,9 @@ export function useAuthInit() {
           { withCredentials: true },
         );
 
-        setAccessToken(res.data.accessToken);
+        setAccessToken(res.data.accessToken, true);
       } catch {
-        setAccessToken(null);
+        setAccessToken(null, false);
       } finally {
         setIsLoading(false);
       }

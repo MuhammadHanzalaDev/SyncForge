@@ -16,6 +16,7 @@ interface CustomButtonProps {
     | undefined;
   className?: string;
   type?: "submit" | "reset" | "button";
+  onClick?: () => void;
 }
 
 export default function CustomButton({
@@ -25,6 +26,7 @@ export default function CustomButton({
   variant = "outline",
   className = "",
   type = "button",
+  onClick = () => {},
 }: CustomButtonProps) {
   return (
     <div className="flex gap-2">
@@ -33,6 +35,7 @@ export default function CustomButton({
         disabled={disabled}
         className={className}
         type={type}
+        onClick={onClick}
       >
         {children}
         {isLoading && <Spinner data-icon="inline-start" />}

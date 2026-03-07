@@ -1,5 +1,3 @@
-"use client";
-
 import { LoginForm } from "@/modules/auth/components/login-form";
 import Image from "next/image";
 

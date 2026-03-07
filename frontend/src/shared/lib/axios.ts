@@ -62,7 +62,7 @@ api.interceptors.response.use(
 
         const newAccessToken = response.data.accessToken;
 
-        useAuthStore.getState().setAccessToken(newAccessToken);
+        useAuthStore.getState().setAccessToken(newAccessToken, true);
 
         processQueue(null, newAccessToken);
 
@@ -71,7 +71,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (err) {
         processQueue(err, null);
-        useAuthStore.getState().setAccessToken(null);
+        useAuthStore.getState().setAccessToken(null, false);
         return Promise.reject(err);
       } finally {
         isRefreshing = false;

@@ -1,12 +1,19 @@
+"use client";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoginFormValues, loginSchema } from "../schemas/login.schema";
-import { Button } from "@/shared/ui/button";
+import { loginSchema } from "../schemas/login.schema";
+import { LoginFormValues } from "../types/auth.types";
 import { Field, FieldDescription, FieldGroup } from "@/shared/ui/field";
-import CustomFormField from "@/shared/ui/form/CustomFormField";
+import { CustomButton, CustomFormField } from "@/shared/ui";
 import Link from "next/link";
+import { useLogin } from "../queries/auth.mutation";
+import { useAuthStore } from "@/shared/store/authStore";
+import { useRouter } from "next/navigation";
 
 export function LoginForm({ ...props }: React.ComponentProps<"div">) {
+  const router = useRouter();
+  const { setAccessToken } = useAuthStore();
+  const { mutate, isPending } = useLogin();
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -16,10 +23,12 @@ export function LoginForm({ ...props }: React.ComponentProps<"div">) {
   });
 
   const onSubmit = async (values: LoginFormValues) => {
-    console.log(values);
-
-    // Later: send to backend
-    // await fetch("/api/signup", {...})
+    mutate(values, {
+      onSuccess: (data) => {
+        setAccessToken(data?.data?.accessToken, true);
+        router.replace("/");
+      },
+    });
   };
 
   return (
@@ -50,7 +59,15 @@ export function LoginForm({ ...props }: React.ComponentProps<"div">) {
           </a>
           <FieldGroup>
             <Field>
-              <Button type="submit">Login</Button>
+              <CustomButton
+                type="submit"
+                disabled={isPending}
+                isLoading={isPending}
+                variant="default"
+                className="w-100"
+              >
+                Login
+              </CustomButton>
               {/* <Button variant="outline" type="button">
                     Login with Google
                   </Button> */}

@@ -1,20 +1,20 @@
 "use client";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signupSchema, SignupFormValues } from "../schemas/signup.schema";
-import { Button } from "@/shared/ui/button";
+import { signupSchema } from "../schemas/signup.schema";
+import { SignupFormValues } from "../types/auth.types";
 import { Field, FieldDescription, FieldGroup } from "@/shared/ui/field";
 import { CustomFormField, CustomButton } from "@/shared/ui";
 import Link from "next/link";
 import { useSignup } from "../queries/auth.mutation";
 
 interface SignupFormProps {
-  isVerifyScreen: boolean;
   setIsVerifyScreen: (val: boolean) => void;
+  setEmail: (val: string) => void;
 }
 
-export function SignupForm({ setIsVerifyScreen }: SignupFormProps) {
-  const { mutate, isPending } = useSignup(onSuccess);
+export function SignupForm({ setIsVerifyScreen, setEmail }: SignupFormProps) {
+  const { mutate, isPending } = useSignup();
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -29,12 +29,11 @@ export function SignupForm({ setIsVerifyScreen }: SignupFormProps) {
 
   function onSuccess() {
     setIsVerifyScreen(true);
+    setEmail(form.getValues().email);
   }
 
   const onSubmit = async (values: SignupFormValues) => {
-    console.log(values);
-
-    mutate(values);
+    mutate(values, { onSuccess });
   };
 
   return (
