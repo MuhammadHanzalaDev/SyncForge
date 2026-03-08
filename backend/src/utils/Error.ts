@@ -3,11 +3,13 @@ import { ZodError } from "zod";
 // Define a base ApiError class
 class ApiError extends Error {
   statusCode: number;
+  data: any;
 
-  constructor(message: string, statusCode = 500, name = "ApiError") {
+  constructor(message: string, statusCode = 500, name = "ApiError", data = {}) {
     super(message);
     this.statusCode = statusCode;
     this.name = name;
+    this.data = data;
   }
 }
 

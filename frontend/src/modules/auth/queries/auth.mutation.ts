@@ -1,7 +1,14 @@
 import { useMutation } from "@tanstack/react-query";
-import { login, logout, signup, verify } from "../services/auth.api";
+import {
+  login,
+  logout,
+  resendVerifyOtp,
+  signup,
+  verify,
+} from "../services/auth.api";
 import { ApiError } from "@/shared/types/api.types";
 import message from "@/shared/utils/toast";
+import { LoginFormValues } from "../types/auth.types";
 
 const useSignup = () => {
   return useMutation({
@@ -24,12 +31,8 @@ const useVerifyEmail = () => {
 };
 
 const useLogin = () => {
-  return useMutation({
+  return useMutation<any, ApiError, LoginFormValues>({
     mutationFn: login,
-
-    onError: (error: ApiError) => {
-      message.error(error.message || "Something went wrong!");
-    },
   });
 };
 
@@ -47,4 +50,14 @@ const useLogout = (onSuccess: () => void) => {
   });
 };
 
-export { useSignup, useVerifyEmail, useLogin, useLogout };
+const useResendVerifyOtp = () => {
+  return useMutation({
+    mutationFn: resendVerifyOtp,
+
+    onError: (error: ApiError) => {
+      message.error(error.message || "Something went wrong!");
+    },
+  });
+};
+
+export { useSignup, useVerifyEmail, useLogin, useLogout, useResendVerifyOtp };

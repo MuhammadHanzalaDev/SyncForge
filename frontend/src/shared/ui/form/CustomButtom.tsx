@@ -16,6 +16,7 @@ interface CustomButtonProps {
     | undefined;
   className?: string;
   type?: "submit" | "reset" | "button";
+  size?: "default" | "xs" | "sm" | "lg" | "icon";
   onClick?: () => void;
 }
 
@@ -26,6 +27,7 @@ export default function CustomButton({
   variant = "outline",
   className = "",
   type = "button",
+  size = "default",
   onClick = () => {},
 }: CustomButtonProps) {
   return (
@@ -35,6 +37,7 @@ export default function CustomButton({
         disabled={disabled}
         className={className}
         type={type}
+        size={size}
         onClick={onClick}
       >
         {children}

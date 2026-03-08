@@ -9,10 +9,12 @@ import Link from "next/link";
 import { useLogin } from "../queries/auth.mutation";
 import { useAuthStore } from "@/shared/store/authStore";
 import { useRouter } from "next/navigation";
+import { ApiError } from "@/shared/types/api.types";
+import message from "@/shared/utils/toast";
 
-export function LoginForm({ ...props }: React.ComponentProps<"div">) {
+export function LoginForm() {
   const router = useRouter();
-  const { setAccessToken } = useAuthStore();
+  const { setAccessToken, setOtpExpiresAt } = useAuthStore();
   const { mutate, isPending } = useLogin();
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -27,6 +29,14 @@ export function LoginForm({ ...props }: React.ComponentProps<"div">) {
       onSuccess: (data) => {
         setAccessToken(data?.data?.accessToken, true);
         router.replace("/");
+      },
+      onError: (error: ApiError<any>) => {
+        if (error.error === "EMAIL_NOT_VERIFIED") {
+          router.replace(`/verify-email?email=${form.getValues().email}`);
+          setOtpExpiresAt(error?.data?.otpExpiresAt || null);
+        } else {
+          message.error(error.message || "Something went wrong!");
+        }
       },
     });
   };

@@ -5,6 +5,7 @@ import {
   logout,
   refreshToken,
   verifyEmail,
+  resendVerifyOtp,
 } from "./auth.controller";
 
 const authRoutes: FastifyPluginAsync = async (app) => {
@@ -13,6 +14,7 @@ const authRoutes: FastifyPluginAsync = async (app) => {
   app.post("/login", login);
   app.post("/logout", { preHandler: [app.authenticate] }, logout);
   app.post("/refresh-token", refreshToken);
+  app.post("/resend-otp", resendVerifyOtp);
 };
 
 export default authRoutes;

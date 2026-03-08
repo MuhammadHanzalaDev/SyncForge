@@ -61,4 +61,15 @@ const refreshToken = async () => {
   }
 };
 
-export { signup, verify, login, logout, refreshToken };
+const resendVerifyOtp = async (email: string) => {
+  try {
+    const res = await api.post("/auth/resend-otp", { email });
+    return res.data;
+  } catch (err: unknown) {
+    if (err instanceof AxiosError) {
+      throw err?.response?.data;
+    }
+  }
+};
+
+export { signup, verify, login, logout, refreshToken, resendVerifyOtp };

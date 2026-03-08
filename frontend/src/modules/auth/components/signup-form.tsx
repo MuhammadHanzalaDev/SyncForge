@@ -7,13 +7,12 @@ import { Field, FieldDescription, FieldGroup } from "@/shared/ui/field";
 import { CustomFormField, CustomButton } from "@/shared/ui";
 import Link from "next/link";
 import { useSignup } from "../queries/auth.mutation";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/shared/store/authStore";
 
-interface SignupFormProps {
-  setIsVerifyScreen: (val: boolean) => void;
-  setEmail: (val: string) => void;
-}
-
-export function SignupForm({ setIsVerifyScreen, setEmail }: SignupFormProps) {
+export function SignupForm() {
+  const router = useRouter();
+  const { setOtpExpiresAt } = useAuthStore();
   const { mutate, isPending } = useSignup();
 
   const form = useForm<SignupFormValues>({
@@ -27,9 +26,9 @@ export function SignupForm({ setIsVerifyScreen, setEmail }: SignupFormProps) {
     },
   });
 
-  function onSuccess() {
-    setIsVerifyScreen(true);
-    setEmail(form.getValues().email);
+  function onSuccess(data: any) {
+    setOtpExpiresAt(data?.data?.otpExpiresAt);
+    router.replace(`/verify-email?email=${form.getValues().email}`);
   }
 
   const onSubmit = async (values: SignupFormValues) => {

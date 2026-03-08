@@ -1,7 +1,7 @@
 "use client";
 
-import { Button } from "@/shared/ui/button";
-import { Field, FieldDescription, FieldLabel } from "@/shared/ui/field";
+import { useEffect } from "react";
+import { FieldDescription, FieldLabel } from "@/shared/ui/field";
 import {
   InputOTP,
   InputOTPGroup,
@@ -11,10 +11,11 @@ import {
 import { RefreshCwIcon } from "lucide-react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { useState } from "react";
-import { useVerifyEmail } from "../queries/auth.mutation";
-import { CustomButton } from "@/shared/ui";
+import { useResendVerifyOtp, useVerifyEmail } from "../queries/auth.mutation";
 import { useAuthStore } from "@/shared/store/authStore";
 import { useRouter } from "next/navigation";
+import { useCountdown } from "../hooks/useCountDown";
+import { CustomButton } from "@/shared/ui";
 
 interface VerifyOtpProps {
   email: string;
@@ -22,8 +23,11 @@ interface VerifyOtpProps {
 
 export default function VerifyOtp({ email }: VerifyOtpProps) {
   const router = useRouter();
-  const { setAccessToken } = useAuthStore();
-  const { mutate, isPending, isError, error } = useVerifyEmail();
+  const { setAccessToken, otpExpiresAt, setOtpExpiresAt } = useAuthStore();
+  const { mutate, isError, error, isPending, reset } = useVerifyEmail();
+  const { mutate: resendMutate, isPending: resendPending } =
+    useResendVerifyOtp();
+  const { formatted, isExpired } = useCountdown(otpExpiresAt);
 
   const [value, setValue] = useState("");
 
@@ -44,6 +48,26 @@ export default function VerifyOtp({ email }: VerifyOtpProps) {
     );
   };
 
+  const onResend = () => {
+    resendMutate(email, {
+      onSuccess: (data) => {
+        setOtpExpiresAt(data?.data?.otpExpiresAt);
+      },
+    });
+  };
+
+  useEffect(() => {
+    if (value.length === 6 && !isExpired && !isPending) {
+      onSubmit();
+    }
+  }, [value]);
+
+  useEffect(() => {
+    if (!email) {
+      router.replace("/login");
+    }
+  }, [email, router]);
+
   return (
     <div className="mx-auto">
       <div className="mb-5">
@@ -59,10 +83,22 @@ export default function VerifyOtp({ email }: VerifyOtpProps) {
         <div className="flex items-center justify-between">
           <FieldLabel htmlFor="otp-verification">Verification code</FieldLabel>
 
-          <Button variant="outline" size="xs">
-            <RefreshCwIcon />
-            Resend Code
-          </Button>
+          <CustomButton
+            variant="outline"
+            size="xs"
+            disabled={!isExpired}
+            onClick={onResend}
+            isLoading={resendPending}
+          >
+            {isExpired ? (
+              <>
+                {!resendPending && <RefreshCwIcon />}
+                Resend Code
+              </>
+            ) : (
+              <>Resend in {formatted}</>
+            )}
+          </CustomButton>
         </div>
 
         <InputOTP
@@ -71,9 +107,15 @@ export default function VerifyOtp({ email }: VerifyOtpProps) {
           required
           pattern={REGEXP_ONLY_DIGITS}
           value={value}
-          onChange={(value) => setValue(value)}
+          onChange={(value) => {
+            if (isError) reset();
+            setValue(value);
+          }}
+          className="w-full"
+          disabled={isExpired}
+          autoFocus={true}
         >
-          <InputOTPGroup className="*:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:w-11 *:data-[slot=input-otp-slot]:text-xl">
+          <InputOTPGroup className="flex flex-1 gap-2 *:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:flex-1 *:data-[slot=input-otp-slot]:text-xl">
             <InputOTPSlot index={0} aria-invalid={isError} />
             <InputOTPSlot index={1} aria-invalid={isError} />
             <InputOTPSlot index={2} aria-invalid={isError} />
@@ -81,12 +123,24 @@ export default function VerifyOtp({ email }: VerifyOtpProps) {
 
           <InputOTPSeparator className="mx-2" />
 
-          <InputOTPGroup className="*:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:w-11 *:data-[slot=input-otp-slot]:text-xl">
+          <InputOTPGroup className="flex flex-1 gap-2 *:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:flex-1 *:data-[slot=input-otp-slot]:text-xl">
             <InputOTPSlot index={3} aria-invalid={isError} />
             <InputOTPSlot index={4} aria-invalid={isError} />
             <InputOTPSlot index={5} aria-invalid={isError} />
           </InputOTPGroup>
         </InputOTP>
+
+        {!isExpired && (
+          <p className="text-xs text-muted-foreground">
+            Code expires in {formatted}
+          </p>
+        )}
+
+        {isExpired && (
+          <p className="text-xs text-red-500">
+            Code expired. Please resend a new one.
+          </p>
+        )}
 
         {isError && (
           <p className="text-sm text-red-500">
@@ -98,29 +152,6 @@ export default function VerifyOtp({ email }: VerifyOtpProps) {
           <a href="#">I no longer have access to this email address.</a>
         </FieldDescription>
       </div>
-
-      <Field>
-        <CustomButton
-          type="button"
-          className="w-full"
-          isLoading={isPending}
-          disabled={isPending || value.length !== 6}
-          variant={"default"}
-          onClick={onSubmit}
-        >
-          Verify
-        </CustomButton>
-
-        <div className="text-sm text-muted-foreground">
-          Having trouble signing in?{" "}
-          <a
-            href="#"
-            className="underline underline-offset-4 transition-colors hover:text-primary"
-          >
-            Contact support
-          </a>
-        </div>
-      </Field>
     </div>
   );
 }

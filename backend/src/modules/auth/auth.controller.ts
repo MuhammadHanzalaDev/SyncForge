@@ -10,6 +10,7 @@ import type {
 import {
   loginService,
   refreshTokenService,
+  resendVerifyOtpService,
   verifyEmailService,
 } from "./auth.service";
 import { registerService } from "./auth.service";
@@ -17,9 +18,12 @@ import { registerService } from "./auth.service";
 const register = async (request: FastifyRequest<{ Body: RegisterValues }>) => {
   const data = request.body;
 
-  await registerService(data);
+  const otpExpiresAt = await registerService(data);
 
-  return { message: "An otp has been sent to your email address!" };
+  return {
+    message: "An otp has been sent to your email address!",
+    otpExpiresAt,
+  };
 };
 
 const verifyEmail = async (
@@ -81,4 +85,14 @@ const refreshToken = async (request: FastifyRequest) => {
   return { accessToken };
 };
 
-export { register, login, logout, refreshToken, verifyEmail };
+const resendVerifyOtp = async (
+  request: FastifyRequest<{ Body: { email: string } }>,
+) => {
+  const email = request.body?.email;
+
+  const expiresAt = await resendVerifyOtpService(email);
+
+  return { message: "Otp sent successfully!", otpExpiresAt: expiresAt };
+};
+
+export { register, login, logout, refreshToken, verifyEmail, resendVerifyOtp };

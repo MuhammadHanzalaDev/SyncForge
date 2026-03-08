@@ -34,6 +34,7 @@ const errorHandler: FastifyPluginAsync = async (app) => {
       statusCode: status,
       message: error.message || "Internal Server Error",
       error: error.name || "Error",
+      ...(error.data && { data: error.data }),
     });
   });
 };

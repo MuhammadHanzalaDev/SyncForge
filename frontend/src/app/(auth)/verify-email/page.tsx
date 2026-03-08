@@ -1,9 +1,13 @@
-import React from 'react'
+"use client";
 
-const page = () => {
-  return (
-    <div>page</div>
-  )
-}
+import VerifyOtp from "@/modules/auth/components/verify-otp";
+import { useSearchParams } from "next/navigation";
 
-export default page
+const Page = () => {
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email");
+
+  return <VerifyOtp email={email || ""} />;
+};
+
+export default Page;

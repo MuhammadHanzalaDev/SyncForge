@@ -57,6 +57,8 @@ const registerService = async (data: RegisterValues) => {
     `${otp} is your SyncForge activation code`,
     `Copy and paste this code to activate your SyncForge account: ${otp}`,
   );
+
+  return expiresAt.getTime();
 };
 
 const verifyEmailService = async (data: VerifyEmailValues) => {
@@ -111,6 +113,30 @@ const loginService = async (data: LoginValues) => {
     throw new ApiError("Invalid credentials", 400);
   }
 
+  // email is not verified stop access and send verification email
+  if (!user.isVerified) {
+    const { otp, expiresAt } = generateOTP();
+    const hashedOtp = await hashString(otp);
+
+    await prisma.otp.create({
+      data: {
+        userId: user.id,
+        code: hashedOtp,
+        expiresAt,
+      },
+    });
+
+    await sendEmail(
+      user.email,
+      `${otp} is your SyncForge activation code`,
+      `Copy and paste this code to activate your SyncForge account: ${otp}`,
+    );
+
+    throw new ApiError("Email Not Verified", 400, "EMAIL_NOT_VERIFIED", {
+      otpExpiresAt: expiresAt.getTime(),
+    });
+  }
+
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
 
@@ -148,9 +174,54 @@ const refreshTokenService = async (refreshToken: string) => {
   return accessToken;
 };
 
+const resendVerifyOtpService = async (email: string) => {
+  if (!email) {
+    throw new ApiError("Email is Required!");
+  }
+
+  const user = await prisma.user.findUnique({
+    where: { email: email },
+  });
+
+  if (!user) {
+    throw new Error("Invalid Email!");
+  }
+
+  const otpRecord = await prisma.otp.findFirst({
+    where: { userId: user.id },
+    orderBy: { createdAt: "desc" }, // get latest OTP
+  });
+
+  if ((otpRecord?.expiresAt || new Date()).getTime() > new Date().getTime()) {
+    throw new Error("Otp not expired!");
+  }
+
+  await prisma.otp.delete({ where: { id: otpRecord?.id } });
+
+  const { otp, expiresAt } = generateOTP();
+  const hashedOtp = await hashString(otp);
+
+  await prisma.otp.create({
+    data: {
+      userId: user.id,
+      code: hashedOtp,
+      expiresAt,
+    },
+  });
+
+  await sendEmail(
+    user.email,
+    `${otp} is your SyncForge activation code`,
+    `Copy and paste this code to activate your SyncForge account: ${otp}`,
+  );
+
+  return expiresAt.getTime();
+};
+
 export {
   registerService,
   verifyEmailService,
   loginService,
   refreshTokenService,
+  resendVerifyOtpService,
 };
