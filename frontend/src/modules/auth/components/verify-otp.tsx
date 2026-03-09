@@ -42,7 +42,7 @@ export default function VerifyOtp({ email }: VerifyOtpProps) {
       {
         onSuccess: (data) => {
           setAccessToken(data?.data?.accessToken, true);
-          router.replace("/");
+          router.replace("/workspaces");
         },
       },
     );

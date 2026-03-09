@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuthStore } from "@/shared/store/authStore";
 import { useAuthInit } from "@/modules/auth/hooks/useAuthInit";
+import { CustomLoader } from "@/shared/ui";
 
 export default function RootPage() {
   const router = useRouter();
@@ -18,5 +19,11 @@ export default function RootPage() {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  return isLoading && <div>Loading...</div>;
+  return (
+    isLoading && (
+      <div className="h-screen flex justify-center items-center">
+        <CustomLoader />
+      </div>
+    )
+  );
 }

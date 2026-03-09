@@ -1,7 +1,7 @@
-import React from "react";
-
+"use client";
+import Workspaces from "@/modules/workspace/components/workspaces";
 const Page = () => {
-  return <div>workspaces</div>;
+  return <Workspaces />;
 };
 
 export default Page;

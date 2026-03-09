@@ -55,7 +55,7 @@ const calculateCookieExpiry = (expiresIn: SignOptions["expiresIn"]) => {
   return expireMs;
 };
 
-const generateOTP = (minutes = 1) => {
+const generateOTP = (minutes = 3) => {
   const otp = crypto.randomInt(100000, 999999).toString();
 
   // Set expiry timestamp

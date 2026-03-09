@@ -28,7 +28,7 @@ export function LoginForm() {
     mutate(values, {
       onSuccess: (data) => {
         setAccessToken(data?.data?.accessToken, true);
-        router.replace("/");
+        router.replace("/workspaces");
       },
       onError: (error: ApiError<any>) => {
         if (error.error === "EMAIL_NOT_VERIFIED") {
@@ -74,7 +74,7 @@ export function LoginForm() {
                 disabled={isPending}
                 isLoading={isPending}
                 variant="default"
-                className="w-100"
+                className="w-full"
               >
                 Login
               </CustomButton>

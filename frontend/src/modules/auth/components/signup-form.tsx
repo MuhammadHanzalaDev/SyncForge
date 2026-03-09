@@ -82,7 +82,7 @@ export function SignupForm() {
                 disabled={isPending}
                 isLoading={isPending}
                 variant="default"
-                className="w-100"
+                className="w-full"
               >
                 Create Account
               </CustomButton>
