@@ -1,8 +1,8 @@
 "use client";
 
 import { useFormContext } from "react-hook-form";
-import { Field, FieldLabel, FieldDescription, FieldError } from "../field";
-import { Input } from "../input";
+import { Field, FieldLabel, FieldDescription, FieldError } from "../ui/field";
+import { Input } from "../ui/input";
 
 interface CustomFieldProps {
   name: string;

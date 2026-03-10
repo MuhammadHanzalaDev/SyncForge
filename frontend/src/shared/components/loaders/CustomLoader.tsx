@@ -1,4 +1,4 @@
-import { Spinner } from "@/shared/ui/spinner";
+import { Spinner } from "@/shared/components/ui/spinner";
 
 function CustomLoader() {
   return (

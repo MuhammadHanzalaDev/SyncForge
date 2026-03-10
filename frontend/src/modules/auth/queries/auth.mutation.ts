@@ -36,12 +36,12 @@ const useLogin = () => {
   });
 };
 
-const useLogout = (onSuccess: () => void) => {
+const useLogout = () => {
   return useMutation({
     mutationFn: logout,
 
     onSuccess: () => {
-      onSuccess();
+      message.success("Logged out");
     },
 
     onError: (error: ApiError) => {

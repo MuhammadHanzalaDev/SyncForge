@@ -4,9 +4,11 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuthStore } from "@/shared/store/authStore";
 import { useAuthInit } from "@/modules/auth/hooks/useAuthInit";
-import { CustomLoader } from "@/shared/ui";
+import { CustomLoader, CustomButton } from "@/shared/components";
+import { useLogout } from "@/modules/auth/queries/auth.mutation";
 
 export default function RootPage() {
+  const { mutate } = useLogout();
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { isLoading } = useAuthInit();
@@ -19,11 +21,11 @@ export default function RootPage() {
     }
   }, [isAuthenticated, isLoading, router]);
 
-  return (
-    isLoading && (
-      <div className="h-screen flex justify-center items-center">
-        <CustomLoader />
-      </div>
-    )
+  return isLoading ? (
+    <div className="h-screen flex justify-center items-center">
+      <CustomLoader />
+    </div>
+  ) : (
+    <CustomButton onClick={() => mutate()}>Logout</CustomButton>
   );
 }

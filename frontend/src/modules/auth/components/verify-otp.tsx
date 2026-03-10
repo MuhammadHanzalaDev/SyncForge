@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect } from "react";
-import { FieldDescription, FieldLabel } from "@/shared/ui/field";
+import { FieldDescription, FieldLabel } from "@/shared/components/ui/field";
 import {
   InputOTP,
   InputOTPGroup,
   InputOTPSeparator,
   InputOTPSlot,
-} from "@/shared/ui/input-otp";
+} from "@/shared/components/ui/input-otp";
 import { RefreshCwIcon } from "lucide-react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { useState } from "react";
@@ -15,7 +15,7 @@ import { useResendVerifyOtp, useVerifyEmail } from "../queries/auth.mutation";
 import { useAuthStore } from "@/shared/store/authStore";
 import { useRouter } from "next/navigation";
 import { useCountdown } from "../hooks/useCountDown";
-import { CustomButton } from "@/shared/ui";
+import { CustomButton } from "@/shared/components";
 
 interface VerifyOtpProps {
   email: string;
