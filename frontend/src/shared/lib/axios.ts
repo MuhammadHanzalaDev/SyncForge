@@ -60,7 +60,7 @@ api.interceptors.response.use(
           { withCredentials: true },
         );
 
-        const newAccessToken = response.data?.data?.accessToken;
+        const newAccessToken = response.data?.accessToken;
 
         useAuthStore.getState().setAccessToken(newAccessToken, true);
 

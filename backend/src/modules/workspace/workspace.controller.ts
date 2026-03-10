@@ -11,8 +11,7 @@ const getAllWorkspaces = async (
     where: { ownerId: useId },
   });
 
-  return workspaces;
+  return { data: workspaces };
 };
 
-
-export { getAllWorkspaces }
+export { getAllWorkspaces };

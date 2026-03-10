@@ -27,7 +27,7 @@ export function LoginForm() {
   const onSubmit = async (values: LoginFormValues) => {
     mutate(values, {
       onSuccess: (data) => {
-        setAccessToken(data?.data?.accessToken, true);
+        setAccessToken(data?.accessToken, true);
         router.replace("/workspaces");
       },
       onError: (error: ApiError<any>) => {

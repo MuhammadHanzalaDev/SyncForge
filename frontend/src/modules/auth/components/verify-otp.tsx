@@ -41,7 +41,7 @@ export default function VerifyOtp({ email }: VerifyOtpProps) {
       },
       {
         onSuccess: (data) => {
-          setAccessToken(data?.data?.accessToken, true);
+          setAccessToken(data?.accessToken, true);
           router.replace("/workspaces");
         },
       },
@@ -51,7 +51,7 @@ export default function VerifyOtp({ email }: VerifyOtpProps) {
   const onResend = () => {
     resendMutate(email, {
       onSuccess: (data) => {
-        setOtpExpiresAt(data?.data?.otpExpiresAt);
+        setOtpExpiresAt(data?.otpExpiresAt);
       },
     });
   };

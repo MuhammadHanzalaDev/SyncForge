@@ -4,7 +4,8 @@ import { getAllWorkspaces } from "../services/workspace.api";
 const useWorkspaces = () => {
   return useQuery({
     queryKey: ["workspaces"],
-    queryFn: getAllWorkspaces,  });
+    queryFn: getAllWorkspaces,
+  });
 };
 
 export { useWorkspaces };

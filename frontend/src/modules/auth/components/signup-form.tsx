@@ -27,7 +27,7 @@ export function SignupForm() {
   });
 
   function onSuccess(data: any) {
-    setOtpExpiresAt(data?.data?.otpExpiresAt);
+    setOtpExpiresAt(data?.otpExpiresAt);
     router.replace(`/verify-email?email=${form.getValues().email}`);
   }
 
