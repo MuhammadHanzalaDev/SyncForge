@@ -10,7 +10,10 @@ interface AuthJwtPayload extends JwtPayload {
   userId: string;
 }
 
-type RegisterValues = z.infer<typeof validateRegister>;
+type RegisterValues = z.infer<typeof validateRegister> & {
+  refreshToken?: string;
+  isVerified?: boolean;
+};
 type LoginValues = z.infer<typeof validateLogin>;
 type VerifyEmailValues = z.infer<typeof validateVerifyEmail>;
 

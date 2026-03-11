@@ -20,13 +20,12 @@ import type {
   VerifyEmailValues,
 } from "./auth.types";
 import { sendEmail } from "@/utils/mailService";
+import * as userRepo from "./auth.repository";
 
 const registerService = async (data: RegisterValues) => {
   const parsed = validateRegister.parse(data);
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email: parsed.email },
-  });
+  const existingUser = await userRepo.findUserByEmail(parsed.email);
 
   if (existingUser) {
     throw new ApiError("Email is already in use.", 400);
@@ -34,11 +33,9 @@ const registerService = async (data: RegisterValues) => {
 
   const hashedPassword = await hashString(parsed.password);
 
-  const user = await prisma.user.create({
-    data: {
-      ...parsed,
-      password: hashedPassword,
-    },
+  const user = await userRepo.addUser({
+    ...parsed,
+    password: hashedPassword,
   });
 
   const { otp, expiresAt } = generateOTP();
@@ -64,9 +61,7 @@ const registerService = async (data: RegisterValues) => {
 const verifyEmailService = async (data: VerifyEmailValues) => {
   const parsed = validateVerifyEmail.parse(data);
 
-  const user = await prisma.user.findUnique({
-    where: { email: parsed.email },
-  });
+  const user = await userRepo.findUserByEmail(parsed.email);
 
   if (!user) {
     throw new ApiError("User not found!", 400);
@@ -86,9 +81,9 @@ const verifyEmailService = async (data: VerifyEmailValues) => {
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
 
-  await prisma.user.update({
-    where: { email: user.email },
-    data: { refreshToken, isVerified: true },
+  await userRepo.updateUserByEmail(user.email, {
+    refreshToken,
+    isVerified: true,
   });
 
   return { refreshToken, accessToken };
@@ -97,9 +92,7 @@ const verifyEmailService = async (data: VerifyEmailValues) => {
 const loginService = async (data: LoginValues) => {
   const parsed = validateLogin.parse(data);
 
-  const user = await prisma.user.findUnique({
-    where: { email: parsed.email },
-  });
+  const user = await userRepo.findUserByEmail(parsed.email);
 
   if (!user) {
     throw new ApiError("Invalid credentials", 400);
@@ -140,10 +133,7 @@ const loginService = async (data: LoginValues) => {
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
 
-  await prisma.user.update({
-    where: { email: user.email },
-    data: { refreshToken },
-  });
+  await userRepo.updateUserByEmail(user.email, { refreshToken });
 
   return { refreshToken, accessToken };
 };
@@ -157,9 +147,7 @@ const refreshTokenService = async (refreshToken: string) => {
   const userId = decoded.userId;
 
   // Check if the refresh token has been revoked
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-  });
+  const user = await userRepo.findUserById(userId);
 
   if (!user || !user.refreshToken) {
     throw new ApiError("Refresh token not found!", 401);
@@ -179,9 +167,7 @@ const resendVerifyOtpService = async (email: string) => {
     throw new ApiError("Email is Required!");
   }
 
-  const user = await prisma.user.findUnique({
-    where: { email: email },
-  });
+  const user = await userRepo.findUserByEmail(email);
 
   if (!user) {
     throw new Error("Invalid Email!");
