@@ -37,6 +37,15 @@ const errorHandler: FastifyPluginAsync = async (app) => {
       ...(Object.keys(error?.data)?.length > 0 ? { data: error.data } : {}),
     });
   });
+
+  app.setNotFoundHandler((request, reply) => {
+    reply.status(404).send({
+      success: false,
+      statusCode: 404,
+      message: "Resource not found",
+      error: "NotFound",
+    });
+  });
 };
 
 export default fp(errorHandler);

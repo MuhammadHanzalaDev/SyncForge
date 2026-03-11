@@ -1,5 +1,5 @@
-import prisma from "@/config/prisma";
 import { ApiError } from "@/utils/Error";
+import * as authRepo from "./auth.repository";
 import {
   validateRegister,
   validateLogin,
@@ -20,12 +20,11 @@ import type {
   VerifyEmailValues,
 } from "./auth.types";
 import { sendEmail } from "@/utils/mailService";
-import * as userRepo from "./auth.repository";
 
 const registerService = async (data: RegisterValues) => {
   const parsed = validateRegister.parse(data);
 
-  const existingUser = await userRepo.findUserByEmail(parsed.email);
+  const existingUser = await authRepo.findUserByEmail(parsed.email);
 
   if (existingUser) {
     throw new ApiError("Email is already in use.", 400);
@@ -33,7 +32,7 @@ const registerService = async (data: RegisterValues) => {
 
   const hashedPassword = await hashString(parsed.password);
 
-  const user = await userRepo.addUser({
+  const user = await authRepo.createUser({
     ...parsed,
     password: hashedPassword,
   });
@@ -41,12 +40,10 @@ const registerService = async (data: RegisterValues) => {
   const { otp, expiresAt } = generateOTP();
   const hashedOtp = await hashString(otp);
 
-  await prisma.otp.create({
-    data: {
-      userId: user.id,
-      code: hashedOtp,
-      expiresAt,
-    },
+  await authRepo.createOtp({
+    userId: user.id,
+    code: hashedOtp,
+    expiresAt,
   });
 
   await sendEmail(
@@ -61,27 +58,24 @@ const registerService = async (data: RegisterValues) => {
 const verifyEmailService = async (data: VerifyEmailValues) => {
   const parsed = validateVerifyEmail.parse(data);
 
-  const user = await userRepo.findUserByEmail(parsed.email);
+  const user = await authRepo.findUserByEmail(parsed.email);
 
   if (!user) {
     throw new ApiError("User not found!", 400);
   }
 
-  const otpRecord = await prisma.otp.findFirst({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" }, // get latest OTP
-  });
+  const otpRecord = await authRepo.findLatestOtp(user.id);
 
   if (!otpRecord) throw new ApiError("OTP not found!", 410);
 
   await verifyOtp(parsed.otp, otpRecord.code, otpRecord.expiresAt);
 
-  await prisma.otp.delete({ where: { id: otpRecord.id } });
+  await authRepo.deleteOtp(otpRecord.id);
 
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
 
-  await userRepo.updateUserByEmail(user.email, {
+  await authRepo.updateUserByEmail(user.email, {
     refreshToken,
     isVerified: true,
   });
@@ -92,7 +86,7 @@ const verifyEmailService = async (data: VerifyEmailValues) => {
 const loginService = async (data: LoginValues) => {
   const parsed = validateLogin.parse(data);
 
-  const user = await userRepo.findUserByEmail(parsed.email);
+  const user = await authRepo.findUserByEmail(parsed.email);
 
   if (!user) {
     throw new ApiError("Invalid credentials", 400);
@@ -111,12 +105,10 @@ const loginService = async (data: LoginValues) => {
     const { otp, expiresAt } = generateOTP();
     const hashedOtp = await hashString(otp);
 
-    await prisma.otp.create({
-      data: {
-        userId: user.id,
-        code: hashedOtp,
-        expiresAt,
-      },
+    await authRepo.createOtp({
+      userId: user.id,
+      code: hashedOtp,
+      expiresAt,
     });
 
     await sendEmail(
@@ -133,7 +125,7 @@ const loginService = async (data: LoginValues) => {
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id);
 
-  await userRepo.updateUserByEmail(user.email, { refreshToken });
+  await authRepo.updateUserByEmail(user.email, { refreshToken });
 
   return { refreshToken, accessToken };
 };
@@ -147,7 +139,7 @@ const refreshTokenService = async (refreshToken: string) => {
   const userId = decoded.userId;
 
   // Check if the refresh token has been revoked
-  const user = await userRepo.findUserById(userId);
+  const user = await authRepo.findUserById(userId);
 
   if (!user || !user.refreshToken) {
     throw new ApiError("Refresh token not found!", 401);
@@ -167,32 +159,27 @@ const resendVerifyOtpService = async (email: string) => {
     throw new ApiError("Email is Required!");
   }
 
-  const user = await userRepo.findUserByEmail(email);
+  const user = await authRepo.findUserByEmail(email);
 
   if (!user) {
     throw new Error("Invalid Email!");
   }
 
-  const otpRecord = await prisma.otp.findFirst({
-    where: { userId: user.id },
-    orderBy: { createdAt: "desc" }, // get latest OTP
-  });
+  const otpRecord = await authRepo.findLatestOtp(user.id);
 
   if ((otpRecord?.expiresAt || new Date()).getTime() > new Date().getTime()) {
     throw new Error("Otp not expired!");
   }
 
-  await prisma.otp.delete({ where: { id: otpRecord?.id } });
+  await authRepo.deleteOtp(otpRecord?.id || "");
 
   const { otp, expiresAt } = generateOTP();
   const hashedOtp = await hashString(otp);
 
-  await prisma.otp.create({
-    data: {
-      userId: user.id,
-      code: hashedOtp,
-      expiresAt,
-    },
+  await authRepo.createOtp({
+    userId: user.id,
+    code: hashedOtp,
+    expiresAt,
   });
 
   await sendEmail(

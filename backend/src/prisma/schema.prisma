@@ -7,42 +7,53 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(uuid())
+  id           String  @id @default(uuid())
   firstName    String
   lastName     String
-  email        String   @unique
+  email        String  @unique
   avatar       String?
   password     String?
   refreshToken String?
-  isVerified   Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now()) @updatedAt
+  isVerified   Boolean @default(false)
 
-  workspaces  Workspace[]       @relation("WorkspaceOwner")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   memberships WorkspaceMember[]
   messages    Message[]
 }
 
 model Workspace {
-  id        String   @id @default(uuid())
-  name      String
-  ownerId   String
-  createdAt DateTime @default(now())
+  id     String  @id @default(uuid())
+  name   String
+  avatar String?
 
-  owner   User              @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   members WorkspaceMember[]
   rooms   Room[]
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
 }
 
 model WorkspaceMember {
   userId      String
   workspaceId String
-  role        String
+  role        WorkspaceRole @default(MEMBER)
+  joinedAt    DateTime      @default(now())
 
-  user      User      @relation(fields: [userId], references: [id])
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  @@id([userId, workspaceId]) // composite PK
+  @@id([userId, workspaceId]) // composite primary key
+  // indexes
+  @@index([userId])
+  @@index([workspaceId])
 }
 
 model Room {

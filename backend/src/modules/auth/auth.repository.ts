@@ -1,7 +1,8 @@
 import prisma from "@/config/prisma";
-import { RegisterValues } from "./auth.types";
+import { RegisterValues, OtpValues } from "./auth.types";
 
-const addUser = (data: RegisterValues) => {
+// User
+const createUser = (data: RegisterValues) => {
   return prisma.user.create({
     data: data,
   });
@@ -26,4 +27,38 @@ const updateUserByEmail = (email: string, data: any) => {
   });
 };
 
-export { addUser, findUserByEmail, findUserById, updateUserByEmail };
+const updateUserById = (id: string, data: any) => {
+  return prisma.user.update({
+    where: { id },
+    data: data,
+  });
+};
+
+// Otp
+const createOtp = (data: OtpValues) => {
+  return prisma.otp.create({
+    data: data,
+  });
+};
+
+const findLatestOtp = (userId: string) => {
+  return prisma.otp.findFirst({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+const deleteOtp = (id: string) => {
+  return prisma.otp.delete({ where: { id } });
+};
+
+export {
+  createUser,
+  findUserByEmail,
+  findUserById,
+  updateUserByEmail,
+  updateUserById,
+  createOtp,
+  findLatestOtp,
+  deleteOtp,
+};

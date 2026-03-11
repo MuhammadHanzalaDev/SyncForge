@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import prisma from "@/config/prisma";
+import { updateUserById } from "./auth.repository";
 import { calculateCookieExpiry } from "./auth.utils";
 import { env } from "@/config/env";
 import type {
@@ -66,10 +66,7 @@ const logout = async (request: FastifyRequest, reply: FastifyReply) => {
   const userId = request.user.userId;
 
   if (userId) {
-    await prisma.user.update({
-      where: { id: userId },
-      data: { refreshToken: null }, // Clear the refresh token from the database
-    });
+    await updateUserById(userId, { refreshToken: null });
   }
 
   reply.clearCookie("refreshToken");

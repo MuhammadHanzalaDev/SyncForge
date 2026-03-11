@@ -17,4 +17,18 @@ type RegisterValues = z.infer<typeof validateRegister> & {
 type LoginValues = z.infer<typeof validateLogin>;
 type VerifyEmailValues = z.infer<typeof validateVerifyEmail>;
 
-export { AuthJwtPayload, RegisterValues, LoginValues, VerifyEmailValues };
+interface OtpValues {
+  id?: string;
+  userId: string;
+  code: string;
+  expiresAt: Date;
+  createdAt?: Date;
+}
+
+export {
+  AuthJwtPayload,
+  RegisterValues,
+  LoginValues,
+  VerifyEmailValues,
+  OtpValues,
+};

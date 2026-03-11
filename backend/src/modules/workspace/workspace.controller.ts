@@ -5,13 +5,49 @@ const getAllWorkspaces = async (
   request: FastifyRequest,
   reply: FastifyReply,
 ) => {
-  const useId = request.user.userId;
+  const userId = request.user.userId;
 
   const workspaces = await prisma.workspace.findMany({
-    where: { ownerId: useId },
+    where: {
+      members: {
+        some: {
+          userId: userId,
+        },
+      },
+    },
+    include: {
+      _count: {
+        select: {
+          members: true,
+        },
+      },
+    },
   });
 
   return { data: workspaces };
 };
 
-export { getAllWorkspaces };
+const createWorkspace = async (
+  request: FastifyRequest<{ Body: { name: string; avatar?: string } }>,
+  reply: FastifyReply,
+) => {
+  const userId = request.user.userId;
+  const { name, avatar } = request.body;
+
+  const workspace = await prisma.workspace.create({
+    data: {
+      name,
+      avatar,
+      members: {
+        create: {
+          userId,
+          role: "OWNER",
+        },
+      },
+    },
+  });
+
+  return { data: workspace };
+};
+
+export { getAllWorkspaces, createWorkspace };
