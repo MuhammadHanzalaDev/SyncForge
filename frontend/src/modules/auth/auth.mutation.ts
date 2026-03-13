@@ -5,10 +5,10 @@ import {
   resendVerifyOtp,
   signup,
   verify,
-} from "../services/auth.api";
+} from "./auth.api";
 import { ApiError } from "@/shared/types/api.types";
 import message from "@/shared/utils/toast";
-import { LoginFormValues } from "../types/auth.types";
+import { LoginFormValues } from "./auth.types";
 
 const useSignup = () => {
   return useMutation({

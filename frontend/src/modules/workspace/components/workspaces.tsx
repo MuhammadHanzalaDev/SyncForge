@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useWorkspaces } from "@/modules/workspace/queries/workspace.query";
+import { useWorkspaces } from "@/modules/workspace/workspace.query";
 import { CustomButton, ItemMediaSkeleton } from "@/shared/components";
 import {
   Empty,
@@ -59,7 +59,7 @@ const Workspaces = () => {
 
   return (
     <div className="flex justify-center items-center h-full">
-      {res?.data?.length === 0 ? (
+      {res?.data?.length > 0 ? (
         <div className="flex w-full max-w-md flex-col gap-6">
           <ItemGroup className="gap-4">
             {workspaces.map((workspace) => (

@@ -10,3 +10,6 @@ export { default as CustomFormField } from "./form/CustomFormField";
 // Loaders
 export { default as CustomLoader } from "./loaders/CustomLoader";
 export { default as ItemMediaSkeleton } from "./loaders/ItemMediaSkeleton";
+
+// Dialogs
+export { default as FormDialog } from "./dialogs/FormDialog";

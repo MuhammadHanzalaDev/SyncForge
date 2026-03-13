@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { useAuthStore } from "@/shared/store/authStore";
 import { useAuthInit } from "@/modules/auth/hooks/useAuthInit";
 import { CustomLoader, CustomButton } from "@/shared/components";
-import { useLogout } from "@/modules/auth/queries/auth.mutation";
+import { useLogout } from "@/modules/auth/auth.mutation";
 
 export default function RootPage() {
   const { mutate } = useLogout();

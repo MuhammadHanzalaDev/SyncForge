@@ -1,6 +1,6 @@
 import z from "zod";
-import { signupSchema } from "../schemas/signup.schema";
-import { loginSchema } from "../schemas/login.schema";
+import { signupSchema } from "./schemas/signup.schema";
+import { loginSchema } from "./schemas/login.schema";
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 

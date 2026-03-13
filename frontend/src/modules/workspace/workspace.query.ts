@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getAllWorkspaces } from "../services/workspace.api";
+import { getAllWorkspaces } from "./workspace.api";
 
 const useWorkspaces = () => {
   return useQuery({

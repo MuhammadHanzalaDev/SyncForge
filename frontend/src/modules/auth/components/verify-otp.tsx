@@ -11,7 +11,7 @@ import {
 import { RefreshCwIcon } from "lucide-react";
 import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { useState } from "react";
-import { useResendVerifyOtp, useVerifyEmail } from "../queries/auth.mutation";
+import { useResendVerifyOtp, useVerifyEmail } from "../auth.mutation";
 import { useAuthStore } from "@/shared/store/authStore";
 import { useRouter } from "next/navigation";
 import { useCountdown } from "../hooks/useCountDown";

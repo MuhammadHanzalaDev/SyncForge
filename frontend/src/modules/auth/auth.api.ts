@@ -3,7 +3,7 @@ import {
   LoginFormValues,
   SignupFormValues,
   VerifyOtpValues,
-} from "../types/auth.types";
+} from "./auth.types";
 import { AxiosError } from "axios";
 
 const signup = async (payload: SignupFormValues) => {

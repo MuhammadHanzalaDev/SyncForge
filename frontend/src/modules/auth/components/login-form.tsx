@@ -2,11 +2,11 @@
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginSchema } from "../schemas/login.schema";
-import { LoginFormValues } from "../types/auth.types";
+import { LoginFormValues } from "../auth.types";
 import { Field, FieldDescription, FieldGroup } from "@/shared/components/ui/field";
 import { CustomButton, CustomFormField } from "@/shared/components";
 import Link from "next/link";
-import { useLogin } from "../queries/auth.mutation";
+import { useLogin } from "../auth.mutation";
 import { useAuthStore } from "@/shared/store/authStore";
 import { useRouter } from "next/navigation";
 import { ApiError } from "@/shared/types/api.types";
