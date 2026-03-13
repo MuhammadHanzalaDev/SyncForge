@@ -15,8 +15,8 @@ interface FormDialogProps<T extends FieldValues> {
   children: React.ReactNode;
   title: string;
   description?: string;
-  isOpen: boolean;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   onSubmit: (data: T) => void | Promise<void>;
   form: UseFormReturn<T>;
 }
@@ -25,13 +25,13 @@ function FormDialog<T extends FieldValues>({
   children,
   title,
   description,
-  isOpen,
-  onClose,
+  open,
+  onOpenChange,
   onSubmit,
   form,
 }: FormDialogProps<T>) {
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>

@@ -19,8 +19,11 @@ import {
   ItemMedia,
 } from "@/shared/components/ui/item";
 import { MonitorCloud } from "lucide-react";
+import { useState } from "react";
+import CreateWorkSpace from "./forms/CreateWorkSpace";
 
 const Workspaces = () => {
+  const [isCreate, setIsCreate] = useState(false);
   const { data: res, isLoading, error } = useWorkspaces();
 
   const workspaces = [
@@ -58,6 +61,8 @@ const Workspaces = () => {
     );
 
   return (
+    <>
+    <CreateWorkSpace isOpen={isCreate} setIsOpen={setIsCreate} />
     <div className="flex justify-center items-center h-full">
       {res?.data?.length > 0 ? (
         <div className="flex w-full max-w-md flex-col gap-6">
@@ -109,12 +114,15 @@ const Workspaces = () => {
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent className="flex-row justify-center gap-2">
-            <CustomButton variant="default">Create Workspace</CustomButton>
+            <CustomButton variant="default" onClick={() => setIsCreate(true)}>
+              Create Workspace
+            </CustomButton>
             <CustomButton variant="outline">Join Workspace</CustomButton>
           </EmptyContent>
         </Empty>
       )}
     </div>
+    </>
   );
 };
 
