@@ -84,3 +84,19 @@ model Otp {
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
+
+enum FileVisibility {
+  PUBLIC
+  PRIVATE
+}
+model File {
+  id         String         @id @default(uuid())
+  name       String
+  key        String
+  mimeType   String
+  size       Int
+  visibility FileVisibility
+  userId    String
+  createdAt  DateTime       @default(now())
+}
+

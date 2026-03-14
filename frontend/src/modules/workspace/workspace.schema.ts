@@ -5,4 +5,6 @@ const createWorkSpaceSchema = z.object({
   emails: z.array(z.string().email()),
 });
 
-export { createWorkSpaceSchema };
+const emailSchema = z.string().email("Please enter a valid email");
+
+export { createWorkSpaceSchema, emailSchema };

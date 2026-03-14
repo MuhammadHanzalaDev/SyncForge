@@ -28,16 +28,15 @@ const getAllWorkspaces = async (
 };
 
 const createWorkspace = async (
-  request: FastifyRequest<{ Body: { name: string; avatar?: string } }>,
+  request: FastifyRequest<{ Body: { name: string; emails?: [string] } }>,
   reply: FastifyReply,
 ) => {
   const userId = request.user.userId;
-  const { name, avatar } = request.body;
+  const { name, emails } = request.body;
 
   const workspace = await prisma.workspace.create({
     data: {
       name,
-      avatar,
       members: {
         create: {
           userId,

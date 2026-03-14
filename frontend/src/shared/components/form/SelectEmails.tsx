@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Input } from "@/shared/components/ui/input";
 import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
 import { X } from "lucide-react";
 
 export default function InviteEmails() {
@@ -45,16 +44,10 @@ export default function InviteEmails() {
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Enter email and press Enter"
-          className="border-none shadow-none focus-visible:ring-0"
+          className="border-none shadow-none"
         />
       </div>
 
-      <Button
-        disabled={emails.length === 0}
-        onClick={() => console.log(emails)}
-      >
-        Send Invites
-      </Button>
     </div>
   );
 }

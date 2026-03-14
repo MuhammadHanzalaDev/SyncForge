@@ -43,9 +43,9 @@ function FormDialog<T extends FieldValues>({
               )}
             </DialogHeader>
 
-            {children}
+            <div className="py-3">{children}</div>
 
-            <DialogFooter>
+            <DialogFooter className="mt-3">
               <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
               </DialogClose>
