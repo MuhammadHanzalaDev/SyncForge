@@ -7,11 +7,14 @@ datasource db {
 }
 
 model User {
-  id           String  @id @default(uuid())
-  firstName    String
-  lastName     String
-  email        String  @unique
-  avatar       String?
+  id        String @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String @unique
+
+  avatarId String?
+  avatar   File?   @relation("UserAvatar", fields: [avatarId], references: [id])
+
   password     String?
   refreshToken String?
   isVerified   Boolean @default(false)
@@ -21,12 +24,16 @@ model User {
 
   memberships WorkspaceMember[]
   messages    Message[]
+
+  files File[] @relation("UserFiles")
 }
 
 model Workspace {
-  id     String  @id @default(uuid())
-  name   String
-  avatar String?
+  id   String @id @default(uuid())
+  name String
+
+  avatarId String?
+  avatar   File?   @relation("WorkspaceAvatar", fields: [avatarId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -50,8 +57,7 @@ model WorkspaceMember {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  @@id([userId, workspaceId]) // composite primary key
-  // indexes
+  @@id([userId, workspaceId])
   @@index([userId])
   @@index([workspaceId])
 }
@@ -75,6 +81,8 @@ model Message {
 
   room   Room @relation(fields: [roomId], references: [id])
   sender User @relation(fields: [senderId], references: [id])
+
+  attachments File[] @relation("MessageFiles")
 }
 
 model Otp {
@@ -89,6 +97,7 @@ enum FileVisibility {
   PUBLIC
   PRIVATE
 }
+
 model File {
   id         String         @id @default(uuid())
   name       String
@@ -96,7 +105,14 @@ model File {
   mimeType   String
   size       Int
   visibility FileVisibility
-  userId    String
   createdAt  DateTime       @default(now())
-}
 
+  userId String
+  user   User   @relation("UserFiles", fields: [userId], references: [id], onDelete: Cascade)
+
+  avatarOfUsers      User[]      @relation("UserAvatar")
+  avatarOfWorkspaces Workspace[] @relation("WorkspaceAvatar")
+  messageAttachments Message[]   @relation("MessageFiles")
+
+  @@index([userId])
+}

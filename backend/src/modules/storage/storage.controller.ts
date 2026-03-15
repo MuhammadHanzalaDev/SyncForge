@@ -1,7 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { ApiError } from "@/utils/Error";
-import { getFileUrl } from "@/services/storage.service";
-import { findFileById } from "@/repositories/storage.repository";
+import { getFileUrl } from "@/modules/storage/storage.service";
+import { findFileById } from "@/modules/storage/storage.repository";
 
 const getFileUrlController = async (
   request: FastifyRequest<{ Params: { id: string } }>,

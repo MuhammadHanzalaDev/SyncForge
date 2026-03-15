@@ -11,4 +11,12 @@ declare module "fastify" {
       reply: FastifyReply,
     ) => Promise<void>;
   }
+
+  interface FastifyContextConfig {
+    multipart?: {
+      limits?: {
+        fileSize?: number;
+      };
+    };
+  }
 }
