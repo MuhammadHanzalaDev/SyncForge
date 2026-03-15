@@ -13,7 +13,7 @@ async function uploadFile(file: any, visibility: "PUBLIC" | "PRIVATE") {
     new PutObjectCommand({
       Bucket: env.AWS_BUCKET,
       Key: key,
-      Body: file.file,
+      Body: file.buffer,
       ContentType: file.mimetype,
     }),
   );

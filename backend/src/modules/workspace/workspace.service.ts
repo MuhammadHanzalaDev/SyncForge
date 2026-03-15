@@ -14,6 +14,7 @@ const createAndUploadFile = async (userId: string, file: any) => {
     ...file,
     key,
     userId,
+    visibility: "PUBLIC",
   };
   const parsed = createFileSchema.parse(fileObj);
 
@@ -24,14 +25,18 @@ const createAndUploadFile = async (userId: string, file: any) => {
 
 const createWorkspaceService = async (
   userId: string,
-  data: CreateWorkSpaceValues,
-  file: any,
+  data: any,
 ) => {
-  const parsed = validateCreateWorkspace.parse(data);
+  const emails = Array.isArray(data.emails)
+    ? data.emails
+    : typeof data.emails === "string"
+      ? [data.emails]
+      : [];
+  const parsed = validateCreateWorkspace.parse({ ...data, emails});
 
   let avatarId = null;
-  if (file) {
-    const fileDoc = await createAndUploadFile(userId, file);
+  if (data.file) {
+    const fileDoc = await createAndUploadFile(userId, data.file);
     avatarId = fileDoc.id;
   }
 

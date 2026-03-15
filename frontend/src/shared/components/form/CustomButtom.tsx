@@ -24,7 +24,7 @@ export default function CustomButton({
   children,
   disabled,
   isLoading,
-  variant = "outline",
+  variant = "default",
   className = "",
   type = "button",
   size = "default",
@@ -35,7 +35,7 @@ export default function CustomButton({
       <Button
         variant={variant}
         disabled={disabled}
-        className={className}
+        className={"w-full md:w-auto" + className}
         type={type}
         size={size}
         onClick={onClick}

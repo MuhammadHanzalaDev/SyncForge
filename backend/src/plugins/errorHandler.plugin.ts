@@ -6,6 +6,7 @@ import { formatZodError } from "@/utils/Error";
 const errorHandler: FastifyPluginAsync = async (app) => {
   app.setErrorHandler((error: any, request, reply) => {
     const status = error.status ?? error.statusCode ?? 500;
+    console.log(error);
     if (error instanceof ZodError) {
       const formatted = formatZodError(error);
       return reply.code(400).send({
@@ -27,7 +28,6 @@ const errorHandler: FastifyPluginAsync = async (app) => {
       });
     }
 
-    console.log(error);
 
     reply.code(status).send({
       success: false,

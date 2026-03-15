@@ -13,4 +13,16 @@ const getAllWorkspaces = async () => {
   }
 };
 
-export { getAllWorkspaces }
+const createWorkspace = async (formData: FormData) => {
+  try {
+    const res = await api.post("/workspaces", formData);
+    return res.data;
+  } catch (err: unknown) {
+    if (err instanceof AxiosError) {
+      throw err.response?.data || err.message;
+    }
+    throw err;
+  }
+};
+
+export { getAllWorkspaces, createWorkspace };

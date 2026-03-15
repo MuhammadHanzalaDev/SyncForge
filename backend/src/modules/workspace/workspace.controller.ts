@@ -1,6 +1,7 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import prisma from "@/config/prisma";
 import { createWorkspaceService } from "./workspace.service";
+import { parseMultipart } from "@/utils/multipart";
 
 const getAllWorkspaces = async (
   request: FastifyRequest,
@@ -25,18 +26,19 @@ const getAllWorkspaces = async (
     },
   });
 
-  return { data: workspaces };
+  return { data: [] };
 };
 
 const createWorkspace = async (
-  request: FastifyRequest<{ Body: { name: string; emails: [string] } }>,
+  request: FastifyRequest,
   reply: FastifyReply,
 ) => {
   const userId = request.user?.userId;
-  const data = request.body;
-  const file = request.file;
 
-  const workspace = await createWorkspaceService(userId, data, file);
+  const data = await parseMultipart(request);
+  console.log(data);
+
+  const workspace = await createWorkspaceService(userId, data);
 
   return { data: workspace };
 };

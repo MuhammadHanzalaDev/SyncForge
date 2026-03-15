@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { FormProvider, UseFormReturn, FieldValues } from "react-hook-form";
+import CustomButton from "../form/CustomButtom";
 
 interface FormDialogProps<T extends FieldValues> {
   children: React.ReactNode;
@@ -19,6 +20,9 @@ interface FormDialogProps<T extends FieldValues> {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: T) => void | Promise<void>;
   form: UseFormReturn<T>;
+  submitBtnText?: string;
+  isCancelBtn?: boolean;
+  cancelBtnText?: string;
 }
 
 function FormDialog<T extends FieldValues>({
@@ -29,6 +33,9 @@ function FormDialog<T extends FieldValues>({
   onOpenChange,
   onSubmit,
   form,
+  submitBtnText = "Submit",
+  isCancelBtn = true,
+  cancelBtnText = "Cancel",
 }: FormDialogProps<T>) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -46,11 +53,13 @@ function FormDialog<T extends FieldValues>({
             <div className="py-3">{children}</div>
 
             <DialogFooter className="mt-3">
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
+              {isCancelBtn && (
+                <DialogClose asChild>
+                  <CustomButton variant="outline">{cancelBtnText}</CustomButton>
+                </DialogClose>
+              )}
 
-              <Button type="submit">Save changes</Button>
+              <CustomButton type="submit">{submitBtnText}</CustomButton>
             </DialogFooter>
           </form>
         </FormProvider>

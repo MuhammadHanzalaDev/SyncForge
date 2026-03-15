@@ -13,6 +13,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Badge } from "@/shared/components/ui/badge";
 import { X } from "lucide-react";
+import { useCreateWorkspace } from "../../workspace.mutation";
+import { objectToFormData } from "@/shared/utils/formData";
 
 interface CreateWorkSpaceProps {
   isOpen: boolean;
@@ -20,7 +22,9 @@ interface CreateWorkSpaceProps {
 }
 
 const CreateWorkSpace = ({ isOpen, setIsOpen }: CreateWorkSpaceProps) => {
+  const { data, mutate, isPending } = useCreateWorkspace();
   const [email, setEmail] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
   const form = useForm<CreateWorkSpaceValues>({
     resolver: zodResolver(createWorkSpaceSchema),
@@ -68,6 +72,20 @@ const CreateWorkSpace = ({ isOpen, setIsOpen }: CreateWorkSpaceProps) => {
     }
   };
 
+  const handleSubmit = (values: CreateWorkSpaceValues) => {
+    const obj = {
+      ...values,
+      ...(file ? { file } : {}),
+    };
+    console.log("submission obj: ", obj);
+    const data = objectToFormData(obj);
+    mutate(data, {
+      onSuccess: (data) => {
+        console.log("dta", data);
+      },
+    });
+  };
+
   return (
     <FormDialog
       title="Create Workspace"
@@ -75,9 +93,14 @@ const CreateWorkSpace = ({ isOpen, setIsOpen }: CreateWorkSpaceProps) => {
       open={isOpen}
       onOpenChange={setIsOpen}
       form={form}
-      onSubmit={(data) => console.log(data)}
+      onSubmit={handleSubmit}
+      submitBtnText="Create Workspace"
     >
-      <ProfileUploader fallback="Workspace avatar"/>
+      <ProfileUploader
+        fallback="Workspace avatar"
+        value={file}
+        onChange={(value) => setFile(value)}
+      />
 
       <div className="mt-3">
         <CustomFormField

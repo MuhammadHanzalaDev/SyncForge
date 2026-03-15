@@ -1,12 +1,19 @@
 import z from "zod";
 
+const fileSchema = z.object({
+  buffer: z.instanceof(Buffer),
+  filename: z.string(),
+  mimetype: z.string(),
+  size: z.number(),
+});
+
 const createFileSchema = z.object({
-  name: z.string(),
+  filename: z.string(),
   key: z.string(),
-  mimeType: z.string(),
+  mimetype: z.string(),
   size: z.number(),
   visibility: z.enum(["PUBLIC", "PRIVATE"]),
   userId: z.string(),
 });
 
-export { createFileSchema }
+export { fileSchema, createFileSchema }

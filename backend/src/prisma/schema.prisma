@@ -100,9 +100,9 @@ enum FileVisibility {
 
 model File {
   id         String         @id @default(uuid())
-  name       String
+  filename       String
   key        String
-  mimeType   String
+  mimetype   String
   size       Int
   visibility FileVisibility
   createdAt  DateTime       @default(now())
