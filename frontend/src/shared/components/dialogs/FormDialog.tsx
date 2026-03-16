@@ -23,6 +23,7 @@ interface FormDialogProps<T extends FieldValues> {
   submitBtnText?: string;
   isCancelBtn?: boolean;
   cancelBtnText?: string;
+  isSubmitting?: boolean;
 }
 
 function FormDialog<T extends FieldValues>({
@@ -36,6 +37,7 @@ function FormDialog<T extends FieldValues>({
   submitBtnText = "Submit",
   isCancelBtn = true,
   cancelBtnText = "Cancel",
+  isSubmitting = false,
 }: FormDialogProps<T>) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -55,11 +57,19 @@ function FormDialog<T extends FieldValues>({
             <DialogFooter className="mt-3">
               {isCancelBtn && (
                 <DialogClose asChild>
-                  <CustomButton variant="outline">{cancelBtnText}</CustomButton>
+                  <CustomButton variant="outline" disabled={isSubmitting}>
+                    {cancelBtnText}
+                  </CustomButton>
                 </DialogClose>
               )}
 
-              <CustomButton type="submit">{submitBtnText}</CustomButton>
+              <CustomButton
+                type="submit"
+                disabled={isSubmitting}
+                isLoading={isSubmitting}
+              >
+                {submitBtnText}
+              </CustomButton>
             </DialogFooter>
           </form>
         </FormProvider>

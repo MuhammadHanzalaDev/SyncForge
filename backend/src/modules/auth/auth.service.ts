@@ -162,13 +162,13 @@ const resendVerifyOtpService = async (email: string) => {
   const user = await authRepo.findUserByEmail(email);
 
   if (!user) {
-    throw new Error("Invalid Email!");
+    throw new ApiError("Invalid Email!", 400);
   }
 
   const otpRecord = await authRepo.findLatestOtp(user.id);
 
   if ((otpRecord?.expiresAt || new Date()).getTime() > new Date().getTime()) {
-    throw new Error("Otp not expired!");
+    throw new ApiError("Otp not expired!", 400);
   }
 
   await authRepo.deleteOtp(otpRecord?.id || "");

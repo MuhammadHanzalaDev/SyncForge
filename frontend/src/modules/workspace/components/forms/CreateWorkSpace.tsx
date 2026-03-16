@@ -95,6 +95,7 @@ const CreateWorkSpace = ({ isOpen, setIsOpen }: CreateWorkSpaceProps) => {
       form={form}
       onSubmit={handleSubmit}
       submitBtnText="Create Workspace"
+      isSubmitting={isPending}
     >
       <ProfileUploader
         fallback="Workspace avatar"

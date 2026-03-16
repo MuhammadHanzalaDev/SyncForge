@@ -1,4 +1,3 @@
-import { CreateWorkSpaceValues } from "./workspace.types";
 import { validateCreateWorkspace } from "./workspace.validation";
 import { createWorkspace } from "./workspace.repository";
 import { uploadFile } from "../storage/storage.service";
@@ -6,15 +5,18 @@ import { createFile } from "../storage/storage.repository";
 import { createFileSchema } from "../storage/storage.schema";
 import { ApiError } from "@/utils/Error";
 
-const createAndUploadFile = async (userId: string, file: any) => {
+const createAndUploadFile = async (
+  userId: string,
+  file: any,
+  folder: "avatars" | "attachments" | "documents",
+) => {
   if (!file) throw new ApiError("File not found!", 404);
 
-  const key = await uploadFile(file, "PUBLIC");
+  const key = await uploadFile(file, folder);
   const fileObj = {
     ...file,
     key,
     userId,
-    visibility: "PUBLIC",
   };
   const parsed = createFileSchema.parse(fileObj);
 
@@ -23,20 +25,17 @@ const createAndUploadFile = async (userId: string, file: any) => {
   return fileDoc;
 };
 
-const createWorkspaceService = async (
-  userId: string,
-  data: any,
-) => {
+const createWorkspaceService = async (userId: string, data: any) => {
   const emails = Array.isArray(data.emails)
     ? data.emails
     : typeof data.emails === "string"
       ? [data.emails]
       : [];
-  const parsed = validateCreateWorkspace.parse({ ...data, emails});
+  const parsed = validateCreateWorkspace.parse({ ...data, emails });
 
   let avatarId = null;
   if (data.file) {
-    const fileDoc = await createAndUploadFile(userId, data.file);
+    const fileDoc = await createAndUploadFile(userId, data.file, "avatars");
     avatarId = fileDoc.id;
   }
 

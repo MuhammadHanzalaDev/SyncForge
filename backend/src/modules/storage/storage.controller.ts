@@ -13,7 +13,7 @@ const getFileUrlController = async (
 
   if (!file) throw new ApiError("File not found", 404);
 
-  const url = await getFileUrl(file);
+  const url = await getFileUrl(file.key);
 
   return { url };
 };

@@ -7,7 +7,6 @@ interface FileType {
   key?: string;
   mimeType?: string;
   size?: number;
-  visibility?: "PUBLIC" | "PRIVATE";
   userId?: string;
   createdAt?: Date | string;
 }

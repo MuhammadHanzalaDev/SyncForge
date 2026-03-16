@@ -93,18 +93,12 @@ model Otp {
   createdAt DateTime @default(now())
 }
 
-enum FileVisibility {
-  PUBLIC
-  PRIVATE
-}
-
 model File {
   id         String         @id @default(uuid())
   filename       String
   key        String
   mimetype   String
   size       Int
-  visibility FileVisibility
   createdAt  DateTime       @default(now())
 
   userId String

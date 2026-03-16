@@ -12,7 +12,6 @@ const createFileSchema = z.object({
   key: z.string(),
   mimetype: z.string(),
   size: z.number(),
-  visibility: z.enum(["PUBLIC", "PRIVATE"]),
   userId: z.string(),
 });
 
