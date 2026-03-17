@@ -11,22 +11,24 @@ const getAllWorkspaces = async (
 ) => {
   const userId = request.user.userId;
 
-  const workspaces = await findManyWorkspaces(
-    {
+  const workspaces = await prisma.workspace.findMany({
+    where: {
       members: {
         some: {
-          userId: userId,
+          userId,
         },
       },
     },
-    {
+    include: {
       _count: {
         select: {
           members: true,
         },
       },
     },
-  );
+  });
+
+  console.log(workspaces);
 
   const formatted = await Promise.all(
     workspaces.map(async (w) => {
@@ -37,8 +39,9 @@ const getAllWorkspaces = async (
         name: w.name,
         createdAt: w.createdAt,
         logo: fileUrl,
-        // totalMembers: w._count?.members
-      }
+        fileId: w.avatarId,
+        totalMembers: w._count?.members,
+      };
     }),
   );
 

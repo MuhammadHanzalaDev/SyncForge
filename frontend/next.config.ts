@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "syncforge-storage.s3.ap-southeast-2.amazonaws.com",
+        port: "",
+        pathname: "/**",
+      },
     ],
   },
 };

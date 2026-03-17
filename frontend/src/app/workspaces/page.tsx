@@ -1,7 +1,9 @@
 "use client";
 import Workspaces from "@/modules/workspace/components/workspaces";
 const Page = () => {
-  return <Workspaces />;
+  return (
+    <Workspaces />
+  );
 };
 
 export default Page;

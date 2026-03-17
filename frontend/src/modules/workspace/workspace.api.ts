@@ -4,7 +4,7 @@ import { AxiosError } from "axios";
 const getAllWorkspaces = async () => {
   try {
     const res = await api.get("/workspaces");
-    return res.data;
+    return res.data.data;
   } catch (err: unknown) {
     if (err instanceof AxiosError) {
       throw err.response?.data || err.message;

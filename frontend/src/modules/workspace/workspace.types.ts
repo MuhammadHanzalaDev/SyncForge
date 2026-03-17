@@ -3,4 +3,13 @@ import { createWorkSpaceSchema } from "./workspace.schema";
 
 type CreateWorkSpaceValues = z.infer<typeof createWorkSpaceSchema>;
 
-export type { CreateWorkSpaceValues };
+interface WorkspaceRes {
+  id: string;
+  name: string;
+  createdAt: string;
+  logo?: string | null;
+  fileId?: string | null;
+  totalMembers: number;
+}
+
+export type { CreateWorkSpaceValues, WorkspaceRes };

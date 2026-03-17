@@ -18,34 +18,15 @@ import {
   ItemGroup,
   ItemMedia,
 } from "@/shared/components/ui/item";
-import { MonitorCloud } from "lucide-react";
+import { Card } from "@/shared/components/ui/card";
+import { MonitorCloud, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import CreateWorkSpace from "./forms/CreateWorkSpace";
+import { WorkspaceRes } from "../workspace.types";
 
 const Workspaces = () => {
   const [isCreate, setIsCreate] = useState(false);
-  const { data: res, isLoading, error } = useWorkspaces();
-
-  const workspaces = [
-    {
-      title: "Midnight City Lights",
-      artist: "Neon Dreams",
-      album: "Electric Nights",
-      duration: "3:45",
-    },
-    {
-      title: "Coffee Shop Conversations",
-      artist: "The Morning Brew",
-      album: "Urban Stories",
-      duration: "4:05",
-    },
-    {
-      title: "Digital Rain",
-      artist: "Cyber Symphony",
-      album: "Binary Beats",
-      duration: "3:30",
-    },
-  ];
+  const { data: workspaces, isLoading, error } = useWorkspaces();
 
   if (isLoading)
     return (
@@ -62,66 +43,88 @@ const Workspaces = () => {
 
   return (
     <>
-    <CreateWorkSpace isOpen={isCreate} setIsOpen={setIsCreate} />
-    <div className="flex justify-center items-center h-full">
-      {res?.data?.length > 0 ? (
-        <div className="flex w-full max-w-md flex-col gap-6">
-          <ItemGroup className="gap-4">
-            {workspaces.map((workspace) => (
-              <Item
-                key={workspace.title}
-                variant="outline"
-                asChild
-                role="listitem"
-              >
-                <a href="#">
-                  <ItemMedia variant="image">
-                    <Image
-                      src={`https://avatar.vercel.sh/${workspace.title}`}
-                      alt={workspace.title}
-                      width={32}
-                      height={32}
-                      className="object-cover grayscale"
-                    />
-                  </ItemMedia>
-                  <ItemContent>
-                    <ItemTitle className="line-clamp-1">
-                      {workspace.title} -{" "}
-                      <span className="text-muted-foreground">
-                        {workspace.album}
-                      </span>
-                    </ItemTitle>
-                    <ItemDescription>{workspace.artist}</ItemDescription>
-                  </ItemContent>
-                  <ItemContent className="flex-none text-center">
-                    <ItemDescription>{workspace.duration}</ItemDescription>
-                  </ItemContent>
-                </a>
-              </Item>
-            ))}
-          </ItemGroup>
+      <CreateWorkSpace isOpen={isCreate} setIsOpen={setIsCreate} />
+      <div className="flex flex-col justify-center items-center h-full">
+        <div className="flex flex-col items-center mb-5">
+          <div className="flex justify-content-center items-center gap-2">
+            <h1 className="scroll-m-20 pb-2 text-4xl font-semibold tracking-tight first:mt-0">
+              Welcome
+            </h1>
+            <Image
+              src="/waving-hand.gif"
+              alt="Waving Hand"
+              width={46}
+              height={46}
+            />
+          </div>
+          <p className="text-lg text-muted-foreground">
+            Choose a workspace to get started.
+          </p>
         </div>
-      ) : (
-        <Empty>
-          <EmptyHeader>
-            <EmptyMedia variant="icon">
-              <MonitorCloud />
-            </EmptyMedia>
-            <EmptyTitle>No Workspaces Yet</EmptyTitle>
-            <EmptyDescription>
-              You haven&apos;t created any workspace yet. Get started by
-              creating your first workspace or joining an existing one.
-            </EmptyDescription>
-          </EmptyHeader>
-          <EmptyContent className="flex-row justify-center gap-2">
-            <CustomButton variant="default" onClick={() => setIsCreate(true)}>
-              Create Workspace
-            </CustomButton>
-            <CustomButton variant="outline">Join Workspace</CustomButton>
-          </EmptyContent>
-        </Empty>
-      )}
-    </div>
+        <Card className="max-w-md p-5">
+          {workspaces?.length > 0 ? (
+            <div className="flex w-full max-w-md flex-col gap-6">
+              <ItemGroup className="gap-4">
+                {workspaces.map((workspace: WorkspaceRes) => (
+                  <Item
+                    key={workspace.id}
+                    variant="outline"
+                    asChild
+                    role="listitem"
+                    className="w-100"
+                  >
+                    <a href="#">
+                      <ItemMedia variant="image">
+                        <Image
+                          src={workspace.logo!}
+                          alt={workspace.name}
+                          width={32}
+                          height={32}
+                          className="object-cover grayscale"
+                        />
+                      </ItemMedia>
+                      <ItemContent>
+                        <ItemTitle className="line-clamp-1">
+                          {workspace.name} -{" "}
+                          {/* <span className="text-muted-foreground">
+                            {workspace.album}
+                          </span> */}
+                        </ItemTitle>
+                        <ItemDescription>{new Date(workspace.createdAt).toDateString()}</ItemDescription>
+                      </ItemContent>
+                      <ItemContent className="flex-none text-center">
+                        <ArrowRight className="text-primary" />
+                      </ItemContent>
+                    </a>
+                  </Item>
+                ))}
+              </ItemGroup>
+            </div>
+          ) : (
+            <Empty>
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <MonitorCloud />
+                </EmptyMedia>
+                <EmptyTitle>No Workspaces Yet</EmptyTitle>
+                <EmptyDescription>
+                  You haven&apos;t created any workspace yet. Get started by
+                  creating your first workspace or joining an existing one.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent className="flex-row justify-center gap-2">
+                <CustomButton
+                  variant="default"
+                  onClick={() => setIsCreate(true)}
+                >
+                  Create Workspace
+                </CustomButton>
+                <CustomButton variant="outline">Join Workspace</CustomButton>
+              </EmptyContent>
+            </Empty>
+          )}
+        </Card>
+      </div>
     </>
   );
 };
