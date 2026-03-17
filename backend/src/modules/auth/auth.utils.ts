@@ -17,6 +17,12 @@ const generateRefreshToken = (id: string) => {
   });
 };
 
+const generateToken = (data: any, expiresIn: SignOptions["expiresIn"]) => {
+  return jwt.sign(data, env.JWT_SECRET, {
+    expiresIn: expiresIn,
+  });
+};
+
 const verifyAccessToken = (token: string) => {
   const decoded = jwt.verify(token, env.AUTH_SECRET);
   return decoded;
@@ -24,6 +30,11 @@ const verifyAccessToken = (token: string) => {
 
 const verifyRefreshToken = (token: string) => {
   const decoded = jwt.verify(token, env.AUTH_REFRESH_SECRET);
+  return decoded;
+};
+
+const verifyToken = (token: string) => {
+  const decoded = jwt.verify(token, env.JWT_SECRET);
   return decoded;
 };
 
@@ -84,8 +95,10 @@ const verifyOtp = async (
 export {
   generateAccessToken,
   generateRefreshToken,
+  generateToken,
   verifyAccessToken,
   verifyRefreshToken,
+  verifyToken,
   hashString,
   compareHashedString,
   calculateCookieExpiry,
