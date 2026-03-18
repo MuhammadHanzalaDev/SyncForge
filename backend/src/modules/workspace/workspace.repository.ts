@@ -1,5 +1,16 @@
 import prisma from "@/config/prisma";
-import { CreateWorkSpaceValues } from "./workspace.types";
+
+const createWorkspace = (data: any) => {
+  return prisma.workspace.create({
+    data: data,
+  });
+};
+
+const createWorkspaceMember = (data: any) => {
+  return prisma.workspaceMember.create({
+    data: data,
+  });
+};
 
 const findManyWorkspaces = (where: any, include?: any) => {
   return prisma.workspace.findMany({
@@ -8,10 +19,13 @@ const findManyWorkspaces = (where: any, include?: any) => {
   });
 };
 
-const createWorkspace = (data: any) => {
-  return prisma.workspace.create({
-    data: data,
-  });
+const findWorkspaceMember = (where: any) => {
+  return prisma.workspaceMember.findUnique({ where });
 };
 
-export { createWorkspace, findManyWorkspaces };
+export {
+  createWorkspace,
+  createWorkspaceMember,
+  findManyWorkspaces,
+  findWorkspaceMember,
+};

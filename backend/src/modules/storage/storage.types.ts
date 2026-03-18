@@ -1,5 +1,5 @@
 import z from "zod";
-import { createFileSchema } from "./storage.schema";
+import { createFileSchema } from "./storage.validation";
 
 interface FileType {
   id?: string;

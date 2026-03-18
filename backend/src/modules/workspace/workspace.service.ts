@@ -1,13 +1,18 @@
 import { validateCreateWorkspace } from "./workspace.validation";
-import { createWorkspace } from "./workspace.repository";
+import {
+  createWorkspace,
+  findWorkspaceMember,
+  createWorkspaceMember,
+} from "./workspace.repository";
 import { uploadFile } from "../storage/storage.service";
 import { createFile } from "../storage/storage.repository";
-import { createFileSchema } from "../storage/storage.schema";
+import { createFileSchema } from "../storage/storage.validation";
 import { ApiError } from "@/utils/Error";
-import { generateToken } from "../auth/auth.utils";
+import { generateToken, verifyToken } from "../auth/auth.utils";
 import { env } from "@/config/env";
 import { sendEmail } from "@/utils/mailService";
-import { findUserByEmail } from "../auth/auth.repository";
+import { createUser, findUserByEmail } from "../auth/auth.repository";
+import { joinWorkspacePayload } from "./workspace.validation";
 
 const createAndUploadFile = async (
   userId: string,
@@ -72,7 +77,7 @@ const createWorkspaceService = async (userId: string, data: any) => {
         user
           ? `Invitation to join ${workspace.name}`
           : "You have been invited to syncforge",
-        `You have been invited to join ${workspace.name} on SyncForge. If you are intrested to join this workspace copy paste this link to your browser for accepting invitation. ${invitationUrl}`,
+        `You have been invited to join ${workspace.name} on SyncForge. If you are intrested to join this workspace click on this link to accept the invitation invitation. ${invitationUrl}`,
       )
         .then(() => console.log("email sent successfully"))
         .catch((err) => console.log("Failed to send invitaion email", err));
@@ -80,6 +85,57 @@ const createWorkspaceService = async (userId: string, data: any) => {
   }
 
   return workspace;
+};
+
+const joinWorkspaceService = async (token: string) => {
+  const payload = verifyToken(token);
+  const parsed = joinWorkspacePayload.parse(payload);
+
+  const user = await findUserByEmail(parsed.email);
+
+  if (user) {
+    const workspaceMember = await findWorkspaceMember({
+      userId: user.id,
+      workspaceId: parsed.workspaceId,
+    });
+    if (workspaceMember) {
+      return { message: "Already joined this workspace." };
+    }
+
+    await createWorkspaceMember({
+      userId: user.id,
+      workspaceId: parsed.workspaceId,
+      role: "MEMBER",
+    });
+  } else {
+    const newUser = await createUser({
+      email: parsed.email,
+      firstName: "",
+      lastName: "",
+      password: "set-password",
+    });
+
+    await createWorkspaceMember({
+      userId: newUser.id,
+      workspaceId: parsed.workspaceId,
+      role: "MEMBER",
+    });
+
+    const tokenPayload = {
+      userId: newUser.id,
+    };
+
+    const token = generateToken(tokenPayload, "7d");
+    const setPasswordLink = `${env.SERVER_URL}/api/v1/auth/set-password?token=${token}`;
+
+    sendEmail(
+      parsed.email,
+      "Set you password",
+      `click on this link to set you syncforge account password. ${setPasswordLink}`,
+    )
+      .then(() => console.log("email sent successfully"))
+      .catch((err) => console.log("Failed to send email", err));
+  }
 };
 
 export { createWorkspaceService, createAndUploadFile };

@@ -1,5 +1,5 @@
 import * as z from "zod";
-import { fileSchema } from "../storage/storage.schema";
+import { fileSchema } from "../storage/storage.validation";
 
 const validateCreateWorkspace = z.object({
   name: z.string().min(3, "name must be atleast 3 characters."),
@@ -7,4 +7,9 @@ const validateCreateWorkspace = z.object({
   file: fileSchema.optional(),
 });
 
-export { validateCreateWorkspace };
+const joinWorkspacePayload = z.object({
+  email: z.email(),
+  workspaceId: z.string(),
+});
+
+export { validateCreateWorkspace, joinWorkspacePayload };
