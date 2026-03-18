@@ -5,6 +5,8 @@ import {
   VerifyOtpValues,
 } from "./auth.types";
 import { AxiosError } from "axios";
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import message from "@/shared/utils/toast";
 
 const signup = async (payload: SignupFormValues) => {
   try {
@@ -41,8 +43,8 @@ const login = async (payload: LoginFormValues) => {
 
 const logout = async () => {
   try {
-    const res = await api.post("/auth/logout");
-    return res.data;
+    await api.post("/auth/logout");
+    message.success("Logged out");
   } catch (err: unknown) {
     if (err instanceof AxiosError) {
       throw err?.response?.data;

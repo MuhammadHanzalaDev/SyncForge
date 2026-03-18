@@ -1,11 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import {
-  login,
-  logout,
-  resendVerifyOtp,
-  signup,
-  verify,
-} from "./auth.api";
+import { login, logout, resendVerifyOtp, signup, verify } from "./auth.api";
 import { ApiError } from "@/shared/types/api.types";
 import message from "@/shared/utils/toast";
 import { LoginFormValues } from "./auth.types";
@@ -39,11 +33,6 @@ const useLogin = () => {
 const useLogout = () => {
   return useMutation({
     mutationFn: logout,
-
-    onSuccess: () => {
-      message.success("Logged out");
-    },
-
     onError: (error: ApiError) => {
       message.error(error.message || "Something went wrong!");
     },

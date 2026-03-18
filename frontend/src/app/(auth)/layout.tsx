@@ -7,7 +7,7 @@ export default function Layout({ children }: { children: React.ReactElement }) {
       <div className="w-full max-w-sm">
         <div className="flex justify-center items-center mb-8 mr-4">
           <Image
-            src="/SyncForge-transparent.png"
+            src="/images/SyncForge-transparent.png"
             alt="SyncForge"
             width={190}
             height={0}
@@ -15,7 +15,7 @@ export default function Layout({ children }: { children: React.ReactElement }) {
           />
 
           <Image
-            src="/SyncForgeDark-transparent.png"
+            src="/images/SyncForgeDark-transparent.png"
             alt="SyncForge"
             width={190}
             height={0}
