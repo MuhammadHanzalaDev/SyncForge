@@ -1,5 +1,9 @@
 import { FastifyPluginAsync } from "fastify";
-import { getAllWorkspaces, createWorkspace } from "./workspace.controller";
+import {
+  getAllWorkspaces,
+  createWorkspace,
+  joinWorkspace,
+} from "./workspace.controller";
 
 declare module "fastify" {
   interface FastifyContextConfig {
@@ -13,12 +17,11 @@ declare module "fastify" {
 
 const workspaceRoutes: FastifyPluginAsync = async (app) => {
   // auth hook
-  app.addHook("preHandler", app.authenticate);
-
-  app.get("/", getAllWorkspaces);
+  app.get("/", { preHandler: app.authenticate }, getAllWorkspaces);
   app.post(
     "/",
     {
+      preHandler: app.authenticate,
       config: {
         multipart: {
           limits: {
@@ -29,6 +32,7 @@ const workspaceRoutes: FastifyPluginAsync = async (app) => {
     },
     createWorkspace,
   );
+  app.get("/join", joinWorkspace);
 };
 
 export default workspaceRoutes;

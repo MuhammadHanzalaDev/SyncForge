@@ -1,9 +1,13 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import prisma from "@/config/prisma";
-import { createWorkspaceService } from "./workspace.service";
+import {
+  createWorkspaceService,
+  joinWorkspaceService,
+} from "./workspace.service";
 import { parseMultipart } from "@/utils/multipart";
 import { findManyWorkspaces } from "./workspace.repository";
 import { getFileUrl } from "../storage/storage.service";
+import { env } from "@/config/env";
 
 const getAllWorkspaces = async (
   request: FastifyRequest,
@@ -62,4 +66,15 @@ const createWorkspace = async (
   return { data: workspace };
 };
 
-export { getAllWorkspaces, createWorkspace };
+const joinWorkspace = async (
+  request: FastifyRequest<{ Querystring: { token: string } }>,
+  reply: FastifyReply,
+) => {
+  const token = request.query.token;
+
+  await joinWorkspaceService(token, reply);
+
+  reply.redirect(env.CLIENT_URL);
+};
+
+export { getAllWorkspaces, createWorkspace, joinWorkspace };

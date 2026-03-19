@@ -25,10 +25,21 @@ interface OtpValues {
   createdAt?: Date;
 }
 
+interface ResendOtpRequest {
+  Body: { email: string };
+}
+
+interface SetPasswordRequest {
+  Body: { password: string };
+  Querystring: { token: string };
+}
+
 export {
   AuthJwtPayload,
   RegisterValues,
   LoginValues,
   VerifyEmailValues,
   OtpValues,
+  ResendOtpRequest,
+  SetPasswordRequest,
 };

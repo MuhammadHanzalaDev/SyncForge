@@ -4,6 +4,7 @@ import {
   validateRegister,
   validateLogin,
   validateVerifyEmail,
+  setPassword,
 } from "./auth.validations";
 import {
   generateAccessToken,
@@ -13,11 +14,13 @@ import {
   verifyRefreshToken,
   generateOTP,
   verifyOtp,
+  verifyToken,
 } from "./auth.utils";
 import type {
   RegisterValues,
   LoginValues,
   VerifyEmailValues,
+  AuthJwtPayload,
 } from "./auth.types";
 import { sendEmail } from "@/utils/mailService";
 
@@ -191,10 +194,29 @@ const resendVerifyOtpService = async (email: string) => {
   return expiresAt.getTime();
 };
 
+const setPasswordService = async (token: string, password: string) => {
+  const parsed = setPassword.parse({ token, password });
+
+  const userId = (verifyToken(parsed.token) as AuthJwtPayload).userId;
+
+  const user = await authRepo.findUserById(userId);
+
+  if (!user) throw new ApiError("User not found!", 404);
+
+  if (user.refreshToken !== parsed.token)
+    throw new ApiError("Invalid token!", 400);
+
+  await authRepo.updateUserById(userId, {
+    refreshToken: "",
+    password: parsed.password,
+  });
+};
+
 export {
   registerService,
   verifyEmailService,
   loginService,
   refreshTokenService,
   resendVerifyOtpService,
+  setPasswordService,
 };

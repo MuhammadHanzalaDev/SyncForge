@@ -17,4 +17,9 @@ const validateLogin = z.object({
   password: z.string("password is required!"),
 });
 
-export { validateRegister, validateLogin, validateVerifyEmail };
+const setPassword = z.object({
+  token: z.string(),
+  password: z.string(),
+});
+
+export { validateRegister, validateLogin, validateVerifyEmail, setPassword };

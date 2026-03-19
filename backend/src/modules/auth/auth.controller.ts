@@ -6,11 +6,14 @@ import type {
   RegisterValues,
   LoginValues,
   VerifyEmailValues,
+  SetPasswordRequest,
+  ResendOtpRequest,
 } from "./auth.types";
 import {
   loginService,
   refreshTokenService,
   resendVerifyOtpService,
+  setPasswordService,
   verifyEmailService,
 } from "./auth.service";
 import { registerService } from "./auth.service";
@@ -82,9 +85,7 @@ const refreshToken = async (request: FastifyRequest) => {
   return { accessToken };
 };
 
-const resendVerifyOtp = async (
-  request: FastifyRequest<{ Body: { email: string } }>,
-) => {
+const resendVerifyOtp = async (request: FastifyRequest<ResendOtpRequest>) => {
   const email = request.body?.email;
 
   const expiresAt = await resendVerifyOtpService(email);
@@ -92,4 +93,24 @@ const resendVerifyOtp = async (
   return { message: "Otp sent successfully!", otpExpiresAt: expiresAt };
 };
 
-export { register, login, logout, refreshToken, verifyEmail, resendVerifyOtp };
+const setPassword = async (
+  request: FastifyRequest<SetPasswordRequest>,
+  reply: FastifyReply,
+) => {
+  const token = request.query.token;
+  const password = request.body.password;
+
+  await setPasswordService(token, password);
+
+  return { message: "Password set successfully!" };
+};
+
+export {
+  register,
+  login,
+  logout,
+  refreshToken,
+  verifyEmail,
+  resendVerifyOtp,
+  setPassword,
+};

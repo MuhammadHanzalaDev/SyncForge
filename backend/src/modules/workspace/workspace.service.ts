@@ -11,7 +11,11 @@ import { ApiError } from "@/utils/Error";
 import { generateToken, verifyToken } from "../auth/auth.utils";
 import { env } from "@/config/env";
 import { sendEmail } from "@/utils/mailService";
-import { createUser, findUserByEmail } from "../auth/auth.repository";
+import {
+  createUser,
+  findUserByEmail,
+  updateUserById,
+} from "../auth/auth.repository";
 import { joinWorkspacePayload } from "./workspace.validation";
 
 const createAndUploadFile = async (
@@ -87,7 +91,7 @@ const createWorkspaceService = async (userId: string, data: any) => {
   return workspace;
 };
 
-const joinWorkspaceService = async (token: string) => {
+const joinWorkspaceService = async (token: string, reply: any) => {
   const payload = verifyToken(token);
   const parsed = joinWorkspacePayload.parse(payload);
 
@@ -95,11 +99,13 @@ const joinWorkspaceService = async (token: string) => {
 
   if (user) {
     const workspaceMember = await findWorkspaceMember({
-      userId: user.id,
-      workspaceId: parsed.workspaceId,
+      userId_workspaceId: {
+        userId: user.id,
+        workspaceId: parsed.workspaceId,
+      },
     });
     if (workspaceMember) {
-      return { message: "Already joined this workspace." };
+      throw new ApiError("Workspace already joined!");
     }
 
     await createWorkspaceMember({
@@ -112,7 +118,7 @@ const joinWorkspaceService = async (token: string) => {
       email: parsed.email,
       firstName: "",
       lastName: "",
-      password: "set-password",
+      password: "",
     });
 
     await createWorkspaceMember({
@@ -128,6 +134,8 @@ const joinWorkspaceService = async (token: string) => {
     const token = generateToken(tokenPayload, "7d");
     const setPasswordLink = `${env.SERVER_URL}/api/v1/auth/set-password?token=${token}`;
 
+    await updateUserById(newUser.id, { refreshToken: token });
+
     sendEmail(
       parsed.email,
       "Set you password",
@@ -138,4 +146,4 @@ const joinWorkspaceService = async (token: string) => {
   }
 };
 
-export { createWorkspaceService, createAndUploadFile };
+export { createWorkspaceService, createAndUploadFile, joinWorkspaceService };
