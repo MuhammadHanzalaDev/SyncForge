@@ -26,6 +26,6 @@ export default function RootPage() {
       <CustomLoader />
     </div>
   ) : (
-    <CustomButton onClick={() => mutate()}>Logout</CustomButton>
+    <CustomButton onClick={() => mutate()}>Logout in app</CustomButton>
   );
 }

@@ -29,10 +29,17 @@ import { MonitorCloud, ArrowRight } from "lucide-react";
 import { useState } from "react";
 import CreateWorkSpace from "./forms/CreateWorkSpace";
 import { WorkspaceRes } from "../workspace.types";
+import { useRouter } from "next/navigation";
 
 const Workspaces = () => {
+  const router = useRouter();
   const [isCreate, setIsCreate] = useState(false);
   const { data: workspaces, isLoading } = useWorkspaces();
+
+  const selectWorkspace = (id: string) => {
+    localStorage.setItem("workspace", id);
+    router.replace("/")
+  }
 
   if (isLoading)
     return (

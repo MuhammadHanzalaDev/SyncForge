@@ -9,7 +9,7 @@ async function start() {
     await app.listen({ port: port });
     console.log(`Server running on port: ${port}`);
   } catch (err) {
-    app.log.error(err);
+    console.error("CRASHED:", err);
     process.exit(1);
   }
 }
