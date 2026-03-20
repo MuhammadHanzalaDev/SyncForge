@@ -206,9 +206,11 @@ const setPasswordService = async (token: string, password: string) => {
   if (user.refreshToken !== parsed.token)
     throw new ApiError("Invalid token!", 400);
 
+  const hashedPassword = await hashString(parsed.password);
+
   await authRepo.updateUserById(userId, {
     refreshToken: "",
-    password: parsed.password,
+    password: hashedPassword
   });
 };
 

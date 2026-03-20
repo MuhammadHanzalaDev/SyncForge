@@ -1,7 +1,7 @@
 "use client";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signupSchema } from "../schemas/signup.schema";
+import { signupSchema } from "../auth.schema";
 import { SignupFormValues } from "../auth.types";
 import { Field, FieldDescription, FieldGroup } from "@/shared/components/ui/field";
 import { CustomFormField, CustomButton } from "@/shared/components";

@@ -132,7 +132,7 @@ const joinWorkspaceService = async (token: string, reply: any) => {
     };
 
     const token = generateToken(tokenPayload, "7d");
-    const setPasswordLink = `${env.SERVER_URL}/api/v1/auth/set-password?token=${token}`;
+    const setPasswordLink = `${env.CLIENT_URL}/set-password?token=${token}`;
 
     await updateUserById(newUser.id, { refreshToken: token });
 

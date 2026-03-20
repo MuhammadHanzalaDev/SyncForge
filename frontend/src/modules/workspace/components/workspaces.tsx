@@ -13,7 +13,6 @@ import {
 import {
   Item,
   ItemContent,
-  ItemDescription,
   ItemTitle,
   ItemGroup,
   ItemMedia,
@@ -33,7 +32,7 @@ import { WorkspaceRes } from "../workspace.types";
 
 const Workspaces = () => {
   const [isCreate, setIsCreate] = useState(false);
-  const { data: workspaces, isLoading, error } = useWorkspaces();
+  const { data: workspaces, isLoading } = useWorkspaces();
 
   if (isLoading)
     return (

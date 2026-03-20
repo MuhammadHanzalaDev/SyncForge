@@ -1,6 +1,5 @@
 import z from "zod";
-import { signupSchema } from "./schemas/signup.schema";
-import { loginSchema } from "./schemas/login.schema";
+import { signupSchema, loginSchema, setPasswordSchema } from "./auth.schema";
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 
@@ -11,4 +10,17 @@ interface VerifyOtpValues {
   otp: string;
 }
 
-export type { SignupFormValues, LoginFormValues, VerifyOtpValues };
+type SetPasswordValues = z.infer<typeof setPasswordSchema>;
+
+interface SetPasswordMutateValues {
+  password: string;
+  token: string;
+}
+
+export type {
+  SignupFormValues,
+  LoginFormValues,
+  VerifyOtpValues,
+  SetPasswordValues,
+  SetPasswordMutateValues,
+};

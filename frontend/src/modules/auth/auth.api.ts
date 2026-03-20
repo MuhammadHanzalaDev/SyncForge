@@ -1,11 +1,11 @@
 import { api } from "@/shared/lib/axios";
 import {
   LoginFormValues,
+  SetPasswordMutateValues,
   SignupFormValues,
   VerifyOtpValues,
 } from "./auth.types";
 import { AxiosError } from "axios";
-import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import message from "@/shared/utils/toast";
 
 const signup = async (payload: SignupFormValues) => {
@@ -74,4 +74,27 @@ const resendVerifyOtp = async (email: string) => {
   }
 };
 
-export { signup, verify, login, logout, refreshToken, resendVerifyOtp };
+const setPassword = async ({ password, token }: SetPasswordMutateValues) => {
+  try {
+    const res = await api.post(
+      "/auth/set-password",
+      { password },
+      { params: { token } },
+    );
+    return res.data;
+  } catch (err: unknown) {
+    if (err instanceof AxiosError) {
+      throw err?.response?.data;
+    }
+  }
+};
+
+export {
+  signup,
+  verify,
+  login,
+  logout,
+  refreshToken,
+  resendVerifyOtp,
+  setPassword,
+};
