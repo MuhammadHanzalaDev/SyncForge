@@ -25,7 +25,8 @@ model User {
   memberships WorkspaceMember[]
   messages    Message[]
 
-  files File[] @relation("UserFiles")
+  files       File[]       @relation("UserFiles")
+  roomMembers RoomMember[]
 }
 
 model Workspace {
@@ -63,13 +64,32 @@ model WorkspaceMember {
 }
 
 model Room {
-  id          String @id @default(uuid())
+  id          String   @id @default(uuid())
   workspaceId String
   name        String
-  type        String
+  type        RoomType
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id])
-  messages  Message[]
+  workspace   Workspace    @relation(fields: [workspaceId], references: [id])
+  messages    Message[]
+  roomMembers RoomMember[]
+}
+
+enum RoomType {
+  PUBLIC // everyone in workspace
+  PRIVATE // selected members
+  DIRECT // 1-to-1 chat
+}
+
+model RoomMember {
+  userId String
+  roomId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roomId])
+  @@index([userId])
+  @@index([roomId])
 }
 
 model Message {
@@ -94,12 +114,12 @@ model Otp {
 }
 
 model File {
-  id         String         @id @default(uuid())
-  filename       String
-  key        String
-  mimetype   String
-  size       Int
-  createdAt  DateTime       @default(now())
+  id        String   @id @default(uuid())
+  filename  String
+  key       String
+  mimetype  String
+  size      Int
+  createdAt DateTime @default(now())
 
   userId String
   user   User   @relation("UserFiles", fields: [userId], references: [id], onDelete: Cascade)

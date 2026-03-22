@@ -18,6 +18,8 @@ export default function RootPage() {
 
     if (!isAuthenticated) {
       router.replace("/login");
+    } else if (!localStorage.getItem("workspace")) {
+      router.replace("/workspaces");
     }
   }, [isAuthenticated, isLoading, router]);
 

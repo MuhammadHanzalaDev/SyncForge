@@ -38,8 +38,8 @@ const Workspaces = () => {
 
   const selectWorkspace = (id: string) => {
     localStorage.setItem("workspace", id);
-    router.replace("/")
-  }
+    router.replace("/");
+  };
 
   if (isLoading)
     return (
@@ -87,6 +87,7 @@ const Workspaces = () => {
                       asChild
                       role="listitem"
                       className="w-100"
+                      onClick={() => selectWorkspace(workspace.id)}
                     >
                       <a href="#">
                         <ItemMedia variant="image">

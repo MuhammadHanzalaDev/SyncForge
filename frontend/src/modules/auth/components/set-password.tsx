@@ -5,7 +5,7 @@ import { useForm, FormProvider } from "react-hook-form";
 import { useSetPassword } from "../auth.mutation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { setPasswordSchema } from "../auth.schema";
-import useGetSearchParams from "@/shared/Hooks/useGetSearchParams";
+import useGetSearchParams from "@/shared/hooks/useGetSearchParams";
 import message from "@/shared/utils/toast";
 import { FieldGroup } from "@/shared/components/ui/field";
 import { CustomFormField, CustomButton } from "@/shared/components";
