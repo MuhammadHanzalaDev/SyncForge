@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/shared/providers/theme-provider";
-import { ModeToggle } from "@/shared/components";
 import { ReactQueryProvider } from "@/shared/providers/ReactQueryProvider";
 import { Toaster } from "@/shared/components/ui/sonner";
 
@@ -38,7 +37,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <ModeToggle />
+
             {children}
             <Toaster />
           </ThemeProvider>

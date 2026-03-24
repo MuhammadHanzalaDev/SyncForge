@@ -1,7 +1,11 @@
 "use client";
 import Image from "next/image";
 import { useWorkspaces } from "@/modules/workspace/workspace.query";
-import { CustomButton, ItemMediaSkeleton } from "@/shared/components";
+import {
+  CustomButton,
+  ItemMediaSkeleton,
+  UserAvatarGroup,
+} from "@/shared/components";
 import {
   Empty,
   EmptyContent,
@@ -17,13 +21,6 @@ import {
   ItemGroup,
   ItemMedia,
 } from "@/shared/components/ui/item";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarGroup,
-  AvatarGroupCount,
-  AvatarImage,
-} from "@/shared/components/ui/avatar";
 import { Card } from "@/shared/components/ui/card";
 import { MonitorCloud, ArrowRight } from "lucide-react";
 import { useState } from "react";
@@ -111,27 +108,7 @@ const Workspaces = () => {
                           </span> */}
                           </ItemTitle>
                           <div>
-                            <AvatarGroup className="grayscale">
-                              {Array.from({
-                                length:
-                                  workspace.totalMembers > 3
-                                    ? 3
-                                    : workspace.totalMembers,
-                              }).map((_, idx) => (
-                                <Avatar key={idx} className="w-6 h-6">
-                                  <AvatarImage
-                                    src="/images/empty-user-avatar.png"
-                                    alt="member"
-                                  />
-                                  <AvatarFallback>User</AvatarFallback>
-                                </Avatar>
-                              ))}
-                              {workspace.totalMembers > 3 && (
-                                <AvatarGroupCount className="w-6 h-6">
-                                  +{workspace.totalMembers - 3}
-                                </AvatarGroupCount>
-                              )}
-                            </AvatarGroup>
+                            <UserAvatarGroup count={workspace.totalMembers} />
                           </div>
                         </ItemContent>
                         <ItemContent className="flex-none text-center">

@@ -2,6 +2,7 @@
 
 // Common
 export { default as ModeToggle } from "./common/ModeToggle";
+export { default as UserAvatarGroup } from "./common/AvatarGroup";
 
 // Form
 export { default as CustomButton } from "./form/CustomButtom";

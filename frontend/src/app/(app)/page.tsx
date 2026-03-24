@@ -4,11 +4,10 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuthStore } from "@/shared/store/authStore";
 import { useAuthInit } from "@/modules/auth/hooks/useAuthInit";
-import { CustomLoader, CustomButton } from "@/shared/components";
-import { useLogout } from "@/modules/auth/auth.mutation";
+import { CustomLoader } from "@/shared/components";
+import { ModeToggle } from "@/shared/components";
 
 export default function RootPage() {
-  const { mutate } = useLogout();
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const { isLoading } = useAuthInit();
@@ -28,6 +27,8 @@ export default function RootPage() {
       <CustomLoader />
     </div>
   ) : (
-    <CustomButton onClick={() => mutate()}>Logout in app</CustomButton>
+    <div className="flex w-full justify-end pr-3">
+      <ModeToggle />
+    </div>
   );
 }
