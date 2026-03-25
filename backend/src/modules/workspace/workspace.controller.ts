@@ -77,4 +77,77 @@ const joinWorkspace = async (
   reply.redirect(env.CLIENT_URL);
 };
 
+const getChatsAndRooms = async (
+  request: FastifyRequest<{ Params: { workspaceId: string } }>,
+  reply: FastifyReply,
+) => {
+  const userId = request.user.userId;
+  const workspaceId = request.params.workspaceId;
+
+  const workspaceMembers = await prisma.workspaceMember.findMany({
+    where: {
+      workspaceId,
+      NOT: {
+        userId: userId,
+      },
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true, // optional
+        },
+      },
+    },
+  });
+
+  const directChatCandidates = workspaceMembers.map((member) => ({
+    id: member.user.id,
+    name: `${member.user.firstName} ${member.user.lastName}`,
+    email: member.user.email,
+    avatar: member.user.avatar,
+    type: "DIRECT",
+  }));
+
+  const rooms = await prisma.room.findMany({
+    where: {
+      workspaceId,
+      NOT: {
+        type: "DIRECT",
+      },
+    },
+    include: {
+      roomMembers: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
+      messages: {
+        orderBy: { createdAt: "desc" },
+        take: 1, // last message only
+      },
+    },
+    orderBy: {
+      updatedAt: "desc", // optional if you add it
+    },
+  });
+
+  const formattedRooms = rooms.map((room) => ({
+    id: room.id,
+    name: room.name,
+    type: room.type,
+    members: room.roomMembers.map((rm) => rm.user),
+    lastMessage: room.messages[0] || null,
+  }));
+};
+
 export { getAllWorkspaces, createWorkspace, joinWorkspace };
