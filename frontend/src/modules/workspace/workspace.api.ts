@@ -25,4 +25,16 @@ const createWorkspace = async (formData: FormData) => {
   }
 };
 
-export { getAllWorkspaces, createWorkspace };
+const getChatsAndRooms = async (workspaceId?: string | null) => {
+  try {
+    const res = await api.get(`/workspaces/${workspaceId}/chats`);
+    return res.data?.data;
+  } catch (err: unknown) {
+    if (err instanceof AxiosError) {
+      throw err.response?.data || err.message;
+    }
+    throw err;
+  }
+};
+
+export { getAllWorkspaces, createWorkspace, getChatsAndRooms };
