@@ -8,6 +8,7 @@ import { parseMultipart } from "@/utils/multipart";
 import { findManyWorkspaces } from "./workspace.repository";
 import { getFileUrl } from "../storage/storage.service";
 import { env } from "@/config/env";
+import { getChatsAndRoomsRequest } from "./workspace.types";
 
 const getAllWorkspaces = async (
   request: FastifyRequest,
@@ -78,7 +79,7 @@ const joinWorkspace = async (
 };
 
 const getChatsAndRooms = async (
-  request: FastifyRequest<{ Params: { workspaceId: string } }>,
+  request: FastifyRequest<getChatsAndRoomsRequest>,
   reply: FastifyReply,
 ) => {
   const userId = request.user.userId;
@@ -108,7 +109,7 @@ const getChatsAndRooms = async (
     id: member.user.id,
     name: `${member.user.firstName} ${member.user.lastName}`,
     email: member.user.email,
-    avatar: member.user.avatar,
+    avatar: member.user.avatar ? getFileUrl(member.user.avatar.id) : null,
     type: "DIRECT",
   }));
 
@@ -136,9 +137,9 @@ const getChatsAndRooms = async (
         take: 1, // last message only
       },
     },
-    orderBy: {
-      updatedAt: "desc", // optional if you add it
-    },
+    // orderBy: {
+    //   updatedAt: "desc", // optional if you add it
+    // },
   });
 
   const formattedRooms = rooms.map((room) => ({
@@ -148,6 +149,8 @@ const getChatsAndRooms = async (
     members: room.roomMembers.map((rm) => rm.user),
     lastMessage: room.messages[0] || null,
   }));
+
+  return { data: { rooms: formattedRooms, chats: directChatCandidates } };
 };
 
-export { getAllWorkspaces, createWorkspace, joinWorkspace };
+export { getAllWorkspaces, createWorkspace, joinWorkspace, getChatsAndRooms };

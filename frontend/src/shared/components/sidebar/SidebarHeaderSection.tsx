@@ -12,18 +12,21 @@ import {
   PopoverContent,
 } from "@/shared/components/ui/popover";
 import { ChevronsUpDown, MonitorCloud, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/shared/lib/utils";
 import { UserAvatarGroup } from "..";
+import { WorkspaceRes } from "@/modules/workspace/workspace.types";
 
-const teams = [
-  { name: "Acme Inc", membersCount: 1 },
-  { name: "Acme Corp.", membersCount: 5 },
-  { name: "Evil Corp.", membersCount: 2 },
-];
+interface SidebarHeaderSectionProps {
+  workspaces: WorkspaceRes[];
+  workspacesLoading: boolean;
+}
 
-export function SidebarHeaderSection() {
-  const [active, setActive] = useState(teams[0]);
+export function SidebarHeaderSection({
+  workspaces,
+  workspacesLoading,
+}: SidebarHeaderSectionProps) {
+  const [active, setActive] = useState(null);
   const [open, setOpen] = useState(false);
 
   return (
@@ -45,7 +48,7 @@ export function SidebarHeaderSection() {
 
                 {/* Name + plan */}
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold text-sm">{active.name}</span>
+                  <span className="font-semibold text-sm">{active?.name}</span>
                   <span className="text-xs text-muted-foreground">
                     Workspace
                   </span>
@@ -69,7 +72,7 @@ export function SidebarHeaderSection() {
 
               {/* Team list */}
               <div className="flex flex-col gap-0.5">
-                {teams.map((team) => (
+                {workspaces?.map((team) => (
                   <button
                     key={team.name}
                     onClick={() => {
@@ -79,7 +82,7 @@ export function SidebarHeaderSection() {
                     className={cn(
                       "flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors",
                       "hover:bg-accent hover:text-accent-foreground",
-                      active.name === team.name &&
+                      active?.name === team.name &&
                         "bg-accent text-accent-foreground",
                     )}
                   >
@@ -90,7 +93,10 @@ export function SidebarHeaderSection() {
                       {team.name}
                     </span>
                     <span className="text-xs text-muted-foreground font-mono">
-                      <UserAvatarGroup count={team.membersCount} className="w-5 h-5" />
+                      <UserAvatarGroup
+                        count={team.totalMembers}
+                        className="w-5 h-5"
+                      />
                     </span>
                   </button>
                 ))}

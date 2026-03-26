@@ -3,4 +3,10 @@ import z from "zod";
 
 type CreateWorkSpaceValues = z.infer<typeof validateCreateWorkspace>;
 
-export type { CreateWorkSpaceValues };
+interface getChatsAndRoomsRequest {
+  Params: {
+    workspaceId: string;
+  };
+}
+
+export type { CreateWorkSpaceValues, getChatsAndRoomsRequest };
