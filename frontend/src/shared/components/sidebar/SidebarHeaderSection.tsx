@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/shared/lib/utils";
 import { UserAvatarGroup } from "..";
 import { Chat, Room, WorkspaceRes } from "@/modules/workspace/workspace.types";
+import { getItem } from "@/shared/utils/localStorage";
 
 interface SidebarHeaderSectionProps {
   workspaces: WorkspaceRes[];
@@ -33,9 +34,7 @@ export function SidebarHeaderSection({
   chats,
   chatsLoading,
 }: SidebarHeaderSectionProps) {
-  const [activeId, setActiveId] = useState(() =>
-    localStorage.getItem("workspace"),
-  );
+  const [activeId, setActiveId] = useState(getItem("workspace"));
   const [open, setOpen] = useState(false);
 
   const activeItem = workspaces?.find((i) => i.id === activeId);

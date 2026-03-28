@@ -8,11 +8,12 @@ import {
   useWorkspaces,
   useChatsAndRooms,
 } from "@/modules/workspace/workspace.query";
+import { getItem } from "@/shared/utils/localStorage";
 
 export function AppSidebar() {
   const { data: workspaces, isLoading } = useWorkspaces();
   const { data: chats, isLoading: chatsLoading } = useChatsAndRooms(
-    localStorage?.getItem("workspace"),
+    getItem("workspace"),
   );
 
   return (

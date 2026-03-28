@@ -15,6 +15,8 @@ import { Badge } from "@/shared/components/ui/badge";
 import { X } from "lucide-react";
 import { useCreateWorkspace } from "../../workspace.mutation";
 import { objectToFormData } from "@/shared/utils/formData";
+import { useRouter } from "next/navigation";
+import { setItem } from "@/shared/utils/localStorage";
 
 interface CreateWorkSpaceProps {
   isOpen: boolean;
@@ -22,6 +24,7 @@ interface CreateWorkSpaceProps {
 }
 
 const CreateWorkSpace = ({ isOpen, setIsOpen }: CreateWorkSpaceProps) => {
+  const router = useRouter();
   const { data, mutate, isPending } = useCreateWorkspace();
   const [email, setEmail] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -77,11 +80,12 @@ const CreateWorkSpace = ({ isOpen, setIsOpen }: CreateWorkSpaceProps) => {
       ...values,
       ...(file ? { file } : {}),
     };
-    console.log("submission obj: ", obj);
     const data = objectToFormData(obj);
     mutate(data, {
       onSuccess: (data) => {
-        console.log("dta", data);
+        setIsOpen(false);
+        setItem("workspace", data.id);
+        router.replace("/");
       },
     });
   };

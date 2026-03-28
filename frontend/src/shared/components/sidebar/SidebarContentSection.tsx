@@ -17,49 +17,22 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/shared/components/ui/collapsible";
-import {
-  BookOpen,
-  Settings2,
-  ChevronRight,
-  ChevronDown,
-  MessageCircle,
-  UsersRound,
-} from "lucide-react";
+import { ChevronRight, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { Avatar } from "../ui/avatar";
+import { useChatsAndRooms } from "@/modules/workspace/workspace.query";
+import { getItem } from "@/shared/utils/localStorage";
+import sidebarItems from "../content/sidebar";
+import { Chat, Room } from "@/modules/workspace/workspace.types";
+import { useRouter } from "next/navigation";
 
 interface NavItem {
   label: string;
   icon: React.ElementType;
-  children?: string[];
+  children?: Chat[] | Room[];
   isIcons?: boolean;
+  onChildClick?: (id: string) => void;
 }
-
-const platformItems: NavItem[] = [
-  {
-    label: "Chats",
-    icon: MessageCircle,
-    children: ["Chat 1", "Chat 2", "Chat 3"],
-    isIcons: true,
-  },
-  {
-    label: "Rooms",
-    icon: UsersRound,
-    children: ["Room 1", "Room 2", "Room 3"],
-    isIcons: true,
-  },
-  {
-    label: "Documentation",
-    icon: BookOpen,
-    children: ["Introduction"],
-    isIcons: false,
-  },
-  {
-    label: "Settings",
-    icon: Settings2,
-    // no children
-  },
-];
 
 function CollapsibleNavItem({ item }: { item: NavItem }) {
   const [open, setOpen] = useState(false);
@@ -98,7 +71,11 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
         <CollapsibleContent>
           <SidebarMenuSub>
             {item.children!.map((child) => (
-              <SidebarMenuSubItem key={child} className="cursor-pointer">
+              <SidebarMenuSubItem
+                key={child?.id}
+                className="cursor-pointer"
+                onClick={() => item?.onChildClick?.(child.id)}
+              >
                 <SidebarMenuSubButton className="pl-8 text-sm text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent rounded-md px-2 py-1.5">
                   {item.isIcons ? (
                     <div className="flex gap-2">
@@ -107,13 +84,13 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
                           size="sm"
                           className="bg-primary text-white w-5 h-5 flex justify-center items-center text-xs"
                         >
-                          {child?.slice(0, 1)}
+                          {child?.name?.slice(0, 1)}
                         </Avatar>
                       </div>
-                      <div>{child}</div>
+                      <div>{child.name}</div>
                     </div>
                   ) : (
-                    child
+                    child.name
                   )}
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
@@ -126,6 +103,24 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
 }
 
 export function SidebarContentSection() {
+  const router = useRouter();
+  const { data, isLoading } = useChatsAndRooms(getItem("workspace"));
+  const items = sidebarItems.map((item) =>
+    item.label === "Chats"
+      ? {
+          ...item,
+          children: data?.chats || [],
+          onChildClick: (id: string) => router.push(`/chats/${id}`),
+        }
+      : item.label === "Rooms"
+        ? {
+            ...item,
+            children: data?.rooms || [],
+            onChildClick: (id: string) => router.push(`/chats/${id}`),
+          }
+        : item,
+  );
+
   return (
     <SidebarContent>
       <SidebarGroup>
@@ -134,7 +129,7 @@ export function SidebarContentSection() {
         </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            {platformItems.map((item) => (
+            {items.map((item) => (
               <CollapsibleNavItem key={item.label} item={item} />
             ))}
           </SidebarMenu>
