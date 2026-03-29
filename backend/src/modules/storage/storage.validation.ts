@@ -1,13 +1,13 @@
 import z from "zod";
 
-const fileSchema = z.object({
+const validateFile = z.object({
   buffer: z.instanceof(Buffer),
   filename: z.string(),
   mimetype: z.string(),
   size: z.number(),
 });
 
-const createFileSchema = z.object({
+const validateCreateFile = z.object({
   filename: z.string(),
   key: z.string(),
   mimetype: z.string(),
@@ -15,4 +15,4 @@ const createFileSchema = z.object({
   userId: z.string(),
 });
 
-export { fileSchema, createFileSchema }
+export { validateFile, validateCreateFile }

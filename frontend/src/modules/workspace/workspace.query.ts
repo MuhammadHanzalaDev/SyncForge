@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getAllWorkspaces,
   getChatsAndRooms,
-  getPersonalInfo,
 } from "./workspace.api";
 
 const useWorkspaces = () => {
@@ -19,11 +18,4 @@ const useChatsAndRooms = (workspaceId?: string | null) => {
   });
 };
 
-const usePersonalInfo = () => {
-  return useQuery({
-    queryKey: ["personalInfo"],
-    queryFn: getPersonalInfo,
-  });
-};
-
-export { useWorkspaces, useChatsAndRooms, usePersonalInfo };
+export { useWorkspaces, useChatsAndRooms };

@@ -21,7 +21,7 @@ import {
 import { ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
 import { useLogout } from "@/modules/auth/auth.mutation";
 import { useRouter } from "next/navigation";
-import { usePersonalInfo } from "@/modules/workspace/workspace.query";
+import { usePersonalInfo } from "@/modules/user/user.query";
 
 export function SidebarFooterSection() {
   const router = useRouter();
@@ -50,13 +50,16 @@ export function SidebarFooterSection() {
                 >
                   {/* Avatar */}
                   <Avatar className="h-9 w-9 rounded-full shrink-0">
-                    <AvatarImage
-                      src={personalInfo?.avatar}
-                      alt={personalInfo?.firstName}
-                    />
-                    <AvatarFallback className="rounded-lg bg-primary from-violet-500 to-pink-500 text-white text-xs font-semibold">
-                      {initials}
-                    </AvatarFallback>
+                    {personalInfo?.avatarId ? (
+                      <AvatarImage
+                        src={personalInfo?.avatar}
+                        alt={personalInfo?.firstName}
+                      />
+                    ) : (
+                      <AvatarFallback className="rounded-lg bg-primary from-violet-500 to-pink-500 text-white text-xs font-semibold">
+                        {initials}
+                      </AvatarFallback>
+                    )}
                   </Avatar>
 
                   {/* Name & Email */}

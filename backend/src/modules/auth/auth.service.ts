@@ -210,7 +210,7 @@ const setPasswordService = async (token: string, password: string) => {
 
   await authRepo.updateUserById(userId, {
     refreshToken: "",
-    password: hashedPassword
+    password: hashedPassword,
   });
 };
 

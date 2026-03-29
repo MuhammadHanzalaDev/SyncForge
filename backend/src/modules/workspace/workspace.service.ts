@@ -4,9 +4,6 @@ import {
   findWorkspaceMember,
   createWorkspaceMember,
 } from "./workspace.repository";
-import { uploadFile } from "../storage/storage.service";
-import { createFile } from "../storage/storage.repository";
-import { createFileSchema } from "../storage/storage.validation";
 import { ApiError } from "@/utils/Error";
 import { generateToken, verifyToken } from "../auth/auth.utils";
 import { env } from "@/config/env";
@@ -16,27 +13,8 @@ import {
   findUserByEmail,
   updateUserById,
 } from "../auth/auth.repository";
-import { joinWorkspacePayload } from "./workspace.validation";
-
-const createAndUploadFile = async (
-  userId: string,
-  file: any,
-  folder: "avatars" | "attachments" | "documents",
-) => {
-  if (!file) throw new ApiError("File not found!", 404);
-
-  const key = await uploadFile(file, folder);
-  const fileObj = {
-    ...file,
-    key,
-    userId,
-  };
-  const parsed = createFileSchema.parse(fileObj);
-
-  const fileDoc = await createFile(parsed);
-
-  return fileDoc;
-};
+import { validateJoinWorkspace } from "./workspace.validation";
+import { createAndUploadFile } from "../storage/storage.service";
 
 const createWorkspaceService = async (userId: string, data: any) => {
   const emails = Array.isArray(data.emails)
@@ -94,7 +72,7 @@ const createWorkspaceService = async (userId: string, data: any) => {
 
 const joinWorkspaceService = async (token: string, reply: any) => {
   const payload = verifyToken(token);
-  const parsed = joinWorkspacePayload.parse(payload);
+  const parsed = validateJoinWorkspace.parse(payload);
 
   const user = await findUserByEmail(parsed.email);
 
@@ -147,4 +125,4 @@ const joinWorkspaceService = async (token: string, reply: any) => {
   }
 };
 
-export { createWorkspaceService, createAndUploadFile, joinWorkspaceService };
+export { createWorkspaceService, joinWorkspaceService };

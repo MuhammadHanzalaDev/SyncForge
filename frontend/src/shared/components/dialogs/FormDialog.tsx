@@ -22,6 +22,7 @@ interface FormDialogProps<T extends FieldValues> {
   form: UseFormReturn<T>;
   submitBtnText?: string;
   isCancelBtn?: boolean;
+  isClosable?: boolean;
   cancelBtnText?: string;
   isSubmitting?: boolean;
 }
@@ -36,12 +37,17 @@ function FormDialog<T extends FieldValues>({
   form,
   submitBtnText = "Submit",
   isCancelBtn = true,
+  isClosable = true,
   cancelBtnText = "Cancel",
   isSubmitting = false,
 }: FormDialogProps<T>) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent
+        className="sm:max-w-sm"
+        showCloseButton={isClosable}
+        onInteractOutside={!isClosable ? (e) => e.preventDefault() : undefined}
+      >
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>

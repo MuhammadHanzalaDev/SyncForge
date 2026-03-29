@@ -32,13 +32,4 @@ interface Room {
   lastMessage: string;
 }
 
-interface PersonalInfo {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  avatar?: string;
-  avatarId?: string;
-}
-
-export type { CreateWorkSpaceValues, WorkspaceRes, Chat, Room, PersonalInfo };
+export type { CreateWorkSpaceValues, WorkspaceRes, Chat, Room };

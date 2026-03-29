@@ -13,6 +13,7 @@ const mainPlugin: FastifyPluginAsync = async (app) => {
   await app.register(fastifyCors, {
     origin: env.CLIENT_URL,
     credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });
   await app.register(fastifyCookie);
   await app.register(multipart);

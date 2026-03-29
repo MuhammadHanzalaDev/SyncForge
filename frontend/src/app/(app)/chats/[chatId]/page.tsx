@@ -167,6 +167,70 @@ const DUMMY_MESSAGES: Message[] = [
   },
 ];
 
+const DM_MESSAGES: Message[] = [
+  {
+    id: "d1",
+    senderId: "2",
+    senderName: "Sarah Chen",
+    content: "Hey! Do you have a minute to sync on the auth flow?",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 3),
+  },
+  {
+    id: "d2",
+    senderId: "me",
+    senderName: "You",
+    content: "Sure, what's up?",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2.9),
+    status: "read",
+    isOwn: true,
+  },
+  {
+    id: "d3",
+    senderId: "2",
+    senderName: "Sarah Chen",
+    content:
+      "I'm trying to figure out where the token refresh logic should live. Right now it's in the interceptor but it feels like it belongs in a dedicated service.",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2.8),
+  },
+  {
+    id: "d4",
+    senderId: "me",
+    senderName: "You",
+    content:
+      "Yeah agreed. Move the refresh logic into an AuthService and have the interceptor call into it.",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2.5),
+    status: "read",
+    isOwn: true,
+  },
+  {
+    id: "d5",
+    senderId: "2",
+    senderName: "Sarah Chen",
+    content:
+      "That makes sense! So the interceptor catches the 401, delegates to AuthService.refreshToken(), and retries?",
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2.4),
+    reactions: [{ emoji: "💡", count: 1, reacted: false }],
+  },
+  {
+    id: "d6",
+    senderId: "me",
+    senderName: "You",
+    content:
+      "Exactly. And handle the case where refresh fails — clear the session and redirect to login.",
+    timestamp: new Date(Date.now() - 1000 * 60 * 30),
+    status: "read",
+    isOwn: true,
+  },
+  {
+    id: "d7",
+    senderId: "2",
+    senderName: "Sarah Chen",
+    content: "Perfect, I'll refactor it now. Thanks! 🙌",
+    timestamp: new Date(Date.now() - 1000 * 60 * 10),
+    reactions: [{ emoji: "🎉", count: 1, reacted: true }],
+  },
+];
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatTime(date: Date) {
@@ -482,8 +546,11 @@ export default function ChatPage() {
   // Determine if this is a room or direct chat (in real app, derive from data)
   // For demo: IDs starting with "r" = room, else = direct chat
   const isRoom = true; // toggle to false to see direct chat UI
+  const dmPeer = DUMMY_MEMBERS[1];
 
-  const [messages, setMessages] = useState<Message[]>(DUMMY_MESSAGES);
+  const [messages, setMessages] = useState<Message[]>(
+    isRoom ? DUMMY_MESSAGES : DM_MESSAGES,
+  );
   const [inputValue, setInputValue] = useState("");
   const [showMembers, setShowMembers] = useState(false);
   const [isTyping] = useState(false);
@@ -557,7 +624,11 @@ export default function ChatPage() {
               <p className="text-xs text-muted-foreground truncate">
                 {isRoom
                   ? `${DUMMY_MEMBERS.length} members · ${onlineCount} online`
-                  : "Active now"}
+                  : dmPeer.status === "online"
+                    ? "Active now"
+                    : dmPeer.status === "away"
+                      ? "Away"
+                      : "Offline"}
               </p>
             </div>
           </div>
@@ -669,6 +740,48 @@ export default function ChatPage() {
             </span>
             <Separator className="flex-1" />
           </div>
+
+          {!isRoom && (
+            <div className="flex flex-col items-center gap-2 py-6 px-4 text-center">
+              <div className="relative">
+                <Avatar className="h-16 w-16">
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">
+                    {getInitials(dmPeer.name)}
+                  </AvatarFallback>
+                </Avatar>
+                <span
+                  className={cn(
+                    "absolute bottom-0.5 right-0.5 h-4 w-4 rounded-full border-2 border-background",
+                    STATUS_COLORS[dmPeer.status],
+                  )}
+                />
+              </div>
+              <div>
+                <p className="font-semibold text-base">{dmPeer.name}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  This is the beginning of your direct message history with{" "}
+                  <span className="font-medium">{dmPeer.name}</span>.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {!isRoom && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                >
+                  <Info className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="text-xs">
+                View Profile
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           {messages.map((message, idx) => {
             const prevMessage = messages[idx - 1];

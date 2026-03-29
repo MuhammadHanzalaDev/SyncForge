@@ -38,16 +38,4 @@ const getChatsAndRooms = async (workspaceId?: string | null) => {
   }
 };
 
-const getPersonalInfo = async (): Promise<PersonalInfo> => {
-  try {
-    const res = await api.get("/users/personal-info");
-    return res.data.data;
-  } catch (err: unknown) {
-    if (err instanceof AxiosError) {
-      throw err.response?.data || err.message;
-    }
-    throw err;
-  }
-};
-
-export { getAllWorkspaces, createWorkspace, getChatsAndRooms, getPersonalInfo };
+export { getAllWorkspaces, createWorkspace, getChatsAndRooms };

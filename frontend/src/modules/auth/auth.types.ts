@@ -1,5 +1,9 @@
 import z from "zod";
-import { signupSchema, loginSchema, setPasswordSchema } from "./auth.schema";
+import {
+  signupSchema,
+  loginSchema,
+  setPasswordSchema,
+} from "./auth.schema";
 
 type SignupFormValues = z.infer<typeof signupSchema>;
 

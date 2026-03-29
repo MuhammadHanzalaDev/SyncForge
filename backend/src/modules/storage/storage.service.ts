@@ -7,6 +7,8 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { ApiError } from "@/utils/Error";
 import prisma from "@/config/prisma";
+import { validateCreateFile } from "./storage.validation";
+import { createFile } from "./storage.repository";
 
 async function uploadFile(
   file: any,
@@ -55,4 +57,24 @@ async function getFileUrl(fileId: string) {
   return await getSignedUrl(s3, command, { expiresIn: 3600 });
 }
 
-export { uploadFile, deleteFile, getFileUrl };
+const createAndUploadFile = async (
+  userId: string,
+  file: any,
+  folder: "avatars" | "attachments" | "documents",
+) => {
+  if (!file) throw new ApiError("File not found!", 404);
+
+  const key = await uploadFile(file, folder);
+  const fileObj = {
+    ...file,
+    key,
+    userId,
+  };
+  const parsed = validateCreateFile.parse(fileObj);
+
+  const fileDoc = await createFile(parsed);
+
+  return fileDoc;
+};
+
+export { uploadFile, deleteFile, getFileUrl, createAndUploadFile };

@@ -1,4 +1,5 @@
 import * as z from "zod";
+import { validateFile } from "../storage/storage.validation";
 
 const validateRegister = z.object({
   firstName: z.string("firstName is required!"),
@@ -22,4 +23,16 @@ const setPassword = z.object({
   password: z.string(),
 });
 
-export { validateRegister, validateLogin, validateVerifyEmail, setPassword };
+const validateUpdatePersonalInfo = z.object({
+  firstName: z.string(),
+  lastName: z.string(),
+  file: validateFile.optional(),
+});
+
+export {
+  validateRegister,
+  validateLogin,
+  validateVerifyEmail,
+  setPassword,
+  validateUpdatePersonalInfo,
+};

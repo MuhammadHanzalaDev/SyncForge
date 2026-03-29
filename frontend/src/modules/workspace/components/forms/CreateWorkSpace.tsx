@@ -25,7 +25,7 @@ interface CreateWorkSpaceProps {
 
 const CreateWorkSpace = ({ isOpen, setIsOpen }: CreateWorkSpaceProps) => {
   const router = useRouter();
-  const { data, mutate, isPending } = useCreateWorkspace();
+  const { mutate, isPending } = useCreateWorkspace();
   const [email, setEmail] = useState("");
   const [file, setFile] = useState<File | null>(null);
 
