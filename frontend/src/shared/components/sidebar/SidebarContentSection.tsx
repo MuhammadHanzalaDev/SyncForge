@@ -17,7 +17,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/shared/components/ui/collapsible";
-import { ChevronRight, ChevronDown } from "lucide-react";
+import {
+  ChevronRight,
+  ChevronDown,
+  MessageCirclePlus,
+  Plus,
+} from "lucide-react";
 import { useState } from "react";
 import { Avatar } from "../ui/avatar";
 import { useChatsAndRooms } from "@/modules/workspace/workspace.query";
@@ -25,6 +30,7 @@ import { getItem } from "@/shared/utils/localStorage";
 import sidebarItems from "../content/sidebar";
 import { Chat, Room } from "@/modules/workspace/workspace.types";
 import { useRouter } from "next/navigation";
+import CustomButton from "../form/CustomButtom";
 
 interface NavItem {
   label: string;
@@ -38,7 +44,7 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
   const [open, setOpen] = useState(false);
   const hasChildren = item.children && item.children.length > 0;
 
-  if (!hasChildren) {
+  if (!hasChildren && item.label !== "Rooms") {
     return (
       <SidebarMenuItem>
         <SidebarMenuButton className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
@@ -95,6 +101,28 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
                 </SidebarMenuSubButton>
               </SidebarMenuSubItem>
             ))}
+            {item.label === "Rooms" && (
+              <SidebarMenuSubItem className="cursor-pointer" onClick={() => {}}>
+                <CustomButton
+                  variant="outline"
+                  size="sm"
+                  className="w-100 text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent "
+                >
+                  <Plus /> Create Room
+                </CustomButton>
+              </SidebarMenuSubItem>
+            )}
+            {item.label === "Chats" && (
+              <SidebarMenuSubItem className="cursor-pointer" onClick={() => {}}>
+                <CustomButton
+                  variant="outline"
+                  size="sm"
+                  className="w-100 text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent "
+                >
+                  <MessageCirclePlus /> New Chat
+                </CustomButton>
+              </SidebarMenuSubItem>
+            )}
           </SidebarMenuSub>
         </CollapsibleContent>
       </SidebarMenuItem>

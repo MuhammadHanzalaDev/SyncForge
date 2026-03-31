@@ -25,8 +25,10 @@ model User {
   memberships WorkspaceMember[]
   messages    Message[]
 
-  files       File[]       @relation("UserFiles")
-  roomMembers RoomMember[]
+  files            File[]            @relation("UserFiles")
+  roomMembers      RoomMember[]
+  messageReceipts  MessageReceipt[]
+  messageReactions MessageReaction[]
 }
 
 model Workspace {
@@ -49,11 +51,21 @@ enum WorkspaceRole {
   MEMBER
 }
 
+enum UserStatus {
+  ONLINE
+  OFFLINE
+  AWAY
+  BUSY
+}
+
 model WorkspaceMember {
   userId      String
   workspaceId String
   role        WorkspaceRole @default(MEMBER)
   joinedAt    DateTime      @default(now())
+
+  status     UserStatus @default(OFFLINE)
+  lastSeenAt DateTime?
 
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
@@ -68,10 +80,12 @@ model Room {
   workspaceId String
   name        String
   type        RoomType
+  isArchived  Boolean  @default(false)
 
-  workspace   Workspace    @relation(fields: [workspaceId], references: [id])
-  messages    Message[]
-  roomMembers RoomMember[]
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id])
+  messages       Message[]
+  roomMembers    RoomMember[]
+  pinnedMessages PinnedMessage[]
 }
 
 enum RoomType {
@@ -93,16 +107,67 @@ model RoomMember {
 }
 
 model Message {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   roomId    String
   senderId  String
   content   String
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  isEdited  Boolean   @default(false)
+  deletedAt DateTime?
+
+  parentId String?
+  parent   Message?  @relation("MessageThread", fields: [parentId], references: [id])
+  replies  Message[] @relation("MessageThread")
 
   room   Room @relation(fields: [roomId], references: [id])
   sender User @relation(fields: [senderId], references: [id])
 
-  attachments File[] @relation("MessageFiles")
+  attachments      File[]            @relation("MessageFiles")
+  messageReceipts  MessageReceipt[]
+  messageReactions MessageReaction[]
+  pinnedMessages   PinnedMessage[]
+
+  @@index([parentId])
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+model MessageReceipt {
+  messageId String
+  userId    String
+  status    MessageStatus
+  updatedAt DateTime      @updatedAt
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([messageId, userId])
+}
+
+model MessageReaction {
+  id        String   @id @default(uuid())
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+}
+
+model PinnedMessage {
+  messageId String @id
+  roomId    String
+
+  message Message @relation(fields: [messageId], references: [id])
+  room    Room    @relation(fields: [roomId], references: [id])
 }
 
 model Otp {
@@ -129,4 +194,12 @@ model File {
   messageAttachments Message[]   @relation("MessageFiles")
 
   @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

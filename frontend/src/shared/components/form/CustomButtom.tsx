@@ -2,7 +2,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Spinner } from "@/shared/components/ui/spinner";
 
 interface CustomButtonProps {
-  children: React.ReactElement | string;
+  children: React.ReactNode | string;
   disabled?: boolean;
   isLoading?: boolean;
   variant?:
