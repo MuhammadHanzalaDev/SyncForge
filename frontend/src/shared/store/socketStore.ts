@@ -1,0 +1,39 @@
+import { create } from "zustand";
+import { Socket } from "socket.io-client";
+import { getSocketInstance } from "../lib/socket";
+
+interface SocketStore {
+  socket: Socket | null;
+  isConnected: boolean;
+  connect: (token: string) => void;
+  disconnect: () => void;
+}
+
+export const useSocketStore = create<SocketStore>((set, get) => ({
+  socket: null,
+  isConnected: false,
+
+  connect: (token) => {
+    // Don't create duplicate connections
+    if (get().socket?.connected) return;
+
+    const socket = getSocketInstance(token);
+
+    socket.on("connect", () => set({ isConnected: true }));
+    socket.on("disconnect", () => set({ isConnected: false }));
+    socket.on("connect_error", (err) => {
+      console.error("[socket error]", err);
+      //   if (err.message === "TOKEN_EXPIRED" || err.message === "INVALID_TOKEN") {
+      //     get().disconnect();
+      //     // trigger your auth refresh logic here
+      //   }
+    });
+
+    set({ socket });
+  },
+
+  disconnect: () => {
+    get().socket?.disconnect();
+    set({ socket: null, isConnected: false });
+  },
+}));

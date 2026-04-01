@@ -1,4 +1,4 @@
-import prisma from "@/config/prisma";
+import prisma from "@/lib/prisma";
 
 const createWorkspace = (data: any) => {
   return prisma.workspace.create({

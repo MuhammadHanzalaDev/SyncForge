@@ -1,4 +1,4 @@
-import s3 from "@/config/s3";
+import s3 from "@/lib/s3";
 import { env } from "@/config/env";
 import { randomUUID } from "crypto";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
@@ -6,7 +6,7 @@ import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { ApiError } from "@/utils/Error";
-import prisma from "@/config/prisma";
+import prisma from "@/lib/prisma";
 import { validateCreateFile } from "./storage.validation";
 import { createFile } from "./storage.repository";
 

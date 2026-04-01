@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import prisma from "@/config/prisma";
+import prisma from "@/lib/prisma";
 import {
   createWorkspaceService,
   joinWorkspaceService,

@@ -1,4 +1,4 @@
-import transporter from "@/config/nodemailer";
+import transporter from "@/lib/nodemailer";
 
 const sendEmail = async (to: string, subject: string, text: string) => {
   try {

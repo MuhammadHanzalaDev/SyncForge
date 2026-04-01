@@ -1,4 +1,4 @@
-import prisma from "@/config/prisma";
+import prisma from "@/lib/prisma";
 import { ApiError } from "@/utils/Error";
 import { FastifyRequest, FastifyReply } from "fastify";
 import { getFileUrl } from "../storage/storage.service";

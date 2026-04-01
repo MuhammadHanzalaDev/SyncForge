@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
 import { Server as HttpServer } from "http";
-import { env } from "./env";
+import { env } from "../config/env";
 import registerEvents from "@/socket";
 import authenticateSocket from "@/socket/socketAuth";
 
