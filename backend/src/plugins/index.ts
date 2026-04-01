@@ -6,6 +6,7 @@ import multipart from "@fastify/multipart";
 import errorHandlerPlugin from "./errorHandler.plugin";
 import responseWrapperPlugin from "./responseWrapper.plugin";
 import authPlugin from "@/modules/auth/auth.plugin";
+import socketPlugin from "./socket.plugin";
 import { env } from "@/config/env";
 
 const mainPlugin: FastifyPluginAsync = async (app) => {
@@ -22,6 +23,7 @@ const mainPlugin: FastifyPluginAsync = async (app) => {
   await app.register(errorHandlerPlugin);
   await app.register(responseWrapperPlugin);
   await app.register(authPlugin);
+  await app.register(socketPlugin);
 };
 
 export default fp(mainPlugin);
