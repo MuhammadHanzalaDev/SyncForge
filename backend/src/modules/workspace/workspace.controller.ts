@@ -33,8 +33,6 @@ const getAllWorkspaces = async (
     },
   });
 
-  console.log(workspaces);
-
   const formatted = await Promise.all(
     workspaces.map(async (w) => {
       const fileUrl = w.avatarId ? await getFileUrl(w.avatarId) : null;
@@ -60,7 +58,6 @@ const createWorkspace = async (
   const userId = request.user?.userId;
 
   const data = await parseMultipart(request);
-  console.log(data);
 
   const workspace = await createWorkspaceService(userId, data);
 

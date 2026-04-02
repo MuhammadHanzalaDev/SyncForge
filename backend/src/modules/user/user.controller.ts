@@ -23,14 +23,12 @@ const getPersonalInfo = async (
     },
   });
 
-  console.log("user", user);
   if (!user) throw new ApiError("User not found!", 404);
 
   const formatted = {
     ...user,
     avatar: user.avatarId ? await getFileUrl(user.avatarId) : null,
   };
-  console.log("formatted", formatted);
 
   return { data: formatted };
 };
@@ -39,11 +37,9 @@ const updateProfileInfo = async (
   request: FastifyRequest,
   reply: FastifyReply,
 ) => {
-  console.log(request.user);
   const userId = request.user?.userId;
 
   const data = await parseMultipart(request);
-  console.log(data);
 
   await updatePersonalInfoService(userId, data);
 

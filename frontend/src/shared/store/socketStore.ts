@@ -15,7 +15,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
 
   connect: (token) => {
     // Don't create duplicate connections
-    if (get().socket?.connected) return;
+    const existing = get().socket;
+
+    if (existing) return;
 
     const socket = getSocketInstance(token);
 

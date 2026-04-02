@@ -2,6 +2,12 @@ import { Socket } from "socket.io";
 import { verifyAccessToken } from "@/modules/auth/auth.utils";
 import { AuthJwtPayload } from "@/modules/auth/auth.types";
 
+declare module "socket.io" {
+  interface Socket {
+    user?: any;
+  }
+}
+
 const authenticateSocket = async (
   socket: Socket,
   next: (err?: Error) => void,
