@@ -15,33 +15,29 @@ import { ChevronsUpDown, MonitorCloud, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/shared/lib/utils";
 import { UserAvatarGroup } from "..";
-import { Chat, Room, WorkspaceRes } from "@/modules/workspace/workspace.types";
-import { getItem } from "@/shared/utils/localStorage";
+import { WorkspaceRes } from "@/modules/workspace/workspace.types";
+import { getItem, setItem } from "@/shared/utils/localStorage";
+import useWorkspaceStore from "@/modules/workspace/workspace.store";
 
 interface SidebarHeaderSectionProps {
   workspaces: WorkspaceRes[];
   workspacesLoading: boolean;
-  chats: {
-    chats: Chat[];
-    rooms: Room[];
-  };
-  chatsLoading: boolean;
 }
 
 export function SidebarHeaderSection({
   workspaces,
   workspacesLoading,
-  chats,
-  chatsLoading,
 }: SidebarHeaderSectionProps) {
+  const { setWorkspaceId } = useWorkspaceStore();
   const [activeId, setActiveId] = useState(getItem("workspace"));
   const [open, setOpen] = useState(false);
 
   const activeItem = workspaces?.find((i) => i.id === activeId);
 
   useEffect(() => {
-    localStorage.setItem("workspace", activeId || "");
-  }, [activeId]);
+    setItem("workspace", activeId || "");
+    setWorkspaceId(activeId || "");
+  }, [activeId, setWorkspaceId]);
 
   return (
     <SidebarHeader className="border-b border-sidebar-border px-2 py-3">

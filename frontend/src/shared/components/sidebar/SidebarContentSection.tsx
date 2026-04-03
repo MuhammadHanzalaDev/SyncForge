@@ -31,6 +31,7 @@ import sidebarItems from "../content/sidebar";
 import { Chat, Room } from "@/modules/workspace/workspace.types";
 import { useRouter } from "next/navigation";
 import CustomButton from "../form/CustomButtom";
+import useWorkspaceStore from "@/modules/workspace/workspace.store";
 
 interface NavItem {
   label: string;
@@ -132,7 +133,8 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
 
 export function SidebarContentSection() {
   const router = useRouter();
-  const { data, isLoading } = useChatsAndRooms(getItem("workspace"));
+  const { workspaceId } = useWorkspaceStore();
+  const { data } = useChatsAndRooms(workspaceId);
   const items = sidebarItems.map((item) =>
     item.label === "Chats"
       ? {
