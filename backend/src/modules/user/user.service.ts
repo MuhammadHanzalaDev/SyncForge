@@ -1,6 +1,8 @@
+import { SocketUser } from "@/types/socket";
 import { updateUserById } from "../auth/auth.repository";
 import { validateUpdatePersonalInfo } from "../auth/auth.validations";
 import { createAndUploadFile } from "../storage/storage.service";
+import { updateWorkspaceMember } from "../workspace/workspace.repository";
 
 const updatePersonalInfoService = async (userId: string, data: any) => {
   const parsed = validateUpdatePersonalInfo.parse(data);
@@ -19,5 +21,34 @@ const updatePersonalInfoService = async (userId: string, data: any) => {
   });
 };
 
+const userOnline = async (user: SocketUser) => {
+  await updateWorkspaceMember(
+    {
+      userId_workspaceId: {
+        userId: user?.userId,
+        workspaceId: user?.workspaceId,
+      },
+    },
+    {
+      status: "ONLINE",
+      lastSeenAt: null,
+    },
+  );
+};
 
-export { updatePersonalInfoService };
+const userOffline = async (user: SocketUser) => {
+  await updateWorkspaceMember(
+    {
+      userId_workspaceId: {
+        userId: user?.userId,
+        workspaceId: user?.workspaceId,
+      },
+    },
+    {
+      status: "OFFLINE",
+      lastSeenAt: new Date(),
+    },
+  );
+};
+
+export { updatePersonalInfoService, userOffline, userOnline };

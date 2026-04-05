@@ -5,7 +5,7 @@ import { getSocketInstance } from "../lib/socket";
 interface SocketStore {
   socket: Socket | null;
   isConnected: boolean;
-  connect: (token: string) => void;
+  connect: (token: string, workspaceId: string) => void;
   disconnect: () => void;
 }
 
@@ -13,13 +13,13 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
   socket: null,
   isConnected: false,
 
-  connect: (token) => {
+  connect: (token, workspaceId) => {
     // Don't create duplicate connections
     const existing = get().socket;
 
     if (existing) return;
 
-    const socket = getSocketInstance(token);
+    const socket = getSocketInstance(token, workspaceId);
 
     socket.on("connect", () => set({ isConnected: true }));
     socket.on("disconnect", () => set({ isConnected: false }));

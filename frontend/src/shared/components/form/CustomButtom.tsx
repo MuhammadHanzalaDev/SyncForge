@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/shared/components/ui/button";
 import { Spinner } from "@/shared/components/ui/spinner";
 

@@ -18,6 +18,7 @@ interface Chat {
   email: string;
   avatar?: string;
   type: string;
+  status: "ONLINE" | "OFFLINE" | "BUSY" | "AWAY";
 }
 
 interface Room {

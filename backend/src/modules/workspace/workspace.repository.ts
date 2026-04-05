@@ -23,9 +23,14 @@ const findWorkspaceMember = (where: any) => {
   return prisma.workspaceMember.findUnique({ where });
 };
 
+const updateWorkspaceMember = (where: any, data: any) => {
+  return prisma.workspaceMember.update({ where, data });
+};
+
 export {
   createWorkspace,
   createWorkspaceMember,
   findManyWorkspaces,
   findWorkspaceMember,
+  updateWorkspaceMember,
 };

@@ -82,6 +82,8 @@ model Room {
   type        RoomType
   isArchived  Boolean  @default(false)
 
+  uniqueKey String? @unique // for direct rooms workspaceId_userId1_userId2
+
   workspace      Workspace       @relation(fields: [workspaceId], references: [id])
   messages       Message[]
   roomMembers    RoomMember[]

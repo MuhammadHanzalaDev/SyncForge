@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { RegisterValues, OtpValues } from "./auth.types";
 
 // User
@@ -14,9 +15,10 @@ const findUserByEmail = (email: string) => {
   });
 };
 
-const findUserById = (id: string) => {
+const findUserById = <T extends Prisma.UserSelect>(id: string, select?: T) => {
   return prisma.user.findUnique({
     where: { id },
+    select,
   });
 };
 

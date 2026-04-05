@@ -1,10 +1,11 @@
 import { Socket } from "socket.io";
 import { verifyAccessToken } from "@/modules/auth/auth.utils";
 import { AuthJwtPayload } from "@/modules/auth/auth.types";
+import { SocketUser } from "@/types/socket";
 
 declare module "socket.io" {
   interface Socket {
-    user?: any;
+    user: SocketUser;
   }
 }
 
@@ -13,7 +14,8 @@ const authenticateSocket = async (
   next: (err?: Error) => void,
 ) => {
   try {
-    const token = socket.handshake.auth.token;
+    const token = socket.handshake.auth?.token;
+    const workspaceId = socket.handshake.auth?.workspaceId;
 
     if (!token) {
       return next(new Error("No Token"));
@@ -26,10 +28,11 @@ const authenticateSocket = async (
     }
 
     // attach user to socket
-    socket.user = { userId: decoded.userId };
+    socket.user = { userId: decoded.userId, workspaceId };
 
     next();
   } catch (err) {
+    console.log("Socket Auth failed", err);
     return next(new Error("Invalid Token"));
   }
 };

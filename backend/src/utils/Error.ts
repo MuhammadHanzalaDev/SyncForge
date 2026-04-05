@@ -1,4 +1,5 @@
 import { ZodError } from "zod";
+import { Server } from "socket.io";
 
 // Define a base ApiError class
 class ApiError extends Error {
@@ -33,4 +34,21 @@ function formatZodError(err: ZodError) {
   }));
 }
 
-export { ApiError, NotFoundError, BadRequestError, formatZodError };
+function socketHandler(handler: any) {
+  return async (socket: Server, data: any) => {
+    try {
+      await handler(socket, data);
+    } catch (err: any) {
+      console.error(err);
+      socket.emit("error", { message: err.message || "Something went wrong" });
+    }
+  };
+}
+
+export {
+  ApiError,
+  NotFoundError,
+  BadRequestError,
+  formatZodError,
+  socketHandler,
+};

@@ -1,7 +1,7 @@
-import { Socket } from "socket.io";
+import type { SocketUser } from "./socket";
 
 declare module "socket.io" {
   interface Socket {
-    user?: any;
+    user: SocketUser;
   }
 }

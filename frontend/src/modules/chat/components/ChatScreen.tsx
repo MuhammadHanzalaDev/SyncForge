@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useParams } from "next/navigation";
-import useRoomSocket from "@/modules/room/hooks/useRoomSocket";
 import { DUMMY_MEMBERS, DUMMY_MESSAGES, DM_MESSAGES } from "../chat.content";
 import type { Message } from "../chat.types";
 import {
@@ -27,7 +26,6 @@ import {
 import {
   Avatar,
   AvatarFallback,
-  AvatarImage,
 } from "@/shared/components/ui/avatar";
 import StatusDot from "./StatusDot";
 import { getInitials } from "../chat.utils";
@@ -53,11 +51,12 @@ import { Separator } from "@/shared/components/ui/separator";
 import { STATUS_COLORS } from "../chat.utils";
 import MessageBubble from "./MessageBubble";
 import MemberListPanel from "./MembersListPanel";
+import useChatSocket from "../hooks/useChatSocket";
 
 export default function ChatScreen() {
   const params = useParams();
-  const id = params?.id as string;
-  useRoomSocket();
+  const id = params?.chatId as string;
+  useChatSocket(id);
 
   // Determine if this is a room or direct chat (in real app, derive from data)
   // For demo: IDs starting with "r" = room, else = direct chat
@@ -102,7 +101,7 @@ export default function ChatScreen() {
   const dummyName = isRoom ? "Design & Frontend" : "Sarah Chen";
   const dummyStatus = isRoom ? `${DUMMY_MEMBERS.length} members` : "online";
   const onlineCount = DUMMY_MEMBERS.filter(
-    (m) => m.status !== "offline",
+    (m) => m.status !== "OFFLINE",
   ).length;
 
   return (
@@ -123,7 +122,7 @@ export default function ChatScreen() {
                     {getInitials(dummyName)}
                   </AvatarFallback>
                 </Avatar>
-                <StatusDot status="online" />
+                <StatusDot status="ONLINE" />
               </div>
             )}
             <div className="min-w-0">
@@ -140,9 +139,9 @@ export default function ChatScreen() {
               <p className="text-xs text-muted-foreground truncate">
                 {isRoom
                   ? `${DUMMY_MEMBERS.length} members · ${onlineCount} online`
-                  : dmPeer.status === "online"
+                  : dmPeer.status === "ONLINE"
                     ? "Active now"
-                    : dmPeer.status === "away"
+                    : dmPeer.status === "AWAY"
                       ? "Away"
                       : "Offline"}
               </p>

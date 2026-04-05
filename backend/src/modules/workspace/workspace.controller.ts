@@ -89,14 +89,16 @@ const getChatsAndRooms = async (
         userId: userId,
       },
     },
-    include: {
+    select: {
+      status: true,
+      lastSeenAt: true,
       user: {
         select: {
           id: true,
           firstName: true,
           lastName: true,
           email: true,
-          avatar: true, // optional
+          avatar: true,
         },
       },
     },
@@ -108,6 +110,8 @@ const getChatsAndRooms = async (
     email: member.user.email,
     avatar: member.user.avatar ? getFileUrl(member.user.avatar.id) : null,
     type: "DIRECT",
+    status: member.status,
+    lastSeenAt: member.lastSeenAt,
   }));
 
   const rooms = await prisma.room.findMany({

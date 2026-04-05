@@ -4,6 +4,7 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { getFileUrl } from "../storage/storage.service";
 import { parseMultipart } from "@/utils/multipart";
 import { updatePersonalInfoService } from "./user.service";
+import { findUserById } from "../auth/auth.repository";
 
 const getPersonalInfo = async (
   request: FastifyRequest,
@@ -11,16 +12,13 @@ const getPersonalInfo = async (
 ) => {
   const userId = request.user.userId;
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      avatarId: true,
-      isVerified: true,
-    },
+  const user = await findUserById(userId, {
+    id: true,
+    firstName: true,
+    lastName: true,
+    email: true,
+    avatarId: true,
+    isVerified: true,
   });
 
   if (!user) throw new ApiError("User not found!", 404);

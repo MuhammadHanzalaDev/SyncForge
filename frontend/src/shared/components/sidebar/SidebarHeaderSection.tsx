@@ -18,6 +18,9 @@ import { UserAvatarGroup } from "..";
 import { WorkspaceRes } from "@/modules/workspace/workspace.types";
 import { getItem, setItem } from "@/shared/utils/localStorage";
 import useWorkspaceStore from "@/modules/workspace/workspace.store";
+import { useSocketStore } from "@/shared/store/socketStore";
+import { useAuthStore } from "@/shared/store/authStore";
+import { useRouter } from "next/navigation";
 
 interface SidebarHeaderSectionProps {
   workspaces: WorkspaceRes[];
@@ -28,6 +31,9 @@ export function SidebarHeaderSection({
   workspaces,
   workspacesLoading,
 }: SidebarHeaderSectionProps) {
+  const router = useRouter();
+  const { accessToken } = useAuthStore();
+  const { connect, disconnect } = useSocketStore();
   const { setWorkspaceId } = useWorkspaceStore();
   const [activeId, setActiveId] = useState(getItem("workspace"));
   const [open, setOpen] = useState(false);
@@ -37,7 +43,15 @@ export function SidebarHeaderSection({
   useEffect(() => {
     setItem("workspace", activeId || "");
     setWorkspaceId(activeId || "");
-  }, [activeId, setWorkspaceId]);
+    router.replace("/");
+
+    // connect socket again with new data
+    if (accessToken) {
+      connect(accessToken, activeId || "");
+    }
+
+    return () => disconnect();
+  }, [activeId, setWorkspaceId, accessToken, connect, disconnect, router]);
 
   return (
     <SidebarHeader className="border-b border-sidebar-border px-2 py-3">

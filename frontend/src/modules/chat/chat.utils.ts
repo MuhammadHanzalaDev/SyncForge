@@ -10,10 +10,10 @@ function getInitials(name: string) {
 }
 
 const STATUS_COLORS: Record<Member["status"], string> = {
-  online: "bg-emerald-500",
-  away: "bg-amber-400",
-  busy: "bg-rose-500",
-  offline: "bg-zinc-400",
+  ONLINE: "bg-emerald-500",
+  AWAY: "bg-amber-400",
+  BUSY: "bg-rose-500",
+  OFFLINE: "bg-zinc-400",
 };
 
 export { getInitials, STATUS_COLORS };

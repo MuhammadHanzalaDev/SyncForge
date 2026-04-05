@@ -2,7 +2,7 @@ interface Member {
   id: string;
   name: string;
   avatar?: string;
-  status: "online" | "away" | "busy" | "offline";
+  status: "ONLINE" | "AWAY" | "BUSY" | "OFFLINE";
   role?: "admin" | "member";
 }
 

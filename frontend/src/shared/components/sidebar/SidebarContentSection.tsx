@@ -32,6 +32,7 @@ import { Chat, Room } from "@/modules/workspace/workspace.types";
 import { useRouter } from "next/navigation";
 import CustomButton from "../form/CustomButtom";
 import useWorkspaceStore from "@/modules/workspace/workspace.store";
+import StatusDot from "@/modules/chat/components/StatusDot";
 
 interface NavItem {
   label: string;
@@ -86,13 +87,12 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
                 <SidebarMenuSubButton className="pl-8 text-sm text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent rounded-md px-2 py-1.5">
                   {item.isIcons ? (
                     <div className="flex gap-2">
-                      <div>
-                        <Avatar
-                          size="sm"
-                          className="bg-primary text-white w-5 h-5 flex justify-center items-center text-xs"
-                        >
+                      <div className="relative shrink-0">
+                        <Avatar size="sm"
+                          className="bg-primary text-white w-5 h-5 flex justify-center items-center text-xs">
                           {child?.name?.slice(0, 1)}
                         </Avatar>
+                        <StatusDot status={"ONLINE"} />
                       </div>
                       <div>{child.name}</div>
                     </div>
