@@ -21,6 +21,7 @@ import useWorkspaceStore from "@/modules/workspace/workspace.store";
 import { useSocketStore } from "@/shared/store/socketStore";
 import { useAuthStore } from "@/shared/store/authStore";
 import { useRouter } from "next/navigation";
+import { SidebarTrigger } from "@/shared/components/ui/sidebar";
 
 interface SidebarHeaderSectionProps {
   workspaces: WorkspaceRes[];

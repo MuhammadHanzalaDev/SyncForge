@@ -26,21 +26,32 @@ import {
 import { useState } from "react";
 import { Avatar } from "../ui/avatar";
 import { useChatsAndRooms } from "@/modules/workspace/workspace.query";
-import { getItem } from "@/shared/utils/localStorage";
 import sidebarItems from "../content/sidebar";
 import { Chat, Room } from "@/modules/workspace/workspace.types";
 import { useRouter } from "next/navigation";
 import CustomButton from "../form/CustomButtom";
 import useWorkspaceStore from "@/modules/workspace/workspace.store";
 import StatusDot from "@/modules/chat/components/StatusDot";
+import useChatStore from "@/modules/chat/chat.store";
 
-interface NavItem {
+interface NavItemBase {
   label: string;
   icon: React.ElementType;
-  children?: Chat[] | Room[];
   isIcons?: boolean;
-  onChildClick?: (id: string) => void;
 }
+interface ChatNavItem extends NavItemBase {
+  label: "Chats";
+  children: Chat[];
+  onChildClick?: (chat: Chat) => void;
+}
+
+interface RoomNavItem extends NavItemBase {
+  label: "Rooms";
+  children: Room[];
+  onChildClick?: (room: Room) => void;
+}
+
+type NavItem = ChatNavItem | RoomNavItem;
 
 function CollapsibleNavItem({ item }: { item: NavItem }) {
   const [open, setOpen] = useState(false);
@@ -78,30 +89,49 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
 
         <CollapsibleContent>
           <SidebarMenuSub>
-            {item.children!.map((child) => (
-              <SidebarMenuSubItem
-                key={child?.id}
-                className="cursor-pointer"
-                onClick={() => item?.onChildClick?.(child.id)}
-              >
-                <SidebarMenuSubButton className="pl-8 text-sm text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent rounded-md px-2 py-1.5">
-                  {item.isIcons ? (
-                    <div className="flex gap-2">
-                      <div className="relative shrink-0">
-                        <Avatar size="sm"
-                          className="bg-primary text-white w-5 h-5 flex justify-center items-center text-xs">
-                          {child?.name?.slice(0, 1)}
-                        </Avatar>
-                        <StatusDot status={"ONLINE"} />
-                      </div>
-                      <div>{child.name}</div>
-                    </div>
-                  ) : (
-                    child.name
-                  )}
-                </SidebarMenuSubButton>
-              </SidebarMenuSubItem>
-            ))}
+            {item.label === "Chats" && (
+              <>
+                {item.children!.map((child) => (
+                  <SidebarMenuSubItem
+                    key={child?.id}
+                    className="cursor-pointer"
+                    onClick={() => item?.onChildClick?.(child)}
+                  >
+                    <SidebarMenuSubButton className="pl-8 text-sm text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent rounded-md px-2 py-1.5">
+                      {item.isIcons ? (
+                        <div className="flex gap-2">
+                          <div className="relative shrink-0">
+                            <Avatar
+                              size="sm"
+                              className="bg-primary text-white w-5 h-5 flex justify-center items-center text-xs"
+                            >
+                              {child?.name?.slice(0, 1)}
+                            </Avatar>
+                            <StatusDot status={child?.status} />
+                          </div>
+                          <div>{child.name}</div>
+                        </div>
+                      ) : (
+                        child.name
+                      )}
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                ))}
+                <SidebarMenuSubItem
+                  className="cursor-pointer"
+                  onClick={() => {}}
+                >
+                  <CustomButton
+                    variant="outline"
+                    size="sm"
+                    className="w-100 text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent "
+                  >
+                    <MessageCirclePlus /> New Chat
+                  </CustomButton>
+                </SidebarMenuSubItem>
+              </>
+            )}
+
             {item.label === "Rooms" && (
               <SidebarMenuSubItem className="cursor-pointer" onClick={() => {}}>
                 <CustomButton
@@ -110,17 +140,6 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
                   className="w-100 text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent "
                 >
                   <Plus /> Create Room
-                </CustomButton>
-              </SidebarMenuSubItem>
-            )}
-            {item.label === "Chats" && (
-              <SidebarMenuSubItem className="cursor-pointer" onClick={() => {}}>
-                <CustomButton
-                  variant="outline"
-                  size="sm"
-                  className="w-100 text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent "
-                >
-                  <MessageCirclePlus /> New Chat
                 </CustomButton>
               </SidebarMenuSubItem>
             )}
@@ -135,20 +154,26 @@ export function SidebarContentSection() {
   const router = useRouter();
   const { workspaceId } = useWorkspaceStore();
   const { data } = useChatsAndRooms(workspaceId);
-  const items = sidebarItems.map((item) =>
+  const { setActiveChat } = useChatStore();
+  const items: NavItem[] = sidebarItems.map((item) =>
     item.label === "Chats"
       ? {
           ...item,
+          label: "Chats",
           children: data?.chats || [],
-          onChildClick: (id: string) => router.push(`/chats/${id}`),
+          onChildClick: (chat: Chat) => {
+            setActiveChat(chat);
+            router.push(`/chats/${chat.id}`);
+          },
         }
       : item.label === "Rooms"
         ? {
             ...item,
+            label: "Rooms",
             children: data?.rooms || [],
-            onChildClick: (id: string) => router.push(`/chats/${id}`),
+            onChildClick: (room: Room) => router.push(`/chats/${room.id}`),
           }
-        : item,
+        : (item as NavItem),
   );
 
   return (

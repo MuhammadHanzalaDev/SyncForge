@@ -1,9 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import {
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/shared/components/ui/sidebar";
+import { SidebarProvider } from "@/shared/components/ui/sidebar";
 import { AppSidebar } from "@/shared/components/sidebar/AppSidebar";
 import { useSocketStore } from "@/shared/store/socketStore";
 import { useAuthStore } from "@/shared/store/authStore";
@@ -25,10 +22,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <div className="w-full h-screen">
-        <SidebarTrigger />
-        {children}
-      </div>
+      <div className="w-full h-screen">{children}</div>
     </SidebarProvider>
   );
 }
