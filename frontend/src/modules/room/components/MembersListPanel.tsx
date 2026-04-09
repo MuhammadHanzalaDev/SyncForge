@@ -1,6 +1,6 @@
 "use client";
 
-import type { Member } from "../chat.types";
+import type { Member } from "../room.types";
 import { X, MessageSquare, UserPlus } from "lucide-react";
 import MemberAvatar from "./MemberAvatar";
 import { Badge } from "@/shared/components/ui/badge";
@@ -13,8 +13,8 @@ export default function MemberListPanel({
   members: Member[];
   onClose: () => void;
 }) {
-  const online = members.filter((m) => m.status !== "offline");
-  const offline = members.filter((m) => m.status === "offline");
+  const online = members.filter((m) => m.status !== "ONLINE");
+  const offline = members.filter((m) => m.status === "OFFLINE");
 
   return (
     <div className="w-64 border-l flex flex-col bg-background shrink-0">

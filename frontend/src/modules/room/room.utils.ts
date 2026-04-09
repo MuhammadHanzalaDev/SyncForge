@@ -1,4 +1,4 @@
-import type { Member } from "./chat.types";
+import type { Member } from "./room.types";
 
 function getInitials(name: string) {
   return name

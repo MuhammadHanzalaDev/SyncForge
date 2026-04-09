@@ -3,9 +3,7 @@ import {
   getAllWorkspaces,
   createWorkspace,
   joinWorkspace,
-  getChatsAndRooms,
 } from "./workspace.controller";
-import { getChatsAndRoomsRequest } from "./workspace.types";
 
 declare module "fastify" {
   interface FastifyContextConfig {
@@ -35,11 +33,6 @@ const workspaceRoutes: FastifyPluginAsync = async (app) => {
     createWorkspace,
   );
   app.get("/join", joinWorkspace);
-  app.get<getChatsAndRoomsRequest>(
-    "/:workspaceId/chats",
-    { preHandler: app.authenticate },
-    getChatsAndRooms,
-  );
 };
 
 export default workspaceRoutes;

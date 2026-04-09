@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
 
-function registerChatEvents(socket: Socket) {
+function registerMessageEvents(socket: Socket) {
   socket.on("message:send", async (payload) => {
     // emit to room
     socket.to(payload.roomId).emit("message:new", {});
@@ -10,4 +10,4 @@ function registerChatEvents(socket: Socket) {
   });
 }
 
-export default registerChatEvents;
+export default registerMessageEvents;

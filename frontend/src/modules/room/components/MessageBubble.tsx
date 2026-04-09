@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import type { Message } from "../chat.types";
+import type { Message } from "@/modules/message/message.types";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { cn } from "@/shared/lib/utils";
-import { getInitials } from "../chat.utils";
+import { getInitials } from "../room.utils";
 import { formatTime } from "@/shared/utils/date";
 import { Reply, ThumbsUp, MoreVertical } from "lucide-react";
 import MessageStatusIcon from "./MessageStatusIcon";

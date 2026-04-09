@@ -1,7 +1,7 @@
 "use client";
 
-import { STATUS_COLORS } from "../chat.utils";
-import type { Member } from "../chat.types";
+import { STATUS_COLORS } from "../room.utils";
+import type { Member } from "../room.types";
 import { cn } from "@/shared/lib/utils";
 
 export default function StatusDot({ status }: { status: Member["status"] }) {

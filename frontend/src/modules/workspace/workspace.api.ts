@@ -1,6 +1,5 @@
 import { api } from "@/shared/lib/axios";
 import { AxiosError } from "axios";
-import { PersonalInfo } from "./workspace.types";
 
 const getAllWorkspaces = async () => {
   try {
@@ -26,16 +25,4 @@ const createWorkspace = async (formData: FormData) => {
   }
 };
 
-const getChatsAndRooms = async (workspaceId?: string | null) => {
-  try {
-    const res = await api.get(`/workspaces/${workspaceId}/chats`);
-    return res.data?.data;
-  } catch (err: unknown) {
-    if (err instanceof AxiosError) {
-      throw err.response?.data || err.message;
-    }
-    throw err;
-  }
-};
-
-export { getAllWorkspaces, createWorkspace, getChatsAndRooms };
+export { getAllWorkspaces, createWorkspace };

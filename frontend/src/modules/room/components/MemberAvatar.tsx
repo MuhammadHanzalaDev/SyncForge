@@ -1,12 +1,12 @@
 "use client";
 
-import type { Member } from "../chat.types";
+import type { Member } from "../room.types";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@/shared/components/ui/avatar";
-import { getInitials } from "../chat.utils";
+import { getInitials } from "../room.utils";
 import StatusDot from "./StatusDot";
 
 export default function MemberAvatar({

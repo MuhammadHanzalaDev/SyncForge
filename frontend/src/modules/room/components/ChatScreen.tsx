@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { DM_MESSAGES } from "../chat.content";
-import type { Message } from "../chat.types";
+import { DM_MESSAGES } from "../room.content";
+import type { Message } from "@/modules/message/message.types";
 import { Info, Paperclip, Smile, Send, ImageIcon, Mic } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
-import { getInitials } from "../chat.utils";
+import { getInitials } from "../room.utils";
 import {
   Tooltip,
   TooltipContent,
@@ -16,12 +16,12 @@ import { cn } from "@/shared/lib/utils";
 import { formatDateDivider } from "@/shared/utils/date";
 import { Button } from "@/shared/components/ui/button";
 import { Separator } from "@/shared/components/ui/separator";
-import { STATUS_COLORS } from "../chat.utils";
+import { STATUS_COLORS } from "../room.utils";
 import MessageBubble from "./MessageBubble";
-import useChatStore from "../chat.store";
+import useRoomStore from "../room.store";
 
 export default function ChatScreen() {
-  const activeChat = useChatStore((state) => state.activeChat);
+  const activeChat = useRoomStore((state) => state.activeChat);
   const [messages, setMessages] = useState<Message[]>(DM_MESSAGES);
   const [inputValue, setInputValue] = useState("");
   const [isTyping] = useState(false);

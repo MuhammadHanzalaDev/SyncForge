@@ -25,14 +25,14 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Avatar } from "../ui/avatar";
-import { useChatsAndRooms } from "@/modules/workspace/workspace.query";
+import { useChatsAndRooms } from "@/modules/room/room.query";
 import sidebarItems from "../content/sidebar";
-import { Chat, Room } from "@/modules/workspace/workspace.types";
+import { Chat, Room } from "@/modules/room/room.types";
 import { useRouter } from "next/navigation";
 import CustomButton from "../form/CustomButtom";
 import useWorkspaceStore from "@/modules/workspace/workspace.store";
-import StatusDot from "@/modules/chat/components/StatusDot";
-import useChatStore from "@/modules/chat/chat.store";
+import StatusDot from "@/modules/room/components/StatusDot";
+import useRoomStore from "@/modules/room/room.store";
 
 interface NavItemBase {
   label: string;
@@ -152,9 +152,9 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
 
 export function SidebarContentSection() {
   const router = useRouter();
-  const { workspaceId } = useWorkspaceStore();
+  const workspaceId = useWorkspaceStore((state) => state.workspaceId);
   const { data } = useChatsAndRooms(workspaceId);
-  const { setActiveChat } = useChatStore();
+  const setActiveChat = useRoomStore((state) => state.setActiveChat);
   const items: NavItem[] = sidebarItems.map((item) =>
     item.label === "Chats"
       ? {

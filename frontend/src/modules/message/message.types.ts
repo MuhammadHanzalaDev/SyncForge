@@ -1,11 +1,3 @@
-interface Member {
-  id: string;
-  name: string;
-  avatar?: string;
-  status: "ONLINE" | "AWAY" | "BUSY" | "OFFLINE";
-  role?: "admin" | "member";
-}
-
 interface Message {
   id: string;
   senderId: string;
@@ -20,4 +12,4 @@ interface Message {
   isOwn?: boolean;
 }
 
-export type { Member, Message };
+export type { Message };

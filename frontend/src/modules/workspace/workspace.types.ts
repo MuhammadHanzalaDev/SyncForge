@@ -12,25 +12,4 @@ interface WorkspaceRes {
   totalMembers: number;
 }
 
-interface Chat {
-  id: string;
-  name: string;
-  email: string;
-  avatar?: string;
-  type: string;
-  status: "ONLINE" | "OFFLINE" | "BUSY" | "AWAY";
-}
-
-interface Room {
-  id: string;
-  name: string;
-  type: string;
-  members: {
-    id: string;
-    firstName: true;
-    lastName: true;
-  };
-  lastMessage: string;
-}
-
-export type { CreateWorkSpaceValues, WorkspaceRes, Chat, Room };
+export type { CreateWorkSpaceValues, WorkspaceRes };

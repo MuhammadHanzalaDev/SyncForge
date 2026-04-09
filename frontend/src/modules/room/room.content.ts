@@ -1,12 +1,13 @@
-import type { Member, Message } from "./chat.types";
+import type { Member } from "./room.types";
+import { Message } from "../message/message.types";
 
 const DUMMY_MEMBERS: Member[] = [
-  { id: "1", name: "Alex Johnson", status: "online", role: "admin" },
-  { id: "2", name: "Sarah Chen", status: "online", role: "member" },
-  { id: "3", name: "Marcus Williams", status: "away", role: "member" },
-  { id: "4", name: "Priya Patel", status: "busy", role: "member" },
-  { id: "5", name: "Tom Eriksson", status: "offline", role: "member" },
-  { id: "6", name: "Layla Hassan", status: "online", role: "member" },
+  { id: "1", name: "Alex Johnson", status: "ONLINE", role: "admin" },
+  { id: "2", name: "Sarah Chen", status: "ONLINE", role: "member" },
+  { id: "3", name: "Marcus Williams", status: "AWAY", role: "member" },
+  { id: "4", name: "Priya Patel", status: "BUSY", role: "member" },
+  { id: "5", name: "Tom Eriksson", status: "OFFLINE", role: "member" },
+  { id: "6", name: "Layla Hassan", status: "ONLINE", role: "member" },
 ];
 
 const DUMMY_MESSAGES: Message[] = [

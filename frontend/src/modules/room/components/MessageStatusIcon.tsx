@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, CheckCheck } from "lucide-react";
-import type { Message } from "../chat.types";
+import type { Message } from "@/modules/message/message.types";
 
 export default function MessageStatusIcon({
   status,

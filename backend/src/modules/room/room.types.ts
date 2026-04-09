@@ -3,4 +3,10 @@ interface JoinDirectRoom {
   targetUserId: string;
 }
 
-export type { JoinDirectRoom };
+interface getRoomsRequest {
+  Params: {
+    workspaceId: string;
+  };
+}
+
+export type { JoinDirectRoom, getRoomsRequest };

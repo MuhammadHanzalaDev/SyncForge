@@ -1,4 +1,4 @@
-import ChatScreen from "@/modules/chat/components/ChatScreen";
+import ChatScreen from "@/modules/room/components/ChatScreen";
 
 const page = () => {
   return <ChatScreen />;

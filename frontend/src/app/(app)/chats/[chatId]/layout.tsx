@@ -13,8 +13,8 @@ import {
   BellOff,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
-import StatusDot from "@/modules/chat/components/StatusDot";
-import { getInitials } from "@/modules/chat/chat.utils";
+import StatusDot from "@/modules/room/components/StatusDot";
+import { getInitials } from "@/modules/room/room.utils";
 import {
   Tooltip,
   TooltipContent,
@@ -29,8 +29,8 @@ import {
   DropdownMenuSeparator,
 } from "@/shared/components/ui/dropdown-menu";
 import { CustomButton } from "@/shared/components";
-import useChatSocket from "@/modules/chat/hooks/useChatSocket";
-import useChatStore from "@/modules/chat/chat.store";
+import useChatSocket from "@/modules/room/hooks/useChatSocket";
+import useRoomStore from "@/modules/room/room.store";
 
 export default function ChatLayout({
   children,
@@ -38,7 +38,7 @@ export default function ChatLayout({
   children: React.ReactNode;
 }) {
   const params = useParams();
-  const activeChat = useChatStore((state) => state.activeChat);
+  const activeChat = useRoomStore((state) => state.activeChat);
   const id = params?.chatId as string;
   useChatSocket(id);
 
