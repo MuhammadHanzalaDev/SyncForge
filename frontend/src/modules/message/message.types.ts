@@ -1,3 +1,11 @@
+interface SendMessage {
+  roomId: string;
+  senderId: string;
+  content: string;
+  parentId?: string;
+  attachmentIds?: string[];
+}
+
 interface Message {
   id: string;
   senderId: string;
@@ -12,4 +20,4 @@ interface Message {
   isOwn?: boolean;
 }
 
-export type { Message };
+export type { Message, SendMessage };

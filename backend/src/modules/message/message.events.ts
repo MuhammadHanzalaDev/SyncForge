@@ -1,12 +1,14 @@
 import { Socket } from "socket.io";
+import { createMessageService } from "./message.service";
+import { getIO } from "@/lib/socket";
 
 function registerMessageEvents(socket: Socket) {
   socket.on("message:send", async (payload) => {
-    // emit to room
-    socket.to(payload.roomId).emit("message:new", {});
+    const io = getIO();
+    const message = await createMessageService(payload);
 
-    // also send back to sender
-    socket.emit("message:new", {});
+    // emit to room
+    io.to(payload.roomId).emit("message:new", message);
   });
 }
 

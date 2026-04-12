@@ -135,7 +135,7 @@ const createMessageService = async ({
       data: roomMembers.map((m) => ({
         messageId: message.id,
         userId: m.userId,
-        status: "DELIVERED",
+        status: m.userId === senderId ? "READ" : "DELIVERED",
       })),
     });
 

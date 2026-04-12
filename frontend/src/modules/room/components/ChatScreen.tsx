@@ -19,10 +19,15 @@ import { Separator } from "@/shared/components/ui/separator";
 import { STATUS_COLORS } from "../room.utils";
 import MessageBubble from "./MessageBubble";
 import useRoomStore from "../room.store";
+import { usePersonalInfo } from "@/modules/user/user.query";
+import useMessageSocket from "@/modules/message/hooks/useMessageSocket";
 
 export default function ChatScreen() {
+  const { sendMessage } = useMessageSocket();
+  const { data: personalInfo } = usePersonalInfo();
   const activeChat = useRoomStore((state) => state.activeChat);
-  const [messages, setMessages] = useState<Message[]>(DM_MESSAGES);
+  const roomId = useRoomStore((state) => state.roomId);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping] = useState(false);
 
@@ -44,6 +49,11 @@ export default function ChatScreen() {
       isOwn: true,
     };
     setMessages((prev) => [...prev, newMsg]);
+    sendMessage({
+      roomId: roomId || "",
+      senderId: personalInfo?.id || "",
+      content: inputValue.trim(),
+    });
     setInputValue("");
   };
 
@@ -62,7 +72,7 @@ export default function ChatScreen() {
         <div className="flex items-center gap-3 px-4 py-2">
           <Separator className="flex-1" />
           <span className="text-[11px] font-medium text-muted-foreground bg-background px-2 shrink-0">
-            {formatDateDivider(messages[0].timestamp)}
+            {formatDateDivider(messages[0]?.timestamp)}
           </span>
           <Separator className="flex-1" />
         </div>

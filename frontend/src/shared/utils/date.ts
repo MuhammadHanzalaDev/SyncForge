@@ -3,6 +3,7 @@ function formatTime(date: Date) {
 }
 
 function formatDateDivider(date: Date) {
+  if (!date) return null;
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
