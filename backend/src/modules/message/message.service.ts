@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import * as messageRepo from "./message.repository";
 import { ApiError } from "@/utils/Error";
+import { getFileUrl } from "../storage/storage.service";
 
 interface GetMessagesParams {
   userId: string;
@@ -28,7 +29,7 @@ const getMessagesService = async ({
     throw new ApiError("User is not in room.");
   }
 
-  const messages = await messageRepo.findMany({
+  const messages = await prisma.message.findMany({
     where: {
       roomId,
       deletedAt: null,
@@ -49,6 +50,7 @@ const getMessagesService = async ({
           id: true,
           firstName: true,
           lastName: true,
+          avatarId: true,
         },
       },
       attachments: true,
@@ -64,9 +66,32 @@ const getMessagesService = async ({
     nextCursor = nextItem!.id;
   }
 
+  const formatted = await Promise.all(
+    messages.map(async (msg) => ({
+      id: msg.id,
+      sender: {
+        id: msg?.sender.id,
+        name: `${msg?.sender.firstName} ${msg?.sender.lastName}`,
+        avatar: msg?.sender.avatarId
+          ? await getFileUrl(msg.sender.avatarId)
+          : null,
+      },
+      content: msg.content,
+      createdAt: msg.createdAt,
+      updatedAt: msg.updatedAt,
+      isEdited: msg.isEdited,
+      parentId: msg.parentId,
+      attachements: msg.attachments,
+      reactions: msg.messageReactions,
+      receipts: msg.messageReceipts,
+      isOwn: msg.senderId === userId,
+    })),
+  );
+
   return {
-    data: messages,
+    data: formatted,
     nextCursor,
+    hasMore: !!nextCursor,
   };
 };
 

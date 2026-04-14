@@ -39,7 +39,7 @@ export default function MessageBubble({
           <div className="relative">
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
-                {getInitials(message.senderName)}
+                {getInitials(message.sender?.name)}
               </AvatarFallback>
             </Avatar>
           </div>
@@ -61,16 +61,16 @@ export default function MessageBubble({
             )}
           >
             <span className="text-sm font-semibold text-foreground">
-              {message.isOwn ? "You" : message.senderName}
+              {message.isOwn ? "You" : message.sender?.name}
             </span>
             <span className="text-[11px] text-muted-foreground">
-              {formatTime(message.timestamp)}
+              {formatTime(message.createdAt)}
             </span>
           </div>
         )}
 
         {/* Reply preview */}
-        {message.replyTo && (
+        {/* {message.parentId && (
           <div
             className={cn(
               "flex items-center gap-2 mb-1.5 text-xs text-muted-foreground border-l-2 border-primary/40 pl-2 py-0.5",
@@ -84,7 +84,7 @@ export default function MessageBubble({
               {message.replyTo.content}
             </span>
           </div>
-        )}
+        )} */}
 
         {/* Bubble */}
         <div
@@ -99,7 +99,7 @@ export default function MessageBubble({
         </div>
 
         {/* Reactions + status */}
-        <div
+        {/* <div
           className={cn(
             "flex items-center gap-2 mt-1",
             message.isOwn && "flex-row-reverse",
@@ -124,7 +124,7 @@ export default function MessageBubble({
             </span>
           )}
           {message.isOwn && <MessageStatusIcon status={message.status} />}
-        </div>
+        </div> */}
       </div>
 
       {/* Hover actions */}

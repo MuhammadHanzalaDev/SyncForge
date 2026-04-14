@@ -3,6 +3,7 @@
 // Common
 export { default as ModeToggle } from "./common/ModeToggle";
 export { default as UserAvatarGroup } from "./common/AvatarGroup";
+export { default as InfiniteScrollContainer } from "./common/InfiniteScrollContainer";
 
 // Form
 export { default as CustomButton } from "./form/CustomButtom";

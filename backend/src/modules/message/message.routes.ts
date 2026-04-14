@@ -4,7 +4,7 @@ import { getMessagesController } from "./message.controller";
 const messageRoutes: FastifyPluginAsync = async (app) => {
   app.addHook("preHandler", app.authenticate);
 
-  app.get("/", getMessagesController);
+  app.get("/:roomId", getMessagesController);
 };
 
 export default messageRoutes;

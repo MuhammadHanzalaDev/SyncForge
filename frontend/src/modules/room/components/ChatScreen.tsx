@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { DM_MESSAGES } from "../room.content";
+import { useState, useRef, useEffect, useMemo } from "react";
 import type { Message } from "@/modules/message/message.types";
 import { Info, Paperclip, Smile, Send, ImageIcon, Mic } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
@@ -21,18 +20,34 @@ import MessageBubble from "./MessageBubble";
 import useRoomStore from "../room.store";
 import { usePersonalInfo } from "@/modules/user/user.query";
 import useMessageSocket from "@/modules/message/hooks/useMessageSocket";
+import { useMessages } from "@/modules/message/message.query";
+import { InfiniteScrollContainer } from "@/shared/components";
 
 export default function ChatScreen() {
-  const { sendMessage } = useMessageSocket();
-  const { data: personalInfo } = usePersonalInfo();
-  const activeChat = useRoomStore((state) => state.activeChat);
-  const roomId = useRoomStore((state) => state.roomId);
-  const [messages, setMessages] = useState<Message[]>([]);
+  // local states
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState("");
   const [isTyping] = useState(false);
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  // global client states
+  const activeChat = useRoomStore((state) => state.activeChat);
+  const roomId = useRoomStore((state) => state.roomId);
 
+  // server states
+  const { data: personalInfo } = usePersonalInfo();
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useMessages(roomId);
+  const messages: Message[] = useMemo(
+    () => data?.pages.flatMap((p) => p.data) || [],
+    [data?.pages],
+  );
+
+  console.log("messages", messages);
+
+  // hooks
+  const { sendMessage } = useMessageSocket(roomId);
+
+  // effects
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -41,14 +56,15 @@ export default function ChatScreen() {
     if (!inputValue.trim()) return;
     const newMsg: Message = {
       id: `m${Date.now()}`,
-      senderId: "me",
-      senderName: "You",
+      sender: {
+        id: personalInfo?.id || "",
+        name: `${personalInfo?.firstName} ${personalInfo?.lastName}`,
+        avatar: personalInfo?.avatar,
+      },
       content: inputValue.trim(),
-      timestamp: new Date(),
-      status: "sent",
+      createdAt: new Date(),
       isOwn: true,
     };
-    setMessages((prev) => [...prev, newMsg]);
     sendMessage({
       roomId: roomId || "",
       senderId: personalInfo?.id || "",
@@ -67,12 +83,18 @@ export default function ChatScreen() {
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto py-4 space-y-0.5 min-h-0">
+      <InfiniteScrollContainer
+        fetchNextPage={fetchNextPage}
+        hasNextPage={hasNextPage}
+        isFetchingNextPage={isFetchingNextPage}
+        direction="bottom"
+        className="h-full"
+      >
         {/* Date divider */}
         <div className="flex items-center gap-3 px-4 py-2">
           <Separator className="flex-1" />
           <span className="text-[11px] font-medium text-muted-foreground bg-background px-2 shrink-0">
-            {formatDateDivider(messages[0]?.timestamp)}
+            {formatDateDivider(messages[0]?.createdAt)}
           </span>
           <Separator className="flex-1" />
         </div>
@@ -119,15 +141,15 @@ export default function ChatScreen() {
 
         {messages.map((message, idx) => {
           const prevMessage = messages[idx - 1];
+          const createdAt = new Date(message.createdAt);
           const showAvatar =
             !prevMessage ||
-            prevMessage.senderId !== message.senderId ||
-            message.timestamp.getTime() - prevMessage.timestamp.getTime() >
-              1000 * 60 * 5;
+            prevMessage.sender.id !== message.sender.id ||
+            createdAt?.getTime?.() - createdAt?.getTime?.() > 1000 * 60 * 5;
 
           return (
             <MessageBubble
-              key={message.id}
+              key={message?.id}
               message={message}
               showAvatar={showAvatar}
             />
@@ -151,7 +173,7 @@ export default function ChatScreen() {
         )}
 
         <div ref={messagesEndRef} />
-      </div>
+      </InfiniteScrollContainer>
 
       {/* Input Area */}
       <div className="px-4 pb-4 shrink-0">

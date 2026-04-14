@@ -10,7 +10,7 @@ const getMessagesController = async (
 ) => {
   const userId = request.user?.userId;
   const { roomId } = request.params;
-  const { cursor, limit } = request.query;
+  const { cursor, limit = "20" } = request.query;
 
   const result = await getMessagesService({
     userId,

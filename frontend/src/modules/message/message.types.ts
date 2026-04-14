@@ -6,18 +6,41 @@ interface SendMessage {
   attachmentIds?: string[];
 }
 
+interface MessageSender {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
+interface MessageReaction {
+  id: string;
+  userId: string;
+  emoji: string;
+}
+
+interface MessageReceipt {
+  id: string;
+  userId: string;
+  status: "SENT" | "DELIVERED" | "READ";
+  updatedAt: Date;
+}
+
 interface Message {
   id: string;
-  senderId: string;
-  senderName: string;
-  senderAvatar?: string;
+  sender: MessageSender;
   content: string;
-  timestamp: Date;
-  status?: "sent" | "delivered" | "read";
-  reactions?: { emoji: string; count: number; reacted: boolean }[];
-  replyTo?: { id: string; senderName: string; content: string };
-  attachments?: { type: "image" | "file"; name: string; url?: string }[];
+  createdAt: Date;
+  updatedAt?: Date;
+  isEdited?: boolean;
+  parentId?: string;
+  attachments?: string[];
+  reactions?: MessageReaction[];
+  receipts?: MessageReceipt[];
   isOwn?: boolean;
 }
 
-export type { Message, SendMessage };
+interface GetMessagesParams {
+  cursor: string | null;
+}
+
+export type { Message, SendMessage, GetMessagesParams };
