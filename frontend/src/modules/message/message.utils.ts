@@ -1,4 +1,0 @@
-
-const formatMessages = (messages: any) => { 
-
-}

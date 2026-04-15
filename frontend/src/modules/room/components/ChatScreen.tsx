@@ -82,65 +82,63 @@ export default function ChatScreen() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
+      {/* Date divider */}
+      <div className="flex items-center gap-3 px-4 py-2">
+        <Separator className="flex-1" />
+        <span className="text-[11px] font-medium text-muted-foreground bg-background px-2 shrink-0">
+          {formatDateDivider(messages[0]?.createdAt)}
+        </span>
+        <Separator className="flex-1" />
+      </div>
+
+      <div className="flex flex-col items-center gap-2 py-6 px-4 text-center">
+        <div className="relative">
+          <Avatar className="h-16 w-16">
+            <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">
+              {getInitials(activeChat?.name || "")}
+            </AvatarFallback>
+          </Avatar>
+          <span
+            className={cn(
+              "absolute bottom-0.5 right-0.5 h-4 w-4 rounded-full border-2 border-background",
+              STATUS_COLORS[activeChat?.status || "OFFLINE"],
+            )}
+          />
+        </div>
+
+        <div>
+          <div className="flex justify-center items-center gap-1">
+            <p className="font-semibold text-base">{activeChat?.name}</p>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                >
+                  <Info className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="text-xs">View Profile</TooltipContent>
+            </Tooltip>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            This is the beginning of your direct message history with{" "}
+            <span className="font-medium">{activeChat?.name}</span>.
+          </p>
+        </div>
+      </div>
+
       {/* Messages */}
       <InfiniteScrollContainer
         fetchNextPage={fetchNextPage}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
-        direction="bottom"
+        direction="top"
         className="h-full"
       >
-        {/* Date divider */}
-        <div className="flex items-center gap-3 px-4 py-2">
-          <Separator className="flex-1" />
-          <span className="text-[11px] font-medium text-muted-foreground bg-background px-2 shrink-0">
-            {formatDateDivider(messages[0]?.createdAt)}
-          </span>
-          <Separator className="flex-1" />
-        </div>
-
-        <div className="flex flex-col items-center gap-2 py-6 px-4 text-center">
-          <div className="relative">
-            <Avatar className="h-16 w-16">
-              <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">
-                {getInitials(activeChat?.name || "")}
-              </AvatarFallback>
-            </Avatar>
-            <span
-              className={cn(
-                "absolute bottom-0.5 right-0.5 h-4 w-4 rounded-full border-2 border-background",
-                STATUS_COLORS[activeChat?.status || "OFFLINE"],
-              )}
-            />
-          </div>
-
-          <div>
-            <div className="flex justify-center items-center gap-1">
-              <p className="font-semibold text-base">{activeChat?.name}</p>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                  >
-                    <Info className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="text-xs">
-                  View Profile
-                </TooltipContent>
-              </Tooltip>
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              This is the beginning of your direct message history with{" "}
-              <span className="font-medium">{activeChat?.name}</span>.
-            </p>
-          </div>
-        </div>
-
         {messages.map((message, idx) => {
-          const prevMessage = messages[idx - 1];
+          const prevMessage = messages[idx + 1];
           const createdAt = new Date(message.createdAt);
           const showAvatar =
             !prevMessage ||

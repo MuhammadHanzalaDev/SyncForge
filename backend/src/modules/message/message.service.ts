@@ -81,7 +81,7 @@ const getMessagesService = async ({
       updatedAt: msg.updatedAt,
       isEdited: msg.isEdited,
       parentId: msg.parentId,
-      attachements: msg.attachments,
+      attachments: msg.attachments,
       reactions: msg.messageReactions,
       receipts: msg.messageReceipts,
       isOwn: msg.senderId === userId,
@@ -144,9 +144,12 @@ const createMessageService = async ({
             id: true,
             firstName: true,
             lastName: true,
+            avatarId: true,
           },
         },
         attachments: true,
+        messageReactions: true,
+        messageReceipts: true,
       },
     });
 
@@ -164,7 +167,26 @@ const createMessageService = async ({
       })),
     });
 
-    return message;
+    const formattedMessage = {
+      id: message.id,
+      sender: {
+        id: message?.sender.id,
+        name: `${message?.sender.firstName} ${message?.sender.lastName}`,
+        avatar: message.sender?.avatarId
+          ? await getFileUrl(message.sender.avatarId)
+          : null,
+      },
+      content: message.content,
+      createdAt: message.createdAt,
+      updatedAt: message.updatedAt,
+      isEdited: message.isEdited,
+      parentId: message.parentId,
+      attachments: message.attachments,
+      reactions: message.messageReactions,
+      receipts: message.messageReceipts,
+    };
+
+    return formattedMessage;
   });
 };
 
