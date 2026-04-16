@@ -2,7 +2,15 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import type { Message } from "@/modules/message/message.types";
-import { Info, Paperclip, Smile, Send, ImageIcon, Mic } from "lucide-react";
+import {
+  Info,
+  Paperclip,
+  Smile,
+  Send,
+  ImageIcon,
+  Mic,
+  Loader2,
+} from "lucide-react";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { getInitials } from "../room.utils";
 import {
@@ -22,10 +30,15 @@ import { usePersonalInfo } from "@/modules/user/user.query";
 import useMessageSocket from "@/modules/message/hooks/useMessageSocket";
 import { useMessages } from "@/modules/message/message.query";
 import { InfiniteScrollContainer } from "@/shared/components";
+import type { InfiniteScrollContainerHandle } from "@/shared/components/common/InfiniteScrollContainer";
 
 export default function ChatScreen() {
+  // refs
+  const scrollRef = useRef<InfiniteScrollContainerHandle>(null);
+  const prevMessageCountRef = useRef<number>(0);
+  const prevFirstMessageIdRef = useRef<string | undefined>(undefined);
+
   // local states
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [inputValue, setInputValue] = useState("");
   const [isTyping] = useState(false);
 
@@ -37,19 +50,42 @@ export default function ChatScreen() {
   const { data: personalInfo } = usePersonalInfo();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useMessages(roomId);
-  const messages: Message[] = useMemo(
-    () => data?.pages.flatMap((p) => p.data) || [],
-    [data?.pages],
-  );
 
-  console.log("messages", messages);
+  const messages: Message[] = useMemo(() => {
+    const flat = data?.pages.flatMap((p) => p.data) || [];
+    // pages[0] has newest, pages[n] has oldest
+    // within a page, data[0] is newest — so we reverse the whole thing
+    return [...flat].reverse();
+  }, [data?.pages]);
 
   // hooks
   const { sendMessage } = useMessageSocket(roomId);
 
-  // effects
+  // Auto-scroll to bottom only when a NEW message arrives at the bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const lastMessage = messages[messages.length - 1];
+    const firstMessage = messages[0];
+
+    if (!lastMessage) {
+      prevMessageCountRef.current = messages.length;
+      return;
+    }
+
+    const countChanged = messages.length !== prevMessageCountRef.current;
+    const firstMessageChanged =
+      prevFirstMessageIdRef.current !== undefined &&
+      firstMessage?.id !== prevFirstMessageIdRef.current;
+
+    // If the FIRST message changed, older messages were prepended — don't scroll
+    // If only the count changed (new message at bottom) — scroll to bottom
+    if (countChanged && !firstMessageChanged) {
+      scrollRef.current?.scrollToBottom(
+        prevMessageCountRef.current === 0 ? "auto" : "smooth",
+      );
+    }
+
+    prevMessageCountRef.current = messages.length;
+    prevFirstMessageIdRef.current = firstMessage?.id;
   }, [messages]);
 
   const handleSend = () => {
@@ -82,68 +118,92 @@ export default function ChatScreen() {
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
-      {/* Date divider */}
-      <div className="flex items-center gap-3 px-4 py-2">
-        <Separator className="flex-1" />
-        <span className="text-[11px] font-medium text-muted-foreground bg-background px-2 shrink-0">
-          {formatDateDivider(messages[0]?.createdAt)}
-        </span>
-        <Separator className="flex-1" />
-      </div>
-
-      <div className="flex flex-col items-center gap-2 py-6 px-4 text-center">
-        <div className="relative">
-          <Avatar className="h-16 w-16">
-            <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">
-              {getInitials(activeChat?.name || "")}
-            </AvatarFallback>
-          </Avatar>
-          <span
-            className={cn(
-              "absolute bottom-0.5 right-0.5 h-4 w-4 rounded-full border-2 border-background",
-              STATUS_COLORS[activeChat?.status || "OFFLINE"],
-            )}
-          />
-        </div>
-
-        <div>
-          <div className="flex justify-center items-center gap-1">
-            <p className="font-semibold text-base">{activeChat?.name}</p>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                >
-                  <Info className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="text-xs">View Profile</TooltipContent>
-            </Tooltip>
-          </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            This is the beginning of your direct message history with{" "}
-            <span className="font-medium">{activeChat?.name}</span>.
-          </p>
-        </div>
-      </div>
-
-      {/* Messages */}
+      {/* Scrollable area — contains header + messages */}
       <InfiniteScrollContainer
+        ref={scrollRef}
         fetchNextPage={fetchNextPage}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
         direction="top"
-        className="h-full"
+        className="flex-1 min-h-0"
       >
+        {/* Loading indicator for older messages */}
+        {isFetchingNextPage && (
+          <div className="flex justify-center py-2">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          </div>
+        )}
+
+        {/* Conversation start header — only shown when no more messages to load */}
+        {!hasNextPage && (
+          <>
+            <div className="flex flex-col items-center gap-2 py-6 px-4 text-center">
+              <div className="relative">
+                <Avatar className="h-16 w-16">
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">
+                    {getInitials(activeChat?.name || "")}
+                  </AvatarFallback>
+                </Avatar>
+                <span
+                  className={cn(
+                    "absolute bottom-0.5 right-0.5 h-4 w-4 rounded-full border-2 border-background",
+                    STATUS_COLORS[activeChat?.status || "OFFLINE"],
+                  )}
+                />
+              </div>
+
+              <div>
+                <div className="flex justify-center items-center gap-1">
+                  <p className="font-semibold text-base">{activeChat?.name}</p>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                        >
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent className="text-xs">
+                        View Profile
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  This is the beginning of your direct message history with{" "}
+                  <span className="font-medium">{activeChat?.name}</span>.
+                </p>
+              </div>
+            </div>
+
+            {/* Date divider for first message */}
+            {messages[0] && (
+              <div className="flex items-center gap-3 px-4 py-2">
+                <Separator className="flex-1" />
+                <span className="text-[11px] font-medium text-muted-foreground bg-background px-2 shrink-0">
+                  {formatDateDivider(messages[0].createdAt)}
+                </span>
+                <Separator className="flex-1" />
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Messages in natural order: oldest -> newest */}
         {messages.map((message, idx) => {
-          const prevMessage = messages[idx + 1];
-          const createdAt = new Date(message.createdAt);
+          const prevMessage = messages[idx - 1];
+          const currTime = new Date(message.createdAt).getTime();
+          const prevTime = prevMessage
+            ? new Date(prevMessage.createdAt).getTime()
+            : 0;
+
           const showAvatar =
             !prevMessage ||
             prevMessage.sender.id !== message.sender.id ||
-            createdAt?.getTime?.() - createdAt?.getTime?.() > 1000 * 60 * 5;
+            currTime - prevTime > 1000 * 60 * 5;
 
           return (
             <MessageBubble
@@ -169,12 +229,10 @@ export default function ChatScreen() {
             </div>
           </div>
         )}
-
-        <div ref={messagesEndRef} />
       </InfiniteScrollContainer>
 
       {/* Input Area */}
-      <div className="px-4 pb-4 shrink-0">
+      <div className="px-4 pb-4 pt-2 shrink-0">
         <div className="flex flex-col rounded-xl border bg-background shadow-sm overflow-hidden">
           {/* Toolbar */}
           <div className="flex items-center gap-0.5 px-2 pt-2 pb-1">
@@ -206,8 +264,8 @@ export default function ChatScreen() {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={`Message ${activeChat?.name}`}
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 resize-none"
+              placeholder={`Message ${activeChat?.name || ""}`}
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
             />
             <button
               onClick={handleSend}
