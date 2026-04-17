@@ -1,6 +1,5 @@
 interface SendMessage {
   roomId: string;
-  senderId: string;
   content: string;
   parentId?: string;
   attachmentIds?: string[];

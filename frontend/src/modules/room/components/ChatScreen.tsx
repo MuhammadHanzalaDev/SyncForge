@@ -31,6 +31,7 @@ import useMessageSocket from "@/modules/message/hooks/useMessageSocket";
 import { useMessages } from "@/modules/message/message.query";
 import { InfiniteScrollContainer } from "@/shared/components";
 import type { InfiniteScrollContainerHandle } from "@/shared/components/common/InfiniteScrollContainer";
+import { useSendMessage } from "@/modules/message/message.mutation";
 
 export default function ChatScreen() {
   // refs
@@ -46,6 +47,9 @@ export default function ChatScreen() {
   const activeChat = useRoomStore((state) => state.activeChat);
   const roomId = useRoomStore((state) => state.roomId);
 
+  // mutations
+  const { mutate } = useSendMessage(roomId);
+
   // server states
   const { data: personalInfo } = usePersonalInfo();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -53,13 +57,11 @@ export default function ChatScreen() {
 
   const messages: Message[] = useMemo(() => {
     const flat = data?.pages.flatMap((p) => p.data) || [];
-    // pages[0] has newest, pages[n] has oldest
-    // within a page, data[0] is newest — so we reverse the whole thing
     return [...flat].reverse();
   }, [data?.pages]);
 
   // hooks
-  const { sendMessage } = useMessageSocket(roomId);
+  useMessageSocket(roomId);
 
   // Auto-scroll to bottom only when a NEW message arrives at the bottom
   useEffect(() => {
@@ -90,20 +92,12 @@ export default function ChatScreen() {
 
   const handleSend = () => {
     if (!inputValue.trim()) return;
-    const newMsg: Message = {
-      id: `m${Date.now()}`,
-      sender: {
-        id: personalInfo?.id || "",
-        name: `${personalInfo?.firstName} ${personalInfo?.lastName}`,
-        avatar: personalInfo?.avatar,
-      },
-      content: inputValue.trim(),
-      createdAt: new Date(),
-      isOwn: true,
-    };
-    sendMessage({
+
+    //     const tempId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    // const newMsg: Message = { id: tempId, /* ... */ };
+    // and make sure sendMessage sends tempId to backend
+    mutate({
       roomId: roomId || "",
-      senderId: personalInfo?.id || "",
       content: inputValue.trim(),
     });
     setInputValue("");

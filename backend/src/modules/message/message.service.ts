@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import * as messageRepo from "./message.repository";
 import { ApiError } from "@/utils/Error";
 import { getFileUrl } from "../storage/storage.service";
+import { createMessageValidation } from "./message.validation";
 
 interface GetMessagesParams {
   userId: string;
@@ -110,13 +111,21 @@ const createMessageService = async ({
   parentId,
   attachmentIds = [],
 }: CreateMessageParams) => {
+  const parsed = createMessageValidation.parse({
+    roomId,
+    senderId,
+    content,
+    parentId,
+    attachmentIds,
+  });
+
   return await prisma.$transaction(async (tx) => {
     // 1. Validate user is in room
     const member = await tx.roomMember.findUnique({
       where: {
         userId_roomId: {
-          userId: senderId,
-          roomId,
+          userId: parsed.senderId,
+          roomId: parsed.roomId,
         },
       },
     });
@@ -128,13 +137,13 @@ const createMessageService = async ({
     // 2. Create message
     const message = await tx.message.create({
       data: {
-        roomId,
-        senderId,
-        content,
-        parentId: parentId || null,
+        roomId: parsed.roomId,
+        senderId: parsed.senderId,
+        content: parsed.content,
+        parentId: parsed.parentId || null,
 
         attachments: {
-          connect: attachmentIds.map((id) => ({ id })),
+          connect: parsed?.attachmentIds?.map((id) => ({ id })),
         },
       },
 
@@ -155,7 +164,7 @@ const createMessageService = async ({
 
     // 3. Create receipts (DELIVERED)
     const roomMembers = await tx.roomMember.findMany({
-      where: { roomId },
+      where: { roomId: parsed.roomId },
       select: { userId: true },
     });
 
@@ -163,7 +172,7 @@ const createMessageService = async ({
       data: roomMembers.map((m) => ({
         messageId: message.id,
         userId: m.userId,
-        status: m.userId === senderId ? "READ" : "DELIVERED",
+        status: m.userId === parsed.senderId ? "READ" : "DELIVERED",
       })),
     });
 

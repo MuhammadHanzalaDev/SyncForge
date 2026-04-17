@@ -31,6 +31,7 @@ export function initSocket(server: HttpServer) {
 
       const userSockets = onlineUsers.get(userId)!;
       userSockets.add(socket.id);
+      console.log("socket connected");
 
       if (userSockets.size === 1) {
         await userOnline(socket.user);
@@ -55,6 +56,7 @@ export function initSocket(server: HttpServer) {
         if (!userSockets) return;
 
         userSockets.delete(socket.id);
+        console.log("socket disconnected");
 
         if (userSockets.size === 0) {
           onlineUsers.delete(userId);

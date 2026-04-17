@@ -1,8 +1,10 @@
 // modules/message/message.controller.ts
 
 import { FastifyRequest, FastifyReply } from "fastify";
-import { getMessagesService } from "./message.service";
-import { GetMessageRequest } from "./message.types";
+import { createMessageService, getMessagesService } from "./message.service";
+import { GetMessageRequest, SendMessageRequest } from "./message.types";
+import { getIO } from "@/lib/socket";
+const io = getIO();
 
 const getMessagesController = async (
   request: FastifyRequest<GetMessageRequest>,
@@ -22,4 +24,23 @@ const getMessagesController = async (
   return result;
 };
 
-export { getMessagesController };
+const sendMessageController = async (
+  request: FastifyRequest<SendMessageRequest>,
+  reply: FastifyReply,
+) => {
+  const userId = request.user?.userId;
+  const { roomId } = request.params;
+  const data = request.body;
+
+  const message = await createMessageService({
+    ...data,
+    roomId,
+    senderId: userId,
+  });
+
+  // emit message
+  io.to(roomId).emit("message:new", message);
+  return { data: message };
+};
+
+export { getMessagesController, sendMessageController };

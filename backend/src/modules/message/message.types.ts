@@ -8,4 +8,18 @@ interface GetMessageRequest {
   };
 }
 
-export type { GetMessageRequest };
+interface SendMessageRequest {
+  Params: {
+    roomId: string;
+  };
+  Body: SendMessage;
+}
+
+interface SendMessage {
+  roomId: string;
+  content: string;
+  parentId?: string;
+  attachmentIds?: string[];
+}
+
+export type { GetMessageRequest, SendMessage, SendMessageRequest };
