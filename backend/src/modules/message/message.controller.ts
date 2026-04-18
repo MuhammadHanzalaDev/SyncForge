@@ -4,7 +4,6 @@ import { FastifyRequest, FastifyReply } from "fastify";
 import { createMessageService, getMessagesService } from "./message.service";
 import { GetMessageRequest, SendMessageRequest } from "./message.types";
 import { getIO } from "@/lib/socket";
-const io = getIO();
 
 const getMessagesController = async (
   request: FastifyRequest<GetMessageRequest>,
@@ -39,6 +38,7 @@ const sendMessageController = async (
   });
 
   // emit message
+  const io = getIO();
   io.to(roomId).emit("message:new", message);
   return { data: message };
 };

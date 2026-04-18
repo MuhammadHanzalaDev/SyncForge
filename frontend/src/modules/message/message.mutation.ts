@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { sendMessage } from "./message.api";
 import { usePersonalInfo } from "../user/user.query";
-import { Message } from "./message.types";
+import { Message, MessageseData } from "./message.types";
 
 const useSendMessage = (roomId: string | null) => {
   const queryClient = useQueryClient();
@@ -15,10 +15,15 @@ const useSendMessage = (roomId: string | null) => {
         queryKey: ["messages", roomId],
       });
 
-      const previous = queryClient.getQueryData(["messages", roomId]);
+      const previous = queryClient.getQueryData<MessageseData>([
+        "messages",
+        roomId,
+      ]);
 
       const newMsg: Message = {
-        id: `local-${Date.now()}`,
+        id:
+          newMessage.tempId ||
+          `local-${Date.now()}-${Math.random().toString(36).slice(2)}`,
         sender: {
           id: personalInfo?.id || "",
           name: `${personalInfo?.firstName} ${personalInfo?.lastName}`,
@@ -29,21 +34,29 @@ const useSendMessage = (roomId: string | null) => {
         isOwn: true,
       };
 
-      queryClient.setQueryData(["messages", roomId], (oldData: any) => {
-        if (!oldData) return oldData;
+      queryClient.setQueryData<MessageseData>(
+        ["messages", roomId],
+        (oldData) => {
+          if (!oldData) {
+            return {
+              pages: [{ data: [newMsg], nextCursor: null }],
+              pageParams: [null],
+            };
+          }
 
-        const pages = [...oldData.pages];
+          const pages = [...oldData.pages];
 
-        pages[0] = {
-          ...pages[0],
-          data: [...pages[0].data, newMsg],
-        };
+          pages[0] = {
+            ...pages[0],
+            data: [newMsg, ...pages[0].data],
+          };
 
-        return {
-          ...oldData,
-          pages,
-        };
-      });
+          return {
+            ...oldData,
+            pages,
+          };
+        },
+      );
 
       return { previous };
     },

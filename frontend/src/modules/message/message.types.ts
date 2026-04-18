@@ -1,4 +1,7 @@
+import { InfiniteData } from "@tanstack/react-query";
+
 interface SendMessage {
+  tempId?: string; // Temporary ID for optimistic UI updates
   roomId: string;
   content: string;
   parentId?: string;
@@ -42,4 +45,10 @@ interface GetMessagesParams {
   cursor: string | null;
 }
 
-export type { Message, SendMessage, GetMessagesParams };
+interface MessagesPage {
+  data: Message[];
+}
+
+type MessageseData = InfiniteData<MessagesPage>;
+
+export type { Message, SendMessage, GetMessagesParams, MessageseData };

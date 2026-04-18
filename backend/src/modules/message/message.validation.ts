@@ -1,6 +1,7 @@
 import * as z from "zod";
 
 const createMessageValidation = z.object({
+  tempId: z.string("tempId is required!"), // For optimistic UI, not stored in DB
   senderId: z.string("senderId is required!"),
   roomId: z.string("roomId is required!"),
   content: z.string("content is required!"),

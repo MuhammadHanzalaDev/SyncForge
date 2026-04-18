@@ -24,7 +24,7 @@ import {
   Plus,
 } from "lucide-react";
 import { useState } from "react";
-import { Avatar } from "../ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useChatsAndRooms } from "@/modules/room/room.query";
 import sidebarItems from "../content/sidebar";
 import { Chat, Room } from "@/modules/room/room.types";
@@ -101,11 +101,17 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
                       {item.isIcons ? (
                         <div className="flex gap-2">
                           <div className="relative shrink-0">
-                            <Avatar
-                              size="sm"
-                              className="bg-primary text-white w-5 h-5 flex justify-center items-center text-xs"
-                            >
-                              {child?.name?.slice(0, 1)}
+                            <Avatar size="sm" className=" w-5 h-5">
+                              {child?.avatar ? (
+                                <AvatarImage
+                                  src={child?.avatar}
+                                  alt={child?.name}
+                                />
+                              ) : (
+                                <AvatarFallback className="bg-primary text-white flex justify-center items-center text-xs">
+                                  {child?.name?.slice(0, 1)}
+                                </AvatarFallback>
+                              )}
                             </Avatar>
                             <StatusDot status={child?.status} />
                           </div>

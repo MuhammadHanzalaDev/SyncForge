@@ -93,10 +93,9 @@ export default function ChatScreen() {
   const handleSend = () => {
     if (!inputValue.trim()) return;
 
-    //     const tempId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    // const newMsg: Message = { id: tempId, /* ... */ };
-    // and make sure sendMessage sends tempId to backend
+    const tempId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     mutate({
+      tempId,
       roomId: roomId || "",
       content: inputValue.trim(),
     });

@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import type { Message } from "@/modules/message/message.types";
-import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/components/ui/avatar";
 import { cn } from "@/shared/lib/utils";
 import { getInitials } from "../room.utils";
 import { formatTime } from "@/shared/utils/date";
@@ -38,9 +42,16 @@ export default function MessageBubble({
         {showAvatar && !message.isOwn && (
           <div className="relative">
             <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
-                {getInitials(message.sender?.name)}
-              </AvatarFallback>
+              {message.sender?.avatar ? (
+                <AvatarImage
+                  src={message.sender?.avatar}
+                  alt={message.sender?.name}
+                />
+              ) : (
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs">
+                  {getInitials(message.sender?.name)}
+                </AvatarFallback>
+              )}
             </Avatar>
           </div>
         )}

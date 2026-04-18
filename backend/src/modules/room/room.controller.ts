@@ -26,21 +26,25 @@ const getRooms = async (
           firstName: true,
           lastName: true,
           email: true,
-          avatar: true,
+          avatarId: true,
         },
       },
     },
   });
 
-  const directChatCandidates = workspaceMembers.map((member) => ({
-    id: member.user.id,
-    name: `${member.user.firstName} ${member.user.lastName}`,
-    email: member.user.email,
-    avatar: member.user.avatar ? getFileUrl(member.user.avatar.id) : null,
-    type: "DIRECT",
-    status: member.status,
-    lastSeenAt: member.lastSeenAt,
-  }));
+  const directChatCandidates = await Promise.all(
+    workspaceMembers.map(async (member) => ({
+      id: member.user.id,
+      name: `${member.user?.firstName} ${member.user?.lastName}`,
+      email: member.user?.email,
+      avatar: member.user?.avatarId
+        ? await getFileUrl(member.user.avatarId)
+        : null,
+      type: "DIRECT",
+      status: member.status,
+      lastSeenAt: member.lastSeenAt,
+    })),
+  );
 
   const rooms = await prisma.room.findMany({
     where: {
@@ -82,5 +86,4 @@ const getRooms = async (
   return { data: { rooms: formattedRooms, chats: directChatCandidates } };
 };
 
-
-export { getRooms }
+export { getRooms };

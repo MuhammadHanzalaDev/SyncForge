@@ -8,7 +8,7 @@ const messageRoutes: FastifyPluginAsync = async (app) => {
   app.addHook("preHandler", app.authenticate);
 
   app.get("/:roomId", getMessagesController);
-  app.post(":roomId", sendMessageController);
+  app.post("/:roomId", sendMessageController);
 };
 
 export default messageRoutes;

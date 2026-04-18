@@ -97,6 +97,7 @@ const getMessagesService = async ({
 };
 
 interface CreateMessageParams {
+  tempId?: string; // For optimistic UI, not stored in DB
   roomId: string;
   senderId: string;
   content: string;
@@ -105,6 +106,7 @@ interface CreateMessageParams {
 }
 
 const createMessageService = async ({
+  tempId,
   roomId,
   senderId,
   content,
@@ -112,6 +114,7 @@ const createMessageService = async ({
   attachmentIds = [],
 }: CreateMessageParams) => {
   const parsed = createMessageValidation.parse({
+    tempId,
     roomId,
     senderId,
     content,
@@ -119,7 +122,7 @@ const createMessageService = async ({
     attachmentIds,
   });
 
-  return await prisma.$transaction(async (tx) => {
+  const message = await prisma.$transaction(async (tx) => {
     // 1. Validate user is in room
     const member = await tx.roomMember.findUnique({
       where: {
@@ -197,6 +200,8 @@ const createMessageService = async ({
 
     return formattedMessage;
   });
+
+  return { ...message, tempId };
 };
 
 export { getMessagesService, createMessageService };
