@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useAuthStore } from "@/shared/store/authStore";
 import { useAuthInit } from "@/modules/auth/hooks/useAuthInit";
 import { CustomLoader } from "@/shared/components";
-import { ModeToggle } from "@/shared/components";
 import UpdateProfile from "@/modules/user/components/UpdateProfile";
 import { usePersonalInfo } from "@/modules/user/user.query";
 
@@ -37,21 +36,15 @@ export default function RootPage() {
       <CustomLoader />
     </div>
   ) : (
-    <>
-      <div className="flex w-full justify-end pr-3">
-        <ModeToggle />
-      </div>
-
-      <UpdateProfile
-        isOpen={isDialogOpen}
-        setIsOpen={(open) => {
-          if (!open) setIsManuallyClosed(true);
-        }}
-        data={{
-          firstName: personalInfo?.firstName || "",
-          lastName: personalInfo?.lastName || "",
-        }}
-      />
-    </>
+    <UpdateProfile
+      isOpen={isDialogOpen}
+      setIsOpen={(open) => {
+        if (!open) setIsManuallyClosed(true);
+      }}
+      data={{
+        firstName: personalInfo?.firstName || "",
+        lastName: personalInfo?.lastName || "",
+      }}
+    />
   );
 }

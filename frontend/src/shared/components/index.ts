@@ -10,6 +10,7 @@ export { default as CustomButton } from "./form/CustomButtom";
 export { default as CustomFormField } from "./form/CustomFormField";
 export { default as CustomInputField } from "./form/CustomInputField";
 export { default as ProfileUploader } from "./form/ProfileUploader";
+export { default as CustomInputFieldWithContent } from "./form/CustomInputFieldWithContent";
 
 // Loaders
 export { default as CustomLoader } from "./loaders/CustomLoader";

@@ -51,4 +51,15 @@ interface MessagesPage {
 
 type MessageseData = InfiniteData<MessagesPage>;
 
-export type { Message, SendMessage, GetMessagesParams, MessageseData };
+interface TypingData {
+  userId: string;
+  name: string;
+}
+
+export type {
+  Message,
+  SendMessage,
+  GetMessagesParams,
+  MessageseData,
+  TypingData,
+};

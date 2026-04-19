@@ -23,7 +23,12 @@ export function initSocket(server: HttpServer) {
   // connect user
   io.on("connection", async (socket) => {
     try {
-      const userId = socket.user.userId;
+      const { userId, workspaceId } = socket.user;
+
+      if (!userId || !workspaceId) return;
+
+      // ALWAYS join workspace
+      socket.join(workspaceId);
 
       if (!onlineUsers.has(userId)) {
         onlineUsers.set(userId, new Set());
@@ -33,12 +38,14 @@ export function initSocket(server: HttpServer) {
       userSockets.add(socket.id);
       console.log("socket connected");
 
+      // send current online users
+      socket.emit("user:online-list", Array.from(onlineUsers.keys()));
+
+      // first connection → online
       if (userSockets.size === 1) {
         await userOnline(socket.user);
 
-        socket.broadcast.emit("user:online", {
-          userId,
-        });
+        socket.to(workspaceId).emit("user:online", { userId });
       }
     } catch (error) {
       console.log("user online error: ", error);
@@ -50,7 +57,7 @@ export function initSocket(server: HttpServer) {
     // disconnect user
     socket.on("disconnect", async () => {
       try {
-        const userId = socket.user.userId;
+        const { userId, workspaceId } = socket.user;
 
         const userSockets = onlineUsers.get(userId);
         if (!userSockets) return;
@@ -58,14 +65,13 @@ export function initSocket(server: HttpServer) {
         userSockets.delete(socket.id);
         console.log("socket disconnected");
 
+        // make user offline if no more active connections
         if (userSockets.size === 0) {
           onlineUsers.delete(userId);
 
           await userOffline(socket.user);
 
-          socket.broadcast.emit("user:offline", {
-            userId,
-          });
+          socket.to(workspaceId).emit("user:offline", { userId });
         }
       } catch (error) {
         console.log("user offline error: ", error);

@@ -12,4 +12,20 @@ function registerMessageEvents(socket: Socket) {
   });
 }
 
-export default registerMessageEvents;
+function registerTypingEvents(socket: Socket) {
+  socket.on("typing:start", ({ roomId }) => {
+    const userId = socket.handshake?.auth?.userId;
+    socket.to(roomId).emit("typing:start", {
+      userId,
+    });
+  });
+
+  socket.on("typing:stop", ({ roomId }) => {
+    const userId = socket.handshake?.auth?.userId;
+    socket.to(roomId).emit("typing:stop", {
+      userId,
+    });
+  });
+}
+
+export { registerMessageEvents, registerTypingEvents };

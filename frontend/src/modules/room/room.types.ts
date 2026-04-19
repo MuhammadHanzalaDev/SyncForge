@@ -6,20 +6,7 @@ interface Chat {
   type: string;
   status: "ONLINE" | "OFFLINE" | "BUSY" | "AWAY";
 }
-
-interface Room {
-  id: string;
-  name: string;
-  type: string;
-  members: {
-    id: string;
-    firstName: true;
-    lastName: true;
-  };
-  lastMessage: string;
-}
-
-interface Member {
+interface RoomMember {
   id: string;
   name: string;
   avatar?: string;
@@ -27,4 +14,12 @@ interface Member {
   role?: "admin" | "member";
 }
 
-export type { Chat, Room, Member };
+interface Room {
+  id: string;
+  name: string;
+  type: string;
+  members: RoomMember[];
+  lastMessage: string;
+}
+
+export type { Chat, Room, RoomMember };

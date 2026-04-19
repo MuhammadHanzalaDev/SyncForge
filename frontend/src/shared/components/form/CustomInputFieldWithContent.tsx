@@ -1,6 +1,12 @@
 "use client";
 import { Field, FieldLabel, FieldDescription, FieldError } from "../ui/field";
 import { Input } from "../ui/input";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupText,
+} from "@/shared/components/ui/input-group";
 
 interface CustomInputProps {
   name?: string;
@@ -12,9 +18,11 @@ interface CustomInputProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   error?: string | undefined | null;
+  leftContent?: React.ReactNode;
+  rightContent?: React.ReactNode;
 }
 
-const CustomFormField = ({
+const CustomInputFieldWithContent = ({
   name,
   label,
   type,
@@ -23,20 +31,28 @@ const CustomFormField = ({
   value,
   onChange,
   error,
+  leftContent,
+  rightContent,
   ...props
 }: CustomInputProps) => {
   return (
     <Field data-invalid={!!error}>
       {label && <FieldLabel htmlFor={name}>{label}</FieldLabel>}
 
-      <Input
-        id={name}
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        {...props}
-      />
+      <InputGroup>
+        <InputGroupInput
+          id={name}
+          type={type}
+          placeholder={placeholder}
+          value={value}
+          onChange={onChange}
+          {...props}
+        />
+        {leftContent && <InputGroupAddon>{leftContent}</InputGroupAddon>}
+        {rightContent && (
+          <InputGroupAddon align="inline-end">{rightContent}</InputGroupAddon>
+        )}
+      </InputGroup>
 
       {description && <FieldDescription>{description}</FieldDescription>}
 
@@ -45,4 +61,4 @@ const CustomFormField = ({
   );
 };
 
-export default CustomFormField;
+export default CustomInputFieldWithContent;

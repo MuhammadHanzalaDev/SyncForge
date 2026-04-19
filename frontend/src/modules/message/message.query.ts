@@ -15,6 +15,8 @@ const useMessages = (roomId?: string | null) => {
     getNextPageParam: (lastPage) => {
       return lastPage?.nextCursor ?? undefined;
     },
+
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 };
 

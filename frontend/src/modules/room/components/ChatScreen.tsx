@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useMemo } from "react";
 import type { Message } from "@/modules/message/message.types";
 import {
   Info,
@@ -26,22 +26,20 @@ import { Separator } from "@/shared/components/ui/separator";
 import { STATUS_COLORS } from "../room.utils";
 import MessageBubble from "./MessageBubble";
 import useRoomStore from "../room.store";
-import { usePersonalInfo } from "@/modules/user/user.query";
 import useMessageSocket from "@/modules/message/hooks/useMessageSocket";
+import useTypingSocket from "@/modules/message/hooks/useTypingSocket";
 import { useMessages } from "@/modules/message/message.query";
 import { InfiniteScrollContainer } from "@/shared/components";
 import type { InfiniteScrollContainerHandle } from "@/shared/components/common/InfiniteScrollContainer";
 import { useSendMessage } from "@/modules/message/message.mutation";
+import { useScrollBehavior } from "../hooks/useScrollBehaviour";
 
 export default function ChatScreen() {
   // refs
   const scrollRef = useRef<InfiniteScrollContainerHandle>(null);
-  const prevMessageCountRef = useRef<number>(0);
-  const prevFirstMessageIdRef = useRef<string | undefined>(undefined);
 
   // local states
   const [inputValue, setInputValue] = useState("");
-  const [isTyping] = useState(false);
 
   // global client states
   const activeChat = useRoomStore((state) => state.activeChat);
@@ -51,7 +49,6 @@ export default function ChatScreen() {
   const { mutate } = useSendMessage(roomId);
 
   // server states
-  const { data: personalInfo } = usePersonalInfo();
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useMessages(roomId);
 
@@ -61,34 +58,9 @@ export default function ChatScreen() {
   }, [data?.pages]);
 
   // hooks
+  const { handleTyping, typingUsers } = useTypingSocket(roomId);
+  useScrollBehavior(messages, typingUsers, scrollRef);
   useMessageSocket(roomId);
-
-  // Auto-scroll to bottom only when a NEW message arrives at the bottom
-  useEffect(() => {
-    const lastMessage = messages[messages.length - 1];
-    const firstMessage = messages[0];
-
-    if (!lastMessage) {
-      prevMessageCountRef.current = messages.length;
-      return;
-    }
-
-    const countChanged = messages.length !== prevMessageCountRef.current;
-    const firstMessageChanged =
-      prevFirstMessageIdRef.current !== undefined &&
-      firstMessage?.id !== prevFirstMessageIdRef.current;
-
-    // If the FIRST message changed, older messages were prepended — don't scroll
-    // If only the count changed (new message at bottom) — scroll to bottom
-    if (countChanged && !firstMessageChanged) {
-      scrollRef.current?.scrollToBottom(
-        prevMessageCountRef.current === 0 ? "auto" : "smooth",
-      );
-    }
-
-    prevMessageCountRef.current = messages.length;
-    prevFirstMessageIdRef.current = firstMessage?.id;
-  }, [messages]);
 
   const handleSend = () => {
     if (!inputValue.trim()) return;
@@ -208,7 +180,7 @@ export default function ChatScreen() {
         })}
 
         {/* Typing indicator */}
-        {isTyping && (
+        {typingUsers?.length > 0 && (
           <div className="flex items-center gap-3 px-4 py-1">
             <div className="w-8" />
             <div className="flex items-center gap-1.5 bg-muted rounded-2xl px-3.5 py-2.5">
@@ -255,7 +227,10 @@ export default function ChatScreen() {
             <input
               type="text"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => {
+                setInputValue(e.target.value);
+                handleTyping();
+              }}
               onKeyDown={handleKeyDown}
               placeholder={`Message ${activeChat?.name || ""}`}
               className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"

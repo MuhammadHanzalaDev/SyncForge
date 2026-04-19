@@ -11,6 +11,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
   SidebarMenuSubButton,
+  useSidebar,
 } from "@/shared/components/ui/sidebar";
 import {
   Collapsible,
@@ -54,7 +55,7 @@ interface RoomNavItem extends NavItemBase {
 type NavItem = ChatNavItem | RoomNavItem;
 
 function CollapsibleNavItem({ item }: { item: NavItem }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const hasChildren = item.children && item.children.length > 0;
 
   if (!hasChildren && item.label !== "Rooms") {
@@ -158,9 +159,15 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
 
 export function SidebarContentSection() {
   const router = useRouter();
+  const { isMobile, setOpenMobile } = useSidebar();
   const workspaceId = useWorkspaceStore((state) => state.workspaceId);
   const { data } = useChatsAndRooms(workspaceId);
   const setActiveChat = useRoomStore((state) => state.setActiveChat);
+
+  const closeMobile = () => {
+    if (isMobile) setOpenMobile(false);
+  };
+
   const items: NavItem[] = sidebarItems.map((item) =>
     item.label === "Chats"
       ? {
@@ -170,6 +177,7 @@ export function SidebarContentSection() {
           onChildClick: (chat: Chat) => {
             setActiveChat(chat);
             router.push(`/chats/${chat.id}`);
+            closeMobile();
           },
         }
       : item.label === "Rooms"
@@ -177,7 +185,10 @@ export function SidebarContentSection() {
             ...item,
             label: "Rooms",
             children: data?.rooms || [],
-            onChildClick: (room: Room) => router.push(`/chats/${room.id}`),
+            oonChildClick: (room: Room) => {
+              router.push(`/chats/${room.id}`);
+              closeMobile();
+            },
           }
         : (item as NavItem),
   );
