@@ -9,3 +9,9 @@ export const setItem = (key: string, value: string) => {
 
   window.localStorage.setItem(key, value);
 };
+
+export const removeItem = (key: string) => {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.removeItem(key);
+};

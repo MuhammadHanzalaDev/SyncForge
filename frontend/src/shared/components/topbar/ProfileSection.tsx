@@ -12,14 +12,23 @@ import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
 import { usePersonalInfo } from "@/modules/user/user.query";
 import { useLogout } from "@/modules/auth/auth.mutation";
 import { ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
+import { useAuthStore } from "@/shared/store/authStore";
+import { removeItem } from "@/shared/utils/localStorage";
 
 const ProfileSection = () => {
   const router = useRouter();
   const { data: personalInfo, isLoading } = usePersonalInfo();
+  const setAccessToken = useAuthStore((state) => state.setAccessToken);
   const { mutate } = useLogout();
 
   const handleLogout = () => {
-    mutate(undefined, { onSuccess: () => router.replace("/login") });
+    mutate(undefined, {
+      onSuccess: () => {
+        setAccessToken(null, false);
+        removeItem("workspace");
+        router.replace("/login");
+      },
+    });
   };
 
   const initials = `${personalInfo?.firstName.slice(0, 1)}${personalInfo?.lastName.slice(0, 1)}`;
