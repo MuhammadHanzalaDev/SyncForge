@@ -31,6 +31,7 @@ import {
 import { CustomButton } from "@/shared/components";
 import useChatSocket from "@/modules/room/hooks/useChatSocket";
 import useRoomStore from "@/modules/room/room.store";
+import useUserStatusStore from "@/shared/store/userStatusStore";
 
 export default function ChatLayout({
   children,
@@ -40,7 +41,10 @@ export default function ChatLayout({
   const params = useParams();
   const activeChat = useRoomStore((state) => state.activeChat);
   const id = params?.chatId as string;
+  const getUserStatus = useUserStatusStore((state) => state.getUserStatus);
   useChatSocket(id);
+
+  const userStatus = getUserStatus(activeChat?.id || "");
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-background">
@@ -55,7 +59,7 @@ export default function ChatLayout({
                   {getInitials(activeChat?.name || "")}
                 </AvatarFallback>
               </Avatar>
-              <StatusDot status={activeChat?.status || "OFFLINE"} />
+              <StatusDot status={userStatus} />
             </div>
 
             <div className="min-w-0">
@@ -65,9 +69,9 @@ export default function ChatLayout({
                 </h1>
               </div>
               <p className="text-xs text-muted-foreground truncate">
-                {activeChat?.status === "ONLINE"
+                {userStatus === "ONLINE"
                   ? "Active now"
-                  : activeChat?.status === "AWAY"
+                  : userStatus === "AWAY"
                     ? "Away"
                     : "Offline"}
               </p>

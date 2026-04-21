@@ -1,5 +1,8 @@
 import axios from "axios";
 import { useAuthStore } from "../store/authStore";
+import { useSocketStore } from "../store/socketStore";
+import { CustomSocket } from "../types/socket";
+import { getItem } from "../utils/localStorage";
 
 export const api = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_SERVER_URL}/api/v1`,
@@ -61,8 +64,12 @@ api.interceptors.response.use(
         );
 
         const newAccessToken = response.data?.accessToken;
-
         useAuthStore.getState().setAccessToken(newAccessToken, true);
+
+        // re authenticate socket on refresh token
+        // const workspaceId = getItem("workspace");
+        // useSocketStore.getState().disconnect();
+        // useSocketStore.getState().connect(newAccessToken, workspaceId || "");
 
         processQueue(null, newAccessToken);
 

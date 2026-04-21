@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { Socket } from "socket.io-client";
-import { getSocketInstance } from "../lib/socket";
+import { initializeSocketInstance } from "../lib/socket";
 
 interface SocketStore {
   socket: Socket | null;
@@ -17,9 +17,9 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
     // Don't create duplicate connections
     const existing = get().socket;
 
-    if (existing) return;
+    if (existing?.connected) return;
 
-    const socket = getSocketInstance(token, workspaceId);
+    const socket = initializeSocketInstance(token, workspaceId);
 
     socket.on("connect", () => set({ isConnected: true }));
     socket.on("disconnect", () => set({ isConnected: false }));

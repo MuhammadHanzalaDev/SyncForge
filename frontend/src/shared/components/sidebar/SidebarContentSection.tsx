@@ -34,6 +34,7 @@ import CustomButton from "../form/CustomButtom";
 import useWorkspaceStore from "@/modules/workspace/workspace.store";
 import StatusDot from "@/modules/room/components/StatusDot";
 import useRoomStore from "@/modules/room/room.store";
+import useUserStatusStore from "@/shared/store/userStatusStore";
 
 interface NavItemBase {
   label: string;
@@ -57,6 +58,7 @@ type NavItem = ChatNavItem | RoomNavItem;
 function CollapsibleNavItem({ item }: { item: NavItem }) {
   const [open, setOpen] = useState(true);
   const hasChildren = item.children && item.children.length > 0;
+  const getUserStatus = useUserStatusStore((state) => state.getUserStatus);
 
   if (!hasChildren && item.label !== "Rooms") {
     return (
@@ -114,7 +116,7 @@ function CollapsibleNavItem({ item }: { item: NavItem }) {
                                 </AvatarFallback>
                               )}
                             </Avatar>
-                            <StatusDot status={child?.status} />
+                            <StatusDot status={getUserStatus(child.id)} />
                           </div>
                           <div>{child.name}</div>
                         </div>

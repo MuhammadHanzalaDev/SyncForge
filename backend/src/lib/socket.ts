@@ -4,9 +4,9 @@ import { env } from "../config/env";
 import registerEvents from "@/socket";
 import authenticateSocket from "@/socket/socketAuth";
 import { userOffline, userOnline } from "@/modules/user/user.service";
+import { users, getUserStatusList } from "@/socket/socketStore";
 
 let io: Server;
-const onlineUsers = new Map<string, Set<string>>();
 
 export function initSocket(server: HttpServer) {
   // create io
@@ -30,22 +30,30 @@ export function initSocket(server: HttpServer) {
       // ALWAYS join workspace
       socket.join(workspaceId);
 
-      if (!onlineUsers.has(userId)) {
-        onlineUsers.set(userId, new Set());
+      if (!users.has(userId)) {
+        users.set(userId, {
+          sockets: new Set(),
+          status: "ONLINE", // default
+        });
       }
 
-      const userSockets = onlineUsers.get(userId)!;
-      userSockets.add(socket.id);
+      const userData = users.get(userId)!;
+      userData.sockets.add(socket.id);
       console.log("socket connected");
 
-      // send current online users
-      socket.emit("user:online-list", Array.from(onlineUsers.keys()));
+      // send current users statuses
+      socket.emit("user:status-list", getUserStatusList());
 
       // first connection → online
-      if (userSockets.size === 1) {
+      if (userData.sockets.size === 1) {
+        userData.status = "ONLINE";
+
         await userOnline(socket.user);
 
-        socket.to(workspaceId).emit("user:online", { userId });
+        socket.to(workspaceId).emit("user:status", {
+          userId,
+          status: "ONLINE",
+        });
       }
     } catch (error) {
       console.log("user online error: ", error);
@@ -59,19 +67,22 @@ export function initSocket(server: HttpServer) {
       try {
         const { userId, workspaceId } = socket.user;
 
-        const userSockets = onlineUsers.get(userId);
-        if (!userSockets) return;
+        const userData = users.get(userId);
+        if (!userData) return;
 
-        userSockets.delete(socket.id);
+        userData.sockets.delete(socket.id);
         console.log("socket disconnected");
 
         // make user offline if no more active connections
-        if (userSockets.size === 0) {
-          onlineUsers.delete(userId);
+        if (userData.sockets.size === 0) {
+          users.delete(userId);
 
           await userOffline(socket.user);
 
-          socket.to(workspaceId).emit("user:offline", { userId });
+          socket.to(workspaceId).emit("user:status", {
+            userId,
+            status: "OFFLINE",
+          });
         }
       } catch (error) {
         console.log("user offline error: ", error);

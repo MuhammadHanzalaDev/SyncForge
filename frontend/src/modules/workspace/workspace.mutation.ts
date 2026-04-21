@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { createWorkspace } from "./workspace.api";
-import { ApiError } from "@/shared/types/api.types";
+import { ApiError } from "@/shared/types/api";
 import message from "@/shared/utils/toast";
 
 const useCreateWorkspace = () => {

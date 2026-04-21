@@ -1,7 +1,10 @@
 import { io, Socket } from "socket.io-client";
 import env from "../config/env";
 
-export function getSocketInstance(token: string, workspaceId: string): Socket {
+export function initializeSocketInstance(
+  token: string,
+  workspaceId: string,
+): Socket {
   const socket = io(env.NEXT_PUBLIC_SERVER_URL, {
     auth: { token, workspaceId },
     transports: ["websocket", "polling"],
@@ -13,8 +16,3 @@ export function getSocketInstance(token: string, workspaceId: string): Socket {
 
   return socket;
 }
-
-// export function disconnectSocket() {
-//   socket?.disconnect();
-//   socket = null;
-// }

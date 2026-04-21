@@ -1,4 +1,4 @@
-import type { Member } from "./room.types";
+import { UserStatusType } from "../user/user.types";
 
 function getInitials(name: string) {
   return name
@@ -9,7 +9,7 @@ function getInitials(name: string) {
     .slice(0, 2);
 }
 
-const STATUS_COLORS: Record<Member["status"], string> = {
+const STATUS_COLORS: Record<UserStatusType, string> = {
   ONLINE: "bg-emerald-500",
   AWAY: "bg-amber-400",
   BUSY: "bg-rose-500",

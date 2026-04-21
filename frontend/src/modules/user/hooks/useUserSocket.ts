@@ -1,14 +1,17 @@
 import useSocketEvent from "@/shared/hooks/useSocketEvent";
-import useOnlineUserStore from "@/shared/store/onlineUser.store";
+import useUserStatusStore from "@/shared/store/userStatusStore";
+import { UserStatus } from "../user.types";
 
 export default function useUserSocket() {
-  const { setOnlineUsers, addOnlineUser, removeOnlineUser } =
-    useOnlineUserStore();
+  const { setUserStatus, setUserStatuses } = useUserStatusStore();
 
   // events
-  useSocketEvent("user:online-list", (users: string[]) =>
-    setOnlineUsers(users),
-  );
-  useSocketEvent("user:online", (userId: string) => addOnlineUser(userId));
-  useSocketEvent("user:offline", ({ userId }) => removeOnlineUser(userId));
+  useSocketEvent("user:status-list", (statuses: UserStatus[]) => {
+    console.log("status list : ", statuses);
+    setUserStatuses(statuses);
+  });
+  useSocketEvent("user:status", (status: UserStatus) => {
+    console.log("user status updated : ", status);
+    setUserStatus(status);
+  });
 }

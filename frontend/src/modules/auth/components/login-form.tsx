@@ -13,7 +13,7 @@ import Link from "next/link";
 import { useLogin } from "../auth.mutation";
 import { useAuthStore } from "@/shared/store/authStore";
 import { useRouter } from "next/navigation";
-import { ApiError } from "@/shared/types/api.types";
+import { ApiError } from "@/shared/types/api";
 import message from "@/shared/utils/toast";
 
 export function LoginForm() {

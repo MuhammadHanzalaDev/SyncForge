@@ -12,4 +12,10 @@ interface PersonalInfo {
 
 type UpdateProfileValues = z.infer<typeof setProfileSchema>;
 
-export type { UpdateProfileValues, PersonalInfo };
+type UserStatusType = "ONLINE" | "OFFLINE" | "AWAY" | "BUSY";
+interface UserStatus {
+  userId: string;
+  status: UserStatusType;
+}
+
+export type { UpdateProfileValues, PersonalInfo, UserStatus, UserStatusType };

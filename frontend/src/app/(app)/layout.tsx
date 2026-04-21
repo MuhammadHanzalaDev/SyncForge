@@ -7,19 +7,24 @@ import { useSocketStore } from "@/shared/store/socketStore";
 import { useAuthStore } from "@/shared/store/authStore";
 import useWorkspaceStore from "@/modules/workspace/workspace.store";
 import TopBar from "@/shared/components/topbar/AppTopbar";
+import useRegisterSocketEvents from "@/shared/hooks/useRegisterGlobalSocketEvents";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { accessToken } = useAuthStore();
   const { workspaceId } = useWorkspaceStore();
   const { connect, disconnect } = useSocketStore();
 
+  
   useEffect(() => {
     if (accessToken) {
       connect(accessToken, workspaceId || "");
     }
     return () => disconnect();
   }, [accessToken]);
-
+  
+  // register global hooks
+  useRegisterSocketEvents();
+  
   return (
     <SidebarProvider>
       {/* ── Full-height shell ── */}

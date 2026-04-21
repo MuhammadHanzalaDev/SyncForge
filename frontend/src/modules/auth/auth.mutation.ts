@@ -7,7 +7,7 @@ import {
   signup,
   verify,
 } from "./auth.api";
-import { ApiError } from "@/shared/types/api.types";
+import { ApiError } from "@/shared/types/api";
 import message from "@/shared/utils/toast";
 import { LoginFormValues } from "./auth.types";
 

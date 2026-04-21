@@ -1,10 +1,10 @@
 "use client";
 
 import { STATUS_COLORS } from "../room.utils";
-import type { Member } from "../room.types";
+import { UserStatusType } from "@/modules/user/user.types";
 import { cn } from "@/shared/lib/utils";
 
-export default function StatusDot({ status }: { status: Member["status"] }) {
+export default function StatusDot({ status }: { status: UserStatusType }) {
   return (
     <span
       className={cn(
