@@ -25,6 +25,11 @@ import { Button } from "@/shared/components/ui/button";
 import { Separator } from "@/shared/components/ui/separator";
 import { STATUS_COLORS } from "../room.utils";
 import MessageBubble from "./MessageBubble";
+import MessageAttachments from "./MessageAttachements";
+import {
+  Attachment,
+  MessageAttachmentsHandle,
+} from "@/modules/file/file.types";
 import useRoomStore from "../room.store";
 import useMessageSocket from "@/modules/message/hooks/useMessageSocket";
 import useTypingSocket from "@/modules/message/hooks/useTypingSocket";
@@ -37,9 +42,11 @@ import { useScrollBehavior } from "../hooks/useScrollBehaviour";
 export default function ChatScreen() {
   // refs
   const scrollRef = useRef<InfiniteScrollContainerHandle>(null);
+  const attachmentsRef = useRef<MessageAttachmentsHandle>(null);
 
   // local states
   const [inputValue, setInputValue] = useState("");
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
 
   // global client states
   const activeChat = useRoomStore((state) => state.activeChat);
@@ -63,7 +70,7 @@ export default function ChatScreen() {
   useMessageSocket(roomId);
 
   const handleSend = () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() && attachments.length === 0) return;
 
     const tempId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     mutate({
@@ -71,7 +78,9 @@ export default function ChatScreen() {
       roomId: roomId || "",
       content: inputValue.trim(),
     });
+
     setInputValue("");
+    attachmentsRef.current?.clear();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -80,6 +89,23 @@ export default function ChatScreen() {
       handleSend();
     }
   };
+
+  const canSend = inputValue.trim().length > 0 || attachments.length > 0;
+
+  const toolbarButtons = [
+    {
+      icon: Paperclip,
+      label: "Attach file",
+      onClick: () => attachmentsRef.current?.openFilePicker(),
+    },
+    {
+      icon: ImageIcon,
+      label: "Image",
+      onClick: () => attachmentsRef.current?.openImagePicker(),
+    },
+    { icon: Smile, label: "Emoji", onClick: () => {} },
+    { icon: Mic, label: "Voice message", onClick: () => {} },
+  ];
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
@@ -199,18 +225,23 @@ export default function ChatScreen() {
       {/* Input Area */}
       <div className="px-4 pb-4 pt-2 shrink-0">
         <div className="flex flex-col rounded-xl border bg-background shadow-sm overflow-hidden">
+          <MessageAttachments
+            ref={attachmentsRef}
+            attachments={attachments}
+            onAttachmentsChange={setAttachments}
+          />
+
           {/* Toolbar */}
           <div className="flex items-center gap-0.5 px-2 pt-2 pb-1">
-            {[
-              { icon: Paperclip, label: "Attach file" },
-              { icon: ImageIcon, label: "Image" },
-              { icon: Smile, label: "Emoji" },
-              { icon: Mic, label: "Voice message" },
-            ].map(({ icon: Icon, label }) => (
+            {toolbarButtons.map(({ icon: Icon, label, onClick }) => (
               <TooltipProvider key={label}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <button className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                    <button
+                      type="button"
+                      onClick={onClick}
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                    >
                       <Icon className="h-4 w-4" />
                     </button>
                   </TooltipTrigger>
@@ -237,10 +268,10 @@ export default function ChatScreen() {
             />
             <button
               onClick={handleSend}
-              disabled={!inputValue.trim()}
+              disabled={!canSend}
               className={cn(
                 "flex items-center justify-center h-8 w-8 rounded-lg transition-all",
-                inputValue.trim()
+                canSend
                   ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
                   : "text-muted-foreground/40 cursor-not-allowed",
               )}
