@@ -8,10 +8,14 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { Attachment, MessageAttachmentsHandle } from "@/modules/file/file.types";
+import {
+  Attachment,
+  MessageAttachmentsHandle,
+} from "@/modules/file/file.types";
 import { formatFileSize, getFileIcon } from "@/modules/file/file.utils";
+import { useUploadAttachments } from "@/modules/file/file.mutation";
 
 type Props = {
   attachments: Attachment[];
@@ -30,6 +34,7 @@ const createAttachments = (
       file,
       kind: isImage ? "image" : "file",
       previewUrl: isImage ? URL.createObjectURL(file) : undefined,
+      status: "uploading",
     };
   });
 
@@ -42,6 +47,8 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
   ) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
+
+    const { mutateAsync: uploadAttachment } = useUploadAttachments();
 
     // Revoke any lingering object URLs on unmount.
     useEffect(() => {
@@ -68,13 +75,43 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
       [attachments, onAttachmentsChange],
     );
 
+    // Upload a single attachment and update its status when done.
+    const uploadSingle = async (attachment: Attachment) => {
+      const formData = new FormData();
+      formData.append("file", attachment.file);
+
+      try {
+        const uploaded = await uploadAttachment(formData);
+        // Expect backend to return the uploaded file object (or array with one item).
+        const result = Array.isArray(uploaded) ? uploaded[0] : uploaded;
+
+        onAttachmentsChange((prev) =>
+          prev.map((a) =>
+            a.id === attachment.id
+              ? { ...a, status: "done", uploadedId: result?.id }
+              : a,
+          ),
+        );
+      } catch {
+        onAttachmentsChange((prev) =>
+          prev.map((a) =>
+            a.id === attachment.id ? { ...a, status: "error" } : a,
+          ),
+        );
+      }
+    };
+
     const handleFilesSelected = (
       files: FileList | null,
       forceKind?: "image" | "file",
     ) => {
       if (!files || files.length === 0) return;
-      const next = createAttachments(files, forceKind);
-      onAttachmentsChange((prev) => [...prev, ...next]);
+
+      const batch = createAttachments(files, forceKind);
+      onAttachmentsChange((prev) => [...prev, ...batch]);
+
+      // Fire one request per file in parallel.
+      batch.forEach(uploadSingle);
     };
 
     const removeAttachment = (id: string) => {
@@ -119,6 +156,9 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
             )}
           >
             {attachments.map((att) => {
+              const isUploading = att.status === "uploading";
+              const isError = att.status === "error";
+
               if (att.kind === "image" && att.previewUrl) {
                 return (
                   <div
@@ -131,12 +171,18 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
                       alt={att.file.name}
                       className="h-full w-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+
+                    <UploadOverlay
+                      isUploading={isUploading}
+                      isError={isError}
+                    />
+
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
                     <button
                       type="button"
                       onClick={() => removeAttachment(att.id)}
                       aria-label={`Remove ${att.file.name}`}
-                      className="absolute top-0.5 right-0.5 flex items-center justify-center h-5 w-5 rounded-full bg-background/90 text-foreground shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+                      className="absolute top-0.5 right-0.5 z-10 flex items-center justify-center h-5 w-5 rounded-full bg-background/90 text-foreground shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -148,8 +194,10 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
               return (
                 <div
                   key={att.id}
-                  className="group relative flex items-center gap-2.5 pl-2 pr-8 py-2 rounded-lg border bg-muted/40 hover:bg-muted/60 transition-colors max-w-[220px]"
+                  className="group relative flex items-center gap-2.5 pl-2 pr-8 py-2 rounded-lg border bg-muted/40 hover:bg-muted/60 transition-colors max-w-[220px] overflow-hidden"
                 >
+                  <UploadOverlay isUploading={isUploading} isError={isError} />
+
                   <div className="flex items-center justify-center h-8 w-8 shrink-0 rounded-md bg-primary/10 text-primary">
                     <Icon className="h-4 w-4" />
                   </div>
@@ -158,14 +206,16 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
                       {att.file.name}
                     </span>
                     <span className="text-[10px] text-muted-foreground">
-                      {formatFileSize(att.file.size)}
+                      {isError
+                        ? "Upload failed"
+                        : formatFileSize(att.file.size)}
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => removeAttachment(att.id)}
                     aria-label={`Remove ${att.file.name}`}
-                    className="absolute top-1/2 -translate-y-1/2 right-1.5 flex items-center justify-center h-5 w-5 rounded-full text-muted-foreground hover:text-foreground hover:bg-background transition-colors"
+                    className="absolute top-1/2 -translate-y-1/2 right-1.5 z-10 flex items-center justify-center h-5 w-5 rounded-full text-muted-foreground hover:text-foreground hover:bg-background transition-colors"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -178,5 +228,39 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
     );
   },
 );
+
+// ------- Upload overlay -------
+
+type UploadOverlayProps = {
+  isUploading: boolean;
+  isError: boolean;
+};
+
+function UploadOverlay({ isUploading, isError }: UploadOverlayProps) {
+  if (!isUploading && !isError) return null;
+
+  return (
+    <>
+      {/* Indeterminate top progress bar */}
+      {isUploading && (
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20 overflow-hidden z-10">
+          <div className="h-full w-1/3 bg-primary animate-[indeterminate_1.2s_ease-in-out_infinite]" />
+        </div>
+      )}
+
+      {/* Dim overlay with centered spinner */}
+      <div
+        className={cn(
+          "absolute inset-0 flex items-center justify-center pointer-events-none z-[5]",
+          isError ? "bg-destructive/30" : "bg-black/35",
+        )}
+      >
+        {isUploading && (
+          <Loader2 className="h-4 w-4 animate-spin text-white drop-shadow" />
+        )}
+      </div>
+    </>
+  );
+}
 
 export default MessageAttachments;

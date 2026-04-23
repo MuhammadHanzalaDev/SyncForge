@@ -1,42 +1,45 @@
 import { FastifyRequest } from "fastify";
+import type { UploadedFile } from "@/modules/storage/storage.types";
 
-export const parseMultipart = async (request: FastifyRequest) => {
-  const fields: Record<string, any> = {};
-  const files: Array<{
-    buffer: Buffer;
-    filename: string;
-    mimetype: string;
-    size: number;
-  }> = [];
+export type MultipartFields = Record<string, string | string[]>;
+
+export type ParsedMultipart = {
+  data: MultipartFields;
+  files: UploadedFile[];
+};
+
+export const parseMultipart = async (
+  request: FastifyRequest,
+): Promise<ParsedMultipart> => {
+  const fields: MultipartFields = {};
+  const files: UploadedFile[] = [];
 
   for await (const part of request.parts()) {
     if (part.type === "file") {
       const buffer = await part.toBuffer();
 
       files.push({
+        fieldname: part.fieldname,
         buffer,
         filename: part.filename,
         mimetype: part.mimetype,
-        size: buffer.length, // correct way
+        size: buffer.length,
       });
     } else {
       if (fields[part.fieldname]) {
         if (!Array.isArray(fields[part.fieldname])) {
-          fields[part.fieldname] = [fields[part.fieldname]];
+          fields[part.fieldname] = [fields[part.fieldname] as string];
         }
-        fields[part.fieldname].push(part.value);
+
+        (fields[part.fieldname] as string[]).push(part.value as string);
       } else {
-        fields[part.fieldname] = part.value;
+        fields[part.fieldname] = part.value as string;
       }
     }
   }
 
   return {
-    ...fields,
-    ...(files?.length > 1
-      ? { files }
-      : files?.length === 1
-        ? { file: files[0] }
-        : {}),
+    data: fields,
+    files,
   };
 };

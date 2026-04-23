@@ -3,6 +3,8 @@ type Attachment = {
   file: File;
   kind: "image" | "file";
   previewUrl?: string;
+  status: "uploading" | "done" | "error";
+  uploadedId?: string;
 };
 
 type MessageAttachmentsHandle = {

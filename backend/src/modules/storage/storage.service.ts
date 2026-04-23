@@ -9,6 +9,7 @@ import { ApiError } from "@/utils/Error";
 import prisma from "@/lib/prisma";
 import { validateCreateFile } from "./storage.validation";
 import { createFile } from "./storage.repository";
+import { UploadedFile } from "./storage.types";
 
 async function uploadFile(
   file: any,
@@ -29,6 +30,13 @@ async function uploadFile(
   return key;
 }
 
+async function uploadFiles(
+  files: any[],
+  folder: "avatars" | "attachments" | "documents",
+) {
+  return Promise.all(files.map((file) => uploadFile(file, folder)));
+}
+
 async function deleteFile(key: string) {
   await s3.send(
     new DeleteObjectCommand({
@@ -36,6 +44,10 @@ async function deleteFile(key: string) {
       Key: key,
     }),
   );
+}
+
+async function deleteFiles(keys: string[]) {
+  return Promise.all(keys.map((key) => deleteFile(key)));
 }
 
 async function getFileUrl(fileId: string) {
@@ -77,4 +89,11 @@ const createAndUploadFile = async (
   return fileDoc;
 };
 
-export { uploadFile, deleteFile, getFileUrl, createAndUploadFile };
+export {
+  uploadFile,
+  uploadFiles,
+  deleteFile,
+  deleteFiles,
+  getFileUrl,
+  createAndUploadFile,
+};

@@ -5,11 +5,11 @@ import { createAndUploadFile } from "../storage/storage.service";
 import { updateWorkspaceMember } from "../workspace/workspace.repository";
 
 const updatePersonalInfoService = async (userId: string, data: any) => {
-  const parsed = validateUpdatePersonalInfo.parse(data);
+  const parsed = validateUpdatePersonalInfo.parse(data.data);
 
   let avatarId = null;
-  if (data.file) {
-    const fileDoc = await createAndUploadFile(userId, data.file, "avatars");
+  if (data.files[0]) {
+    const fileDoc = await createAndUploadFile(userId, data.files[0], "avatars");
     avatarId = fileDoc.id;
   }
 

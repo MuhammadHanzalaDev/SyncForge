@@ -38,6 +38,7 @@ import { InfiniteScrollContainer } from "@/shared/components";
 import type { InfiniteScrollContainerHandle } from "@/shared/components/common/InfiniteScrollContainer";
 import { useSendMessage } from "@/modules/message/message.mutation";
 import { useScrollBehavior } from "../hooks/useScrollBehaviour";
+import { useUploadAttachments } from "@/modules/file/file.mutation";
 
 export default function ChatScreen() {
   // refs
@@ -53,7 +54,7 @@ export default function ChatScreen() {
   const roomId = useRoomStore((state) => state.roomId);
 
   // mutations
-  const { mutate } = useSendMessage(roomId);
+  const { mutate: mutateSendMessage } = useSendMessage(roomId);
 
   // server states
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
@@ -72,16 +73,29 @@ export default function ChatScreen() {
   const handleSend = () => {
     if (!inputValue.trim() && attachments.length === 0) return;
 
+    // Block send while any attachment is still uploading.
+    const stillUploading = attachments.some((a) => a.status === "uploading");
+    if (stillUploading) return;
+
+    const uploadedIds = attachments
+      .filter((a) => a.status === "done" && a.uploadedId)
+      .map((a) => a.uploadedId!);
+
     const tempId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    mutate({
+    mutateSendMessage({
       tempId,
       roomId: roomId || "",
       content: inputValue.trim(),
+      attachmentIds: uploadedIds, // adjust key to match your send-message payload
     });
 
     setInputValue("");
     attachmentsRef.current?.clear();
   };
+
+  const canSend =
+    (inputValue.trim().length > 0 || attachments.length > 0) &&
+    !attachments.some((a) => a.status === "uploading");
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -89,8 +103,6 @@ export default function ChatScreen() {
       handleSend();
     }
   };
-
-  const canSend = inputValue.trim().length > 0 || attachments.length > 0;
 
   const toolbarButtons = [
     {

@@ -1,6 +1,3 @@
-import z from "zod";
-import { createFileSchema } from "./storage.validation";
-
 interface FileType {
   id?: string;
   name?: string;
@@ -9,8 +6,16 @@ interface FileType {
   size?: number;
   userId?: string;
   createdAt?: Date | string;
+  messageId?: string;
+  status?: string;
 }
 
-type CreateFileType = z.infer<typeof createFileSchema>;
+type UploadedFile = {
+  fieldname?: string;
+  buffer: Buffer;
+  filename: string;
+  mimetype: string;
+  size: number;
+};
 
-export type { FileType, CreateFileType };
+export type { FileType, UploadedFile };

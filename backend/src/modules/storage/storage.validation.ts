@@ -13,6 +13,7 @@ const validateCreateFile = z.object({
   mimetype: z.string(),
   size: z.number(),
   userId: z.string(),
+  status: z.string().optional(),
 });
 
 export { validateFile, validateCreateFile }

@@ -1,8 +1,7 @@
 import prisma from "@/lib/prisma";
 import z from "zod";
-import { CreateFileType } from "./storage.types";
 
-const createFile = (file: CreateFileType) => {
+const createFile = (file: any) => {
   return prisma.file.create({
     data: file,
   });

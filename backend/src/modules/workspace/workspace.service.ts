@@ -17,16 +17,18 @@ import { validateJoinWorkspace } from "./workspace.validation";
 import { createAndUploadFile } from "../storage/storage.service";
 
 const createWorkspaceService = async (userId: string, data: any) => {
-  const emails = Array.isArray(data.emails)
-    ? data.emails
-    : typeof data.emails === "string"
-      ? [data.emails]
+  const { data: dataObj, files } = data;
+
+  const emails = Array.isArray(dataObj.emails)
+    ? dataObj.emails
+    : typeof dataObj.emails === "string"
+      ? [dataObj.emails]
       : [];
-  const parsed = validateCreateWorkspace.parse({ ...data, emails });
+  const parsed = validateCreateWorkspace.parse({ ...dataObj, emails });
 
   let avatarId = null;
-  if (data.file) {
-    const fileDoc = await createAndUploadFile(userId, data.file, "avatars");
+  if (files[0]) {
+    const fileDoc = await createAndUploadFile(userId, files[0], "avatars");
     avatarId = fileDoc.id;
   }
 
