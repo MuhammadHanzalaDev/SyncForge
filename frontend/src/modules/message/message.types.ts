@@ -1,4 +1,5 @@
 import { InfiniteData } from "@tanstack/react-query";
+import type { Attachment } from "../file/file.types";
 
 interface SendMessage {
   tempId?: string; // Temporary ID for optimistic UI updates
@@ -6,6 +7,7 @@ interface SendMessage {
   content: string;
   parentId?: string;
   attachmentIds?: string[];
+  attachments: Attachment[];
 }
 
 interface MessageSender {
@@ -20,11 +22,22 @@ interface MessageReaction {
   emoji: string;
 }
 
+type MessageStatus = "SENT" | "DELIVERED" | "READ";
+
 interface MessageReceipt {
-  id: string;
+  messageId: string;
   userId: string;
-  status: "SENT" | "DELIVERED" | "READ";
+  status: MessageStatus;
   updatedAt: Date;
+}
+
+interface MessageAttachment {
+  id: string;
+  url: string; // Full URL to the file
+  filename: string; // Original filename
+  mimetype: string; // e.g., "image/png"
+  size: number; // Bytes
+  kind: "IMAGE" | "FILE";
 }
 
 interface Message {
@@ -35,7 +48,8 @@ interface Message {
   updatedAt?: Date;
   isEdited?: boolean;
   parentId?: string;
-  attachments?: string[];
+  attachments?: MessageAttachment[];
+  tempAttachments?: Attachment[];
   reactions?: MessageReaction[];
   receipts?: MessageReceipt[];
   isOwn?: boolean;
@@ -62,4 +76,7 @@ export type {
   GetMessagesParams,
   MessageseData,
   TypingData,
+  MessageAttachment,
+  MessageStatus,
+  MessageReceipt,
 };

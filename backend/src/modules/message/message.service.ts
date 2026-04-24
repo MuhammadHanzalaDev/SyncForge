@@ -54,7 +54,16 @@ const getMessagesService = async ({
           avatarId: true,
         },
       },
-      attachments: true,
+      attachments: {
+        select: {
+          id: true,
+          key: true,
+          filename: true,
+          mimetype: true,
+          size: true,
+          kind: true,
+        },
+      },
       messageReactions: true,
       messageReceipts: true,
     },
@@ -82,7 +91,12 @@ const getMessagesService = async ({
       updatedAt: msg.updatedAt,
       isEdited: msg.isEdited,
       parentId: msg.parentId,
-      attachments: msg.attachments,
+      attachments: await Promise.all(
+        (msg.attachments || []).map(async (a) => ({
+          ...a,
+          url: await getFileUrl(a.id),
+        })),
+      ),
       reactions: msg.messageReactions,
       receipts: msg.messageReceipts,
       isOwn: msg.senderId === userId,
@@ -144,28 +158,18 @@ const createMessageService = async ({
         senderId: parsed.senderId,
         content: parsed.content,
         parentId: parsed.parentId || null,
-
-        attachments: {
-          connect: parsed?.attachmentIds?.map((id) => ({ id })),
-        },
       },
 
-      include: {
-        sender: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            avatarId: true,
-          },
-        },
-        attachments: true,
-        messageReactions: true,
-        messageReceipts: true,
-      },
+      select: { id: true },
     });
 
-    // 3. Create receipts (DELIVERED)
+    // attach attachments to the message
+    await tx.file.updateMany({
+      where: { id: { in: attachmentIds }, status: "PENDING", userId: senderId },
+      data: { status: "ATTACHED", messageId: message.id },
+    });
+
+    // create message recipts for room members
     const roomMembers = await tx.roomMember.findMany({
       where: { roomId: parsed.roomId },
       select: { userId: true },
@@ -179,23 +183,59 @@ const createMessageService = async ({
       })),
     });
 
+    const freshMessage = await tx.message.findUnique({
+      where: { id: message.id },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarId: true,
+          },
+        },
+        attachments: {
+          select: {
+            id: true,
+            key: true,
+            filename: true,
+            mimetype: true,
+            size: true,
+            kind: true,
+          },
+        },
+        messageReactions: true,
+        messageReceipts: true,
+      },
+    });
+
+    const formattedAttachments = await Promise.all(
+      (freshMessage?.attachments || [])?.map(async (a) => {
+        const url = await getFileUrl(a.id);
+        return {
+          ...a,
+          url,
+        };
+      }),
+    );
+
     const formattedMessage = {
-      id: message.id,
+      id: freshMessage?.id,
       sender: {
-        id: message?.sender.id,
-        name: `${message?.sender.firstName} ${message?.sender.lastName}`,
-        avatar: message.sender?.avatarId
-          ? await getFileUrl(message.sender.avatarId)
+        id: freshMessage?.sender.id,
+        name: `${freshMessage?.sender.firstName} ${freshMessage?.sender.lastName}`,
+        avatar: freshMessage?.sender?.avatarId
+          ? await getFileUrl(freshMessage.sender.avatarId)
           : null,
       },
-      content: message.content,
-      createdAt: message.createdAt,
-      updatedAt: message.updatedAt,
-      isEdited: message.isEdited,
-      parentId: message.parentId,
-      attachments: message.attachments,
-      reactions: message.messageReactions,
-      receipts: message.messageReceipts,
+      content: freshMessage?.content,
+      createdAt: freshMessage?.createdAt,
+      updatedAt: freshMessage?.updatedAt,
+      isEdited: freshMessage?.isEdited,
+      parentId: freshMessage?.parentId,
+      attachments: formattedAttachments,
+      reactions: freshMessage?.messageReactions,
+      receipts: freshMessage?.messageReceipts,
     };
 
     return formattedMessage;

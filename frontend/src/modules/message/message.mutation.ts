@@ -32,6 +32,7 @@ const useSendMessage = (roomId: string | null) => {
         content: newMessage.content,
         createdAt: new Date(),
         isOwn: true,
+        tempAttachments: newMessage.attachments,
       };
 
       queryClient.setQueryData<MessageseData>(

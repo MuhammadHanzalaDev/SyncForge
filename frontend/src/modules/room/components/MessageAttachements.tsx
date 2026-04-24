@@ -16,6 +16,7 @@ import {
 } from "@/modules/file/file.types";
 import { formatFileSize, getFileIcon } from "@/modules/file/file.utils";
 import { useUploadAttachments } from "@/modules/file/file.mutation";
+import { objectToFormData } from "@/shared/utils/formData";
 
 type Props = {
   attachments: Attachment[];
@@ -25,14 +26,14 @@ type Props = {
 
 const createAttachments = (
   files: FileList,
-  forceKind?: "image" | "file",
+  forceKind?: "IMAGE" | "FILE",
 ): Attachment[] =>
   Array.from(files).map((file) => {
-    const isImage = forceKind === "image" || file.type.startsWith("image/");
+    const isImage = forceKind === "IMAGE" || file.type.startsWith("image/");
     return {
       id: `att-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       file,
-      kind: isImage ? "image" : "file",
+      kind: isImage ? "IMAGE" : "FILE",
       previewUrl: isImage ? URL.createObjectURL(file) : undefined,
       status: "uploading",
     };
@@ -77,11 +78,14 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
 
     // Upload a single attachment and update its status when done.
     const uploadSingle = async (attachment: Attachment) => {
-      const formData = new FormData();
-      formData.append("file", attachment.file);
+      const formData = objectToFormData({
+        file: attachment.file,
+        kind: attachment.kind,
+      });
 
       try {
         const uploaded = await uploadAttachment(formData);
+        console.log(uploaded);
         // Expect backend to return the uploaded file object (or array with one item).
         const result = Array.isArray(uploaded) ? uploaded[0] : uploaded;
 
@@ -103,7 +107,7 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
 
     const handleFilesSelected = (
       files: FileList | null,
-      forceKind?: "image" | "file",
+      forceKind?: "IMAGE" | "FILE",
     ) => {
       if (!files || files.length === 0) return;
 
@@ -142,7 +146,7 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
           accept="image/*"
           className="hidden"
           onChange={(e) => {
-            handleFilesSelected(e.target.files, "image");
+            handleFilesSelected(e.target.files, "IMAGE");
             e.target.value = "";
           }}
         />
@@ -159,7 +163,7 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
               const isUploading = att.status === "uploading";
               const isError = att.status === "error";
 
-              if (att.kind === "image" && att.previewUrl) {
+              if (att.kind === "IMAGE" && att.previewUrl) {
                 return (
                   <div
                     key={att.id}

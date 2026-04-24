@@ -25,8 +25,9 @@ const uploadAttachmentsController = async (
   reply: FastifyReply,
 ) => {
   const userId = request.user?.userId;
-  const { files } = await parseMultipart(request);
+  const { files, data } = await parseMultipart(request);
   console.log("files", files);
+  console.log("data", data);
 
   if (files?.length === 0) {
     throw new ApiError("Please upload files!");
@@ -41,7 +42,8 @@ const uploadAttachmentsController = async (
       ...file,
       key: keys[idx],
       userId,
-      status: "PENING",
+      status: "PENDING",
+      kind: data?.kind || "FILE"
     };
     const formatted = validateCreateFile.parse(fileObj)
 

@@ -87,6 +87,7 @@ export default function ChatScreen() {
       roomId: roomId || "",
       content: inputValue.trim(),
       attachmentIds: uploadedIds, // adjust key to match your send-message payload
+      attachments: attachments,
     });
 
     setInputValue("");

@@ -1,7 +1,7 @@
 type Attachment = {
   id: string;
   file: File;
-  kind: "image" | "file";
+  kind: "IMAGE" | "FILE";
   previewUrl?: string;
   status: "uploading" | "done" | "error";
   uploadedId?: string;

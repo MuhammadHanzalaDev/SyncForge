@@ -4,7 +4,7 @@ import { AxiosError } from "axios";
 const uploadAttachments = async (formData: FormData) => {
   try {
     const res = await api.post("/files/attachments", formData);
-    return res.data.data;
+    return res.data.files;
   } catch (err: unknown) {
     if (err instanceof AxiosError) {
       throw err.response?.data || err.message;

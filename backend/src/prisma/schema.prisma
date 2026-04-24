@@ -188,6 +188,7 @@ model File {
   size      Int
   status    FileStatus @default(PENDING)
   createdAt DateTime   @default(now())
+  kind      FileKind   @default(FILE)
 
   userId String
   user   User   @relation("UserFiles", fields: [userId], references: [id], onDelete: Cascade)
@@ -205,6 +206,11 @@ model File {
 enum FileStatus {
   PENDING
   ATTACHED
+}
+
+enum FileKind {
+  IMAGE
+  FILE
 }
 
 model Notification {

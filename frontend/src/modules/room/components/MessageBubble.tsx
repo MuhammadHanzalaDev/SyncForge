@@ -18,6 +18,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
+import MessageAttachmentsList from "./MessageAttachmentsList";
 
 export default function MessageBubble({
   message,
@@ -27,6 +28,12 @@ export default function MessageBubble({
   showAvatar: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
+
+  const hasAttachments =
+    (message.attachments && message.attachments.length > 0) ||
+    (message.tempAttachments && message.tempAttachments.length > 0);
+
+  const hasText = message.content && message.content.trim().length > 0;
 
   return (
     <div
@@ -97,26 +104,37 @@ export default function MessageBubble({
           </div>
         )} */}
 
-        {/* Bubble */}
-        <div
-          className={cn(
-            "rounded-2xl px-3.5 py-2 text-sm leading-relaxed",
-            message.isOwn
-              ? "bg-primary text-primary-foreground rounded-tr-sm"
-              : "bg-muted text-foreground rounded-tl-sm",
-          )}
-        >
-          {message.content}
-        </div>
+        {/* Text bubble — only render when there's text content */}
+        {hasText && (
+          <div
+            className={cn(
+              "rounded-2xl px-3.5 py-2 text-sm leading-relaxed",
+              message.isOwn
+                ? "bg-primary text-primary-foreground rounded-tr-sm"
+                : "bg-muted text-foreground rounded-tl-sm",
+            )}
+          >
+            {message.content}
+          </div>
+        )}
+
+        {/* Attachments — renders both temp (optimistic) and persisted */}
+        {hasAttachments && (
+          <MessageAttachmentsList
+            attachments={message.attachments}
+            tempAttachments={message.tempAttachments}
+            isOwn={message.isOwn}
+          />
+        )}
 
         {/* Reactions + status */}
-        {/* <div
+        <div
           className={cn(
             "flex items-center gap-2 mt-1",
             message.isOwn && "flex-row-reverse",
           )}
         >
-          {message.reactions?.map((r) => (
+          {/* {message.reactions?.map((r) => (
             <button
               key={r.emoji}
               className={cn(
@@ -128,14 +146,14 @@ export default function MessageBubble({
             >
               {r.emoji} {r.count}
             </button>
-          ))}
+          ))} */}
           {!showAvatar && (
             <span className="text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-              {formatTime(message.timestamp)}
+              {formatTime(message.createdAt)}
             </span>
           )}
-          {message.isOwn && <MessageStatusIcon status={message.status} />}
-        </div> */}
+          {/* {message.isOwn && <MessageStatusIcon recipts={message.receipts} />} */}
+        </div>
       </div>
 
       {/* Hover actions */}
