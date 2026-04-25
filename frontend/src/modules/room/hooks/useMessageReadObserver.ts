@@ -16,7 +16,7 @@ const useMessageReadObserver = (
       ([entry]) => {
         if (entry.isIntersecting) {
           // Fire your read event here
-          markMessageAsRead(messageId);
+        //   markMessageAsRead(messageId);
           observer.disconnect(); // only need to fire once
         }
       },
