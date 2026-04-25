@@ -51,7 +51,7 @@ interface Message {
   attachments?: MessageAttachment[];
   tempAttachments?: Attachment[];
   reactions?: MessageReaction[];
-  receipts?: MessageReceipt[];
+  status: MessageStatus;
   isOwn?: boolean;
 }
 

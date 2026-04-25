@@ -39,6 +39,8 @@ import type { InfiniteScrollContainerHandle } from "@/shared/components/common/I
 import { useSendMessage } from "@/modules/message/message.mutation";
 import { useScrollBehavior } from "../hooks/useScrollBehaviour";
 import { useUploadAttachments } from "@/modules/file/file.mutation";
+import useUserStatusStore from "@/shared/store/userStatusStore";
+import StatusDot from "./StatusDot";
 
 export default function ChatScreen() {
   // refs
@@ -52,6 +54,8 @@ export default function ChatScreen() {
   // global client states
   const activeChat = useRoomStore((state) => state.activeChat);
   const roomId = useRoomStore((state) => state.roomId);
+  const getUserStatus = useUserStatusStore((state) => state.getUserStatus);
+  const userStatus = getUserStatus(activeChat?.id || "");
 
   // mutations
   const { mutate: mutateSendMessage } = useSendMessage(roomId);
@@ -148,12 +152,7 @@ export default function ChatScreen() {
                     {getInitials(activeChat?.name || "")}
                   </AvatarFallback>
                 </Avatar>
-                <span
-                  className={cn(
-                    "absolute bottom-0.5 right-0.5 h-4 w-4 rounded-full border-2 border-background",
-                    STATUS_COLORS[activeChat?.status || "OFFLINE"],
-                  )}
-                />
+                <StatusDot status={userStatus} className="h-4 w-4" />
               </div>
 
               <div>

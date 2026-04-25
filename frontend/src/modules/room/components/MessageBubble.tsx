@@ -147,12 +147,21 @@ export default function MessageBubble({
               {r.emoji} {r.count}
             </button>
           ))} */}
-          {!showAvatar && (
-            <span className="text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-              {formatTime(message.createdAt)}
-            </span>
-          )}
-          {/* {message.isOwn && <MessageStatusIcon recipts={message.receipts} />} */}
+          {!showAvatar &&
+            (message.isOwn ? (
+              hovered && (
+                <span className="text-[10px] text-muted-foreground">
+                  {formatTime(message.createdAt)}
+                </span>
+              )
+            ) : (
+              <span
+                className={`text-[10px] text-muted-foreground transition-opacity duration-200 ${hovered ? "opacity-100" : "opacity-0"}`}
+              >
+                {formatTime(message.createdAt)}
+              </span>
+            ))}
+          {message.isOwn && <MessageStatusIcon status={message.status} />}
         </div>
       </div>
 

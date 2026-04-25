@@ -3,6 +3,9 @@ import * as messageRepo from "./message.repository";
 import { ApiError } from "@/utils/Error";
 import { getFileUrl } from "../storage/storage.service";
 import { createMessageValidation } from "./message.validation";
+import { PrismaClient } from "@prisma/client/extension";
+import { MessageStatus, Prisma } from "@prisma/client";
+import { MessageReceipt } from "./message.types";
 
 interface GetMessagesParams {
   userId: string;
@@ -10,6 +13,25 @@ interface GetMessagesParams {
   cursor?: string; // messageId
   limit?: number;
 }
+
+const MESSAGE_STATUS_PRIORITY: Record<MessageStatus, number> = {
+  READ: 3,
+  DELIVERED: 2,
+  SENT: 1,
+};
+
+const getMessageStatus = (
+  receipts: { status: MessageStatus }[],
+): MessageStatus | null => {
+  if (receipts.length === 0) return null;
+
+  return receipts.reduce<MessageStatus>((lowestStatus, receipt) => {
+    return MESSAGE_STATUS_PRIORITY[receipt.status] <
+      MESSAGE_STATUS_PRIORITY[lowestStatus]
+      ? receipt.status
+      : lowestStatus;
+  }, "READ");
+};
 
 const getMessagesService = async ({
   userId,
@@ -65,7 +87,11 @@ const getMessagesService = async ({
         },
       },
       messageReactions: true,
-      messageReceipts: true,
+      messageReceipts: {
+        select: {
+          status: true,
+        },
+      },
     },
   });
 
@@ -98,7 +124,7 @@ const getMessagesService = async ({
         })),
       ),
       reactions: msg.messageReactions,
-      receipts: msg.messageReceipts,
+      status: getMessageStatus(msg.messageReceipts),
       isOwn: msg.senderId === userId,
     })),
   );
@@ -205,9 +231,15 @@ const createMessageService = async ({
           },
         },
         messageReactions: true,
-        messageReceipts: true,
+        messageReceipts: {
+          select: {
+            status: true,
+          },
+        },
       },
     });
+
+    console.log("found message", freshMessage);
 
     const formattedAttachments = await Promise.all(
       (freshMessage?.attachments || [])?.map(async (a) => {
@@ -235,7 +267,7 @@ const createMessageService = async ({
       parentId: freshMessage?.parentId,
       attachments: formattedAttachments,
       reactions: freshMessage?.messageReactions,
-      receipts: freshMessage?.messageReceipts,
+      status: getMessageStatus(freshMessage?.messageReceipts || []),
     };
 
     return formattedMessage;

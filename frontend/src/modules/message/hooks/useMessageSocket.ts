@@ -1,4 +1,5 @@
 import useSocketEvent from "@/shared/hooks/useSocketEvent";
+import useSocketEmit from "@/shared/hooks/useSocketEmit";
 import { Message, MessageseData } from "../message.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePersonalInfo } from "@/modules/user/user.query";

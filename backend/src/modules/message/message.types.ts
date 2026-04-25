@@ -22,4 +22,19 @@ interface SendMessage {
   attachmentIds?: string[];
 }
 
-export type { GetMessageRequest, SendMessage, SendMessageRequest };
+type MessageStatus = "SENT" | "DELIVERED" | "READ";
+
+interface MessageReceipt {
+  messageId: string;
+  userId: string;
+  status: MessageStatus;
+  updatedAt: Date;
+}
+
+export type {
+  GetMessageRequest,
+  SendMessage,
+  SendMessageRequest,
+  MessageReceipt,
+  MessageStatus,
+};
