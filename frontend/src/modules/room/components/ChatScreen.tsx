@@ -213,6 +213,7 @@ export default function ChatScreen() {
               key={message?.id}
               message={message}
               showAvatar={showAvatar}
+              roomId={roomId || ""}
             />
           );
         })}

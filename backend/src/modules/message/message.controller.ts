@@ -1,9 +1,18 @@
 // modules/message/message.controller.ts
 
 import { FastifyRequest, FastifyReply } from "fastify";
-import { createMessageService, getMessagesService } from "./message.service";
-import { GetMessageRequest, SendMessageRequest } from "./message.types";
+import {
+  createMessageService,
+  getMessagesService,
+  readMessageService,
+} from "./message.service";
+import {
+  GetMessageRequest,
+  ReadMessageRequest,
+  SendMessageRequest,
+} from "./message.types";
 import { getIO } from "@/lib/socket";
+import { emitMessageRead } from "./message.events";
 
 const getMessagesController = async (
   request: FastifyRequest<GetMessageRequest>,
@@ -43,4 +52,17 @@ const sendMessageController = async (
   return { data: message };
 };
 
-export { getMessagesController, sendMessageController };
+const readMessageController = async (
+  request: FastifyRequest<ReadMessageRequest>,
+  reply: FastifyReply,
+) => {
+  const userId = request.user?.userId;
+  const { messageId, roomId } = request.params;
+
+  const data = await readMessageService({ userId, messageId, roomId });
+  if (data) emitMessageRead(roomId, data);
+
+  return { data: null };
+};
+
+export { getMessagesController, sendMessageController, readMessageController };

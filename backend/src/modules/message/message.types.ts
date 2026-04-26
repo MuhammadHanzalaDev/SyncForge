@@ -14,6 +14,12 @@ interface SendMessageRequest {
   };
   Body: SendMessage;
 }
+interface ReadMessageRequest {
+  Params: {
+    roomId: string;
+    messageId: string;
+  };
+}
 
 interface SendMessage {
   roomId: string;
@@ -31,10 +37,17 @@ interface MessageReceipt {
   updatedAt: Date;
 }
 
+interface MessageReadData {
+  messageId: string;
+  status: MessageStatus;
+}
+
 export type {
   GetMessageRequest,
   SendMessage,
   SendMessageRequest,
   MessageReceipt,
   MessageStatus,
+  ReadMessageRequest,
+  MessageReadData,
 };

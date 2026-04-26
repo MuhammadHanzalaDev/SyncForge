@@ -1,11 +1,8 @@
 import prisma from "@/lib/prisma";
-import * as messageRepo from "./message.repository";
 import { ApiError } from "@/utils/Error";
 import { getFileUrl } from "../storage/storage.service";
 import { createMessageValidation } from "./message.validation";
-import { PrismaClient } from "@prisma/client/extension";
-import { MessageStatus, Prisma } from "@prisma/client";
-import { MessageReceipt } from "./message.types";
+import { MessageStatus } from "@prisma/client";
 
 interface GetMessagesParams {
   userId: string;
@@ -22,9 +19,7 @@ const MESSAGE_STATUS_PRIORITY: Record<MessageStatus, number> = {
 
 const getMessageStatus = (
   receipts: { status: MessageStatus }[],
-): MessageStatus | null => {
-  if (receipts.length === 0) return null;
-
+): MessageStatus => {
   return receipts.reduce<MessageStatus>((lowestStatus, receipt) => {
     return MESSAGE_STATUS_PRIORITY[receipt.status] <
       MESSAGE_STATUS_PRIORITY[lowestStatus]
@@ -276,4 +271,34 @@ const createMessageService = async ({
   return { ...message, tempId };
 };
 
-export { getMessagesService, createMessageService };
+const readMessageService = async ({
+  messageId,
+  userId,
+  roomId,
+}: {
+  messageId: string;
+  userId: string;
+  roomId: string;
+}) => {
+  // Update the receipt status to READ
+  const allReceipts = await prisma.$transaction(async (tx) => {
+    await tx.messageReceipt.update({
+      where: {
+        messageId_userId: { messageId, userId },
+        NOT: { status: "READ" },
+      },
+      data: { status: "READ" },
+    });
+
+    return tx.messageReceipt.findMany({
+      where: { messageId },
+      select: { status: true },
+    });
+  });
+
+  const newStatus = getMessageStatus(allReceipts);
+
+  return { messageId, status: newStatus };
+};
+
+export { getMessagesService, createMessageService, readMessageService };

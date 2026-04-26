@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { sendMessage } from "./message.api";
+import { readMessage, sendMessage } from "./message.api";
 import { usePersonalInfo } from "../user/user.query";
-import { Message, MessageseData } from "./message.types";
+import { Message, MessageseData, ReadMessage } from "./message.types";
 
 const useSendMessage = (roomId: string | null) => {
   const queryClient = useQueryClient();
@@ -69,4 +69,10 @@ const useSendMessage = (roomId: string | null) => {
   });
 };
 
-export { useSendMessage };
+const useReadMessage = () => {
+  return useMutation({
+    mutationFn: readMessage,
+  });
+};
+
+export { useSendMessage, useReadMessage };

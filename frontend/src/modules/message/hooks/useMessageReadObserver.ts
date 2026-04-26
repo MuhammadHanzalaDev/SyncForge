@@ -1,11 +1,14 @@
 import { useEffect, useRef } from "react";
 import { MessageStatus } from "@/modules/message/message.types";
+import { useReadMessage } from "../message.mutation";
 
 const useMessageReadObserver = (
   messageId: string,
+  roomId: string,
   status: MessageStatus,
   isOwn: boolean,
 ) => {
+  const { mutate: markMessageAsRead } = useReadMessage();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -15,8 +18,7 @@ const useMessageReadObserver = (
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Fire your read event here
-        //   markMessageAsRead(messageId);
+          markMessageAsRead({ messageId, roomId });
           observer.disconnect(); // only need to fire once
         }
       },
@@ -25,7 +27,9 @@ const useMessageReadObserver = (
 
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
-  }, [messageId, status, isOwn]);
+  }, [messageId, roomId, status, isOwn, markMessageAsRead]);
 
   return ref;
 };
+
+export default useMessageReadObserver;

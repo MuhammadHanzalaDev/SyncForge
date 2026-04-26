@@ -1,6 +1,8 @@
 import { Socket } from "socket.io";
 import { createMessageService } from "./message.service";
 import { getIO } from "@/lib/socket";
+import { MessageStatus } from "@prisma/client";
+import { MessageReadData } from "./message.types";
 
 function registerMessageEvents(socket: Socket) {
   socket.on("message:send", async (payload) => {
@@ -28,4 +30,9 @@ function registerTypingEvents(socket: Socket) {
   });
 }
 
-export { registerMessageEvents, registerTypingEvents };
+const emitMessageRead = (roomId: string, data: MessageReadData) => {
+  const io = getIO();
+  io.to(roomId).emit("message:read", data);
+};
+
+export { registerMessageEvents, registerTypingEvents, emitMessageRead };

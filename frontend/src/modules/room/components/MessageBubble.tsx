@@ -19,21 +19,31 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import MessageAttachmentsList from "./MessageAttachmentsList";
+import useMessageReadObserver from "../../message/hooks/useMessageReadObserver";
 
 export default function MessageBubble({
   message,
   showAvatar,
+  roomId,
 }: {
   message: Message;
   showAvatar: boolean;
+  roomId: string;
 }) {
+  // state
   const [hovered, setHovered] = useState(false);
-
   const hasAttachments =
     (message.attachments && message.attachments.length > 0) ||
     (message.tempAttachments && message.tempAttachments.length > 0);
-
   const hasText = message.content && message.content.trim().length > 0;
+
+  // hooks
+  const ref = useMessageReadObserver(
+    message.id,
+    roomId,
+    message.status,
+    message.isOwn || false,
+  );
 
   return (
     <div
@@ -43,6 +53,7 @@ export default function MessageBubble({
       )}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      ref={ref}
     >
       {/* Avatar */}
       <div className="w-8 shrink-0 mt-1">

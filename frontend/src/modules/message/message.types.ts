@@ -10,6 +10,11 @@ interface SendMessage {
   attachments: Attachment[];
 }
 
+interface ReadMessage {
+  roomId: string;
+  messageId: string;
+}
+
 interface MessageSender {
   id: string;
   name: string;
@@ -79,4 +84,5 @@ export type {
   MessageAttachment,
   MessageStatus,
   MessageReceipt,
+  ReadMessage,
 };

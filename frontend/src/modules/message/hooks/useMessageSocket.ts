@@ -1,6 +1,6 @@
 import useSocketEvent from "@/shared/hooks/useSocketEvent";
 import useSocketEmit from "@/shared/hooks/useSocketEmit";
-import { Message, MessageseData } from "../message.types";
+import { Message, MessageseData, MessageStatus } from "../message.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePersonalInfo } from "@/modules/user/user.query";
 
@@ -52,6 +52,32 @@ export default function useMessageSocket(roomId: string | null) {
     });
   };
 
+  const handleMessageRead = ({
+    messageId,
+    status,
+  }: {
+    messageId: string;
+    status: MessageStatus;
+  }) => {
+    console.log("new message read: ", { messageId, status });
+
+    queryClient.setQueryData<MessageseData>(["messages", roomId], (oldData) => {
+      if (!oldData) {
+        return;
+      }
+
+      // update status
+      const pages = oldData.pages.map((page) => ({
+        ...page,
+        data: page.data.map((m) => (m.id === messageId ? { ...m, status } : m)),
+      }));
+
+      // Check if replacement happened
+      return { ...oldData, pages };
+    });
+  };
+
   // events
   useSocketEvent("message:new", handleNewMessage);
+  useSocketEvent("message:read", handleMessageRead);
 }
