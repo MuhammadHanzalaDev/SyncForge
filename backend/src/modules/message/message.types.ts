@@ -42,6 +42,48 @@ interface MessageReadData {
   status: MessageStatus;
 }
 
+interface MessageSender {
+  id: string;
+  name: string;
+  avatar?: string | null;
+}
+
+interface MessageReaction {
+  id: string;
+  userId: string;
+  emoji: string;
+}
+
+interface MessageReceipt {
+  messageId: string;
+  userId: string;
+  status: MessageStatus;
+  updatedAt: Date;
+}
+
+interface MessageAttachment {
+  id: string;
+  url: string; // Full URL to the file
+  filename: string; // Original filename
+  mimetype: string; // e.g., "image/png"
+  size: number; // Bytes
+  kind: "IMAGE" | "FILE";
+}
+
+interface Message {
+  id: string;
+  sender: MessageSender;
+  content: string;
+  createdAt: Date;
+  updatedAt?: Date;
+  isEdited?: boolean;
+  parentId?: string | null;
+  attachments?: MessageAttachment[];
+  reactions?: MessageReaction[];
+  status: MessageStatus;
+  tempId?: string;
+}
+
 export type {
   GetMessageRequest,
   SendMessage,
@@ -50,4 +92,5 @@ export type {
   MessageStatus,
   ReadMessageRequest,
   MessageReadData,
+  Message,
 };

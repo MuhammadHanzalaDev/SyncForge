@@ -1,30 +1,26 @@
 import useSocketEvent from "@/shared/hooks/useSocketEvent";
-import useSocketEmit from "@/shared/hooks/useSocketEmit";
-import { Message, MessageseData, MessageStatus } from "../message.types";
+import {
+  Message,
+  MessageseData,
+  MessageStatus,
+  NewMessage,
+} from "../message.types";
 import { useQueryClient } from "@tanstack/react-query";
-import { usePersonalInfo } from "@/modules/user/user.query";
 
-export default function useMessageSocket(roomId: string | null) {
+export default function useMessageSocket() {
   const queryClient = useQueryClient();
-  const { data: personalInfo } = usePersonalInfo();
 
-  const handleNewMessage = (message: Message & { tempId?: string }) => {
+  const handleNewMessage = ({ message, roomId }: NewMessage) => {
     console.log("new message received: ", message);
 
     const formattedMsg: Message = {
       ...message,
-      isOwn: message.sender.id === personalInfo?.id,
     };
 
     queryClient.setQueryData<MessageseData>(["messages", roomId], (oldData) => {
       console.log("pages before: ", oldData?.pages);
 
-      if (!oldData) {
-        return {
-          pages: [{ data: [formattedMsg], nextCursor: null }],
-          pageParams: [null],
-        };
-      }
+      if (!oldData) return;
 
       // If this message has a tempId, try to replace the optimistic one
       if (message.tempId) {
@@ -44,6 +40,12 @@ export default function useMessageSocket(roomId: string | null) {
         if (replaced) return { ...oldData, pages };
       }
 
+      // Duplicate check — message already in cache, do nothing
+      const exists = oldData.pages.some((p) =>
+        p.data.some((m) => m.id === message.id),
+      );
+      if (exists) return oldData;
+
       // Otherwise prepend as a new message
       const pages = [...oldData.pages];
       pages[0] = { ...pages[0], data: [formattedMsg, ...pages[0].data] };
@@ -55,16 +57,16 @@ export default function useMessageSocket(roomId: string | null) {
   const handleMessageRead = ({
     messageId,
     status,
+    roomId,
   }: {
     messageId: string;
     status: MessageStatus;
+    roomId: string;
   }) => {
-    console.log("new message read: ", { messageId, status });
+    console.log("new message read: ", { messageId, status, roomId });
 
     queryClient.setQueryData<MessageseData>(["messages", roomId], (oldData) => {
-      if (!oldData) {
-        return;
-      }
+      if (!oldData) return;
 
       // update status
       const pages = oldData.pages.map((page) => ({

@@ -23,7 +23,6 @@ import { cn } from "@/shared/lib/utils";
 import { formatDateDivider } from "@/shared/utils/date";
 import { Button } from "@/shared/components/ui/button";
 import { Separator } from "@/shared/components/ui/separator";
-import { STATUS_COLORS } from "../room.utils";
 import MessageBubble from "./MessageBubble";
 import MessageAttachments from "./MessageAttachements";
 import {
@@ -31,14 +30,12 @@ import {
   MessageAttachmentsHandle,
 } from "@/modules/file/file.types";
 import useRoomStore from "../room.store";
-import useMessageSocket from "@/modules/message/hooks/useMessageSocket";
 import useTypingSocket from "@/modules/message/hooks/useTypingSocket";
 import { useMessages } from "@/modules/message/message.query";
 import { InfiniteScrollContainer } from "@/shared/components";
 import type { InfiniteScrollContainerHandle } from "@/shared/components/common/InfiniteScrollContainer";
 import { useSendMessage } from "@/modules/message/message.mutation";
 import { useScrollBehavior } from "../hooks/useScrollBehaviour";
-import { useUploadAttachments } from "@/modules/file/file.mutation";
 import useUserStatusStore from "@/shared/store/userStatusStore";
 import StatusDot from "./StatusDot";
 
@@ -50,6 +47,7 @@ export default function ChatScreen() {
   // local states
   const [inputValue, setInputValue] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [hasUnreadBelow, setHasUnreadBelow] = useState(false);
 
   // global client states
   const activeChat = useRoomStore((state) => state.activeChat);
@@ -71,8 +69,9 @@ export default function ChatScreen() {
 
   // hooks
   const { handleTyping, typingUsers } = useTypingSocket(roomId);
-  useScrollBehavior(messages, typingUsers, scrollRef);
-  useMessageSocket(roomId);
+  useScrollBehavior(messages, scrollRef, {
+    onNewMessageWhileScrolledUp: () => setHasUnreadBelow(true),
+  });
 
   const handleSend = () => {
     if (!inputValue.trim() && attachments.length === 0) return;
@@ -94,6 +93,8 @@ export default function ChatScreen() {
       attachments: attachments,
     });
 
+    scrollRef.current?.scrollToBottom("smooth");
+    setHasUnreadBelow(false);
     setInputValue("");
     attachmentsRef.current?.clear();
   };
@@ -217,23 +218,38 @@ export default function ChatScreen() {
             />
           );
         })}
-
-        {/* Typing indicator */}
-        {typingUsers?.length > 0 && (
-          <div className="flex items-center gap-3 px-4 py-1">
-            <div className="w-8" />
-            <div className="flex items-center gap-1.5 bg-muted rounded-2xl px-3.5 py-2.5">
-              {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce"
-                  style={{ animationDelay: `${i * 0.15}s` }}
-                />
-              ))}
-            </div>
-          </div>
-        )}
       </InfiniteScrollContainer>
+
+      {/* Has unread message below indicator */}
+      {hasUnreadBelow && (
+        <div className="flex justify-center px-4 py-1 shrink-0">
+          <button
+            onClick={() => {
+              scrollRef.current?.scrollToBottom("smooth");
+              setHasUnreadBelow(false);
+            }}
+            className="text-xs bg-primary text-primary-foreground rounded-full px-3 py-1 shadow-sm hover:bg-primary/90"
+          >
+            ↓ New messages
+          </button>
+        </div>
+      )}
+
+      {/* Typing indicator */}
+      {typingUsers?.length > 0 && (
+        <div className="flex items-center gap-3 px-4 py-1">
+          <div className="w-8" />
+          <div className="flex items-center gap-1.5 bg-muted rounded-2xl px-3.5 py-2.5">
+            {[0, 1, 2].map((i) => (
+              <span
+                key={i}
+                className="h-1.5 w-1.5 rounded-full bg-muted-foreground/60 animate-bounce"
+                style={{ animationDelay: `${i * 0.15}s` }}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Input Area */}
       <div className="px-4 pb-4 pt-2 shrink-0">

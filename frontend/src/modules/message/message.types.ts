@@ -58,6 +58,7 @@ interface Message {
   reactions?: MessageReaction[];
   status: MessageStatus;
   isOwn?: boolean;
+  tempId?: string;
 }
 
 interface GetMessagesParams {
@@ -75,6 +76,11 @@ interface TypingData {
   name: string;
 }
 
+interface NewMessage {
+  message: Message;
+  roomId: string;
+}
+
 export type {
   Message,
   SendMessage,
@@ -85,4 +91,5 @@ export type {
   MessageStatus,
   MessageReceipt,
   ReadMessage,
+  NewMessage,
 };

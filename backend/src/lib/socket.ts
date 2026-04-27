@@ -27,8 +27,9 @@ export function initSocket(server: HttpServer) {
 
       if (!userId || !workspaceId) return;
 
-      // ALWAYS join workspace
+      // ALWAYS join workspace and their own room
       socket.join(workspaceId);
+      socket.join(`user:${userId}`)
 
       if (!users.has(userId)) {
         users.set(userId, {

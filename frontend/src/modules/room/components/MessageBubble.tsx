@@ -20,6 +20,7 @@ import {
 } from "@/shared/components/ui/tooltip";
 import MessageAttachmentsList from "./MessageAttachmentsList";
 import useMessageReadObserver from "../../message/hooks/useMessageReadObserver";
+import { usePersonalInfo } from "@/modules/user/user.query";
 
 export default function MessageBubble({
   message,
@@ -37,19 +38,23 @@ export default function MessageBubble({
     (message.tempAttachments && message.tempAttachments.length > 0);
   const hasText = message.content && message.content.trim().length > 0;
 
+  // global
+  const { data: personalInfo } = usePersonalInfo();
+  const isOwn = message.sender.id === personalInfo?.id;
+
   // hooks
   const ref = useMessageReadObserver(
     message.id,
     roomId,
     message.status,
-    message.isOwn || false,
+    isOwn || false,
   );
 
   return (
     <div
       className={cn(
         "flex gap-3 group px-4 py-1 hover:bg-muted/30 rounded-lg transition-colors",
-        message.isOwn && "flex-row-reverse",
+        isOwn && "flex-row-reverse",
       )}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -57,7 +62,7 @@ export default function MessageBubble({
     >
       {/* Avatar */}
       <div className="w-8 shrink-0 mt-1">
-        {showAvatar && !message.isOwn && (
+        {showAvatar && !isOwn && (
           <div className="relative">
             <Avatar className="h-8 w-8">
               {message.sender?.avatar ? (
@@ -79,18 +84,18 @@ export default function MessageBubble({
       <div
         className={cn(
           "flex flex-col max-w-[70%]",
-          message.isOwn && "items-end",
+          isOwn && "items-end",
         )}
       >
         {showAvatar && (
           <div
             className={cn(
               "flex items-baseline gap-2 mb-1",
-              message.isOwn && "flex-row-reverse",
+              isOwn && "flex-row-reverse",
             )}
           >
             <span className="text-sm font-semibold text-foreground">
-              {message.isOwn ? "You" : message.sender?.name}
+              {isOwn ? "You" : message.sender?.name}
             </span>
             <span className="text-[11px] text-muted-foreground">
               {formatTime(message.createdAt)}
@@ -120,7 +125,7 @@ export default function MessageBubble({
           <div
             className={cn(
               "rounded-2xl px-3.5 py-2 text-sm leading-relaxed",
-              message.isOwn
+              isOwn
                 ? "bg-primary text-primary-foreground rounded-tr-sm"
                 : "bg-muted text-foreground rounded-tl-sm",
             )}
@@ -134,7 +139,7 @@ export default function MessageBubble({
           <MessageAttachmentsList
             attachments={message.attachments}
             tempAttachments={message.tempAttachments}
-            isOwn={message.isOwn}
+            isOwn={isOwn}
           />
         )}
 
@@ -142,7 +147,7 @@ export default function MessageBubble({
         <div
           className={cn(
             "flex items-center gap-2 mt-1",
-            message.isOwn && "flex-row-reverse",
+            isOwn && "flex-row-reverse",
           )}
         >
           {/* {message.reactions?.map((r) => (
@@ -159,7 +164,7 @@ export default function MessageBubble({
             </button>
           ))} */}
           {!showAvatar &&
-            (message.isOwn ? (
+            (isOwn ? (
               hovered && (
                 <span className="text-[10px] text-muted-foreground">
                   {formatTime(message.createdAt)}
@@ -172,7 +177,7 @@ export default function MessageBubble({
                 {formatTime(message.createdAt)}
               </span>
             ))}
-          {message.isOwn && <MessageStatusIcon status={message.status} />}
+          {isOwn && <MessageStatusIcon status={message.status} />}
         </div>
       </div>
 
@@ -180,7 +185,7 @@ export default function MessageBubble({
       <div
         className={cn(
           "flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity self-start mt-2",
-          message.isOwn && "flex-row-reverse",
+          isOwn && "flex-row-reverse",
         )}
       >
         {[

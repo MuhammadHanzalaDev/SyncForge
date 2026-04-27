@@ -40,16 +40,13 @@ const sendMessageController = async (
   const { roomId } = request.params;
   const data = request.body;
 
-  const message = await createMessageService({
+  await createMessageService({
     ...data,
     roomId,
     senderId: userId,
   });
 
-  // emit message
-  const io = getIO();
-  io.to(roomId).emit("message:new", message);
-  return { data: message };
+  return { data: null };
 };
 
 const readMessageController = async (
@@ -59,8 +56,8 @@ const readMessageController = async (
   const userId = request.user?.userId;
   const { messageId, roomId } = request.params;
 
-  const data = await readMessageService({ userId, messageId, roomId });
-  if (data) emitMessageRead(roomId, data);
+  const { data, roomMembers } = await readMessageService({ userId, messageId, roomId });
+  if (data) emitMessageRead(data, roomMembers);
 
   return { data: null };
 };

@@ -9,6 +9,7 @@ type Direction = "top" | "bottom";
 
 export type InfiniteScrollContainerHandle = {
   scrollToBottom: (behavior?: ScrollBehavior) => void;
+  isNearBottom: (threshold?: number) => boolean;
   getElement: () => HTMLDivElement | null;
 };
 
@@ -21,6 +22,7 @@ type InfiniteScrollContainerProps = {
   threshold?: number;
   className?: string;
   style?: React.CSSProperties;
+  onScroll?: (el: HTMLDivElement) => void;
 };
 
 const InfiniteScrollContainer = forwardRef<
@@ -36,6 +38,7 @@ const InfiniteScrollContainer = forwardRef<
     threshold = 100,
     className,
     style,
+    onScroll,
   },
   ref,
 ) {
@@ -45,14 +48,23 @@ const InfiniteScrollContainer = forwardRef<
   const shouldRestoreScroll = useRef<boolean>(false);
   const hasInitializedRef = useRef<boolean>(false);
 
-  useImperativeHandle(ref, () => ({
-    scrollToBottom: (behavior: ScrollBehavior = "smooth") => {
-      const el = containerRef.current;
-      if (!el) return;
-      el.scrollTo({ top: el.scrollHeight, behavior });
-    },
-    getElement: () => containerRef.current,
-  }));
+  useImperativeHandle(
+    ref,
+    () => ({
+      scrollToBottom: (behavior: ScrollBehavior = "smooth") => {
+        const el = containerRef.current;
+        if (!el) return;
+        el.scrollTo({ top: el.scrollHeight, behavior });
+      },
+      isNearBottom: (threshold = 100) => {
+        const el = containerRef.current;
+        if (!el) return true;
+        return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+      },
+      getElement: () => containerRef.current,
+    }),
+    [],
+  );
 
   // On first mount, jump to bottom (for "top" direction — chat style)
   useEffect(() => {
@@ -78,6 +90,7 @@ const InfiniteScrollContainer = forwardRef<
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const el = e.currentTarget;
+    onScroll?.(el);
 
     if (!hasNextPage || isFetchingNextPage) return;
 

@@ -3,6 +3,8 @@ import { ApiError } from "@/utils/Error";
 import { getFileUrl } from "../storage/storage.service";
 import { createMessageValidation } from "./message.validation";
 import { MessageStatus } from "@prisma/client";
+import { emitMessageReceived } from "./message.events";
+import { format, parse } from "node:path";
 
 interface GetMessagesParams {
   userId: string;
@@ -157,7 +159,7 @@ const createMessageService = async ({
     attachmentIds,
   });
 
-  const message = await prisma.$transaction(async (tx) => {
+  const data = await prisma.$transaction(async (tx) => {
     // 1. Validate user is in room
     const member = await tx.roomMember.findUnique({
       where: {
@@ -169,7 +171,7 @@ const createMessageService = async ({
     });
 
     if (!member) {
-      throw new Error("User not in room");
+      throw new ApiError("User not in room", 400);
     }
 
     // 2. Create message
@@ -185,10 +187,18 @@ const createMessageService = async ({
     });
 
     // attach attachments to the message
-    await tx.file.updateMany({
-      where: { id: { in: attachmentIds }, status: "PENDING", userId: senderId },
+    const result = await tx.file.updateMany({
+      where: {
+        id: { in: attachmentIds },
+        status: "PENDING",
+        userId: parsed.senderId,
+      },
       data: { status: "ATTACHED", messageId: message.id },
     });
+
+    if (result.count !== parsed.attachmentIds?.length) {
+      throw new ApiError("Invalid or already-used attachments", 400);
+    }
 
     // create message recipts for room members
     const roomMembers = await tx.roomMember.findMany({
@@ -234,41 +244,56 @@ const createMessageService = async ({
       },
     });
 
-    console.log("found message", freshMessage);
+    if (!freshMessage) {
+      throw new ApiError("Message creation error!", 500);
+    }
 
-    const formattedAttachments = await Promise.all(
-      (freshMessage?.attachments || [])?.map(async (a) => {
-        const url = await getFileUrl(a.id);
-        return {
-          ...a,
-          url,
-        };
-      }),
-    );
-
-    const formattedMessage = {
-      id: freshMessage?.id,
-      sender: {
-        id: freshMessage?.sender.id,
-        name: `${freshMessage?.sender.firstName} ${freshMessage?.sender.lastName}`,
-        avatar: freshMessage?.sender?.avatarId
-          ? await getFileUrl(freshMessage.sender.avatarId)
-          : null,
-      },
-      content: freshMessage?.content,
-      createdAt: freshMessage?.createdAt,
-      updatedAt: freshMessage?.updatedAt,
-      isEdited: freshMessage?.isEdited,
-      parentId: freshMessage?.parentId,
-      attachments: formattedAttachments,
-      reactions: freshMessage?.messageReactions,
-      status: getMessageStatus(freshMessage?.messageReceipts || []),
-    };
-
-    return formattedMessage;
+    return { message: freshMessage, roomMembers };
   });
 
-  return { ...message, tempId };
+  const message = data.message;
+  const roomMembers = data.roomMembers;
+
+  // format Message
+  const formattedAttachments = await Promise.all(
+    (message.attachments || [])?.map(async (a) => {
+      const url = await getFileUrl(a.id);
+      return {
+        ...a,
+        url,
+      };
+    }),
+  );
+
+  const formattedMessage = {
+    id: message.id,
+    sender: {
+      id: message.sender.id,
+      name: `${message.sender.firstName} ${message.sender.lastName}`,
+      avatar: message.sender.avatarId
+        ? await getFileUrl(message.sender.avatarId)
+        : null,
+    },
+    content: message.content,
+    createdAt: message.createdAt,
+    updatedAt: message.updatedAt,
+    isEdited: message.isEdited,
+    parentId: message?.parentId,
+    attachments: formattedAttachments,
+    reactions: message.messageReactions,
+    status: getMessageStatus(message.messageReceipts || []),
+  };
+
+  // emit message received
+  try {
+    emitMessageReceived(
+      { ...formattedMessage, tempId },
+      roomMembers?.map((m) => m.userId),
+      roomId,
+    );
+  } catch (error) {
+    console.log("message emit failed", error);
+  }
 };
 
 const readMessageService = async ({
@@ -292,13 +317,16 @@ const readMessageService = async ({
 
     return tx.messageReceipt.findMany({
       where: { messageId },
-      select: { status: true },
+      select: { status: true, userId: true },
     });
   });
 
   const newStatus = getMessageStatus(allReceipts);
 
-  return { messageId, status: newStatus };
+  const data = { messageId, status: newStatus, roomId };
+  const roomMembers = allReceipts?.map((r) => r.userId);
+
+  return { data, roomMembers };
 };
 
 export { getMessagesService, createMessageService, readMessageService };
