@@ -32,7 +32,7 @@ function registerTypingEvents(socket: Socket) {
 const emitMessageRead = (data: MessageReadData, memberIds: string[]) => {
   const io = getIO();
   const rooms = memberIds.map((id) => `user:${id}`);
-  io.to(rooms).emit("message:new", data);
+  io.to(rooms).emit("message:read", data);
 };
 
 const emitMessageReceived = (

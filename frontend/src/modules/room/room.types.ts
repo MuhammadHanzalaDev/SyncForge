@@ -22,4 +22,14 @@ interface Room {
   lastMessage: string;
 }
 
+// Map<chatId, true> — presence in map = unread
+// type UnreadMap = Record<string, boolean>;
+// interface UnreadState {
+//   chatId: string;           // or roomId
+//   unreadCount: number;      // 0 means read
+//   lastReadMessageId?: string;
+//   lastReadAt?: string;      // ISO timestamp
+//   hasMention?: boolean;     // for @mentions, different glow
+// }
+
 export type { Chat, Room, RoomMember };
