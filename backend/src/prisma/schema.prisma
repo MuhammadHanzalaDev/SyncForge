@@ -97,8 +97,9 @@ enum RoomType {
 }
 
 model RoomMember {
-  userId String
-  roomId String
+  userId     String
+  roomId     String
+  lastReadAt DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
