@@ -19,7 +19,6 @@ interface Room {
   name: string;
   type: string;
   members: RoomMember[];
-  lastMessage: string;
 }
 
 interface UnreadInfo {
