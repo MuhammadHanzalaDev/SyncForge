@@ -1,3 +1,5 @@
+import { InfiniteData } from "@tanstack/react-query";
+
 interface Chat {
   id: string;
   name: string;
@@ -5,6 +7,8 @@ interface Chat {
   avatar?: string;
   type: string;
   status: "ONLINE" | "OFFLINE" | "BUSY" | "AWAY";
+  hasUnread: boolean;
+  hasMention: boolean;
 }
 interface RoomMember {
   id: string;
@@ -19,6 +23,8 @@ interface Room {
   name: string;
   type: string;
   members: RoomMember[];
+  hasUnread: boolean;
+  hasMention: boolean;
 }
 
 interface UnreadInfo {
@@ -26,4 +32,9 @@ interface UnreadInfo {
   hasMention: boolean;
 }
 
-export type { Chat, Room, RoomMember, UnreadInfo };
+type ChatsAndRoomsData = {
+  rooms: Room[];
+  chats: Chat[];
+};
+
+export type { Chat, Room, RoomMember, UnreadInfo, ChatsAndRoomsData };

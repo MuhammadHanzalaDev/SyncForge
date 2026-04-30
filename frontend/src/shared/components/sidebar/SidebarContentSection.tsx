@@ -30,7 +30,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { useChatsAndRooms } from "@/modules/room/room.query";
 import sidebarItems from "../content/sidebar";
 import { Chat, Room } from "@/modules/room/room.types";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import CustomButton from "../form/CustomButtom";
 import useWorkspaceStore from "@/modules/workspace/workspace.store";
 import StatusDot from "@/modules/room/components/StatusDot";
@@ -48,13 +48,11 @@ interface ChatNavItem extends NavItemBase {
   children: Chat[];
   onChildClick?: (chat: Chat) => void;
 }
-
 interface RoomNavItem extends NavItemBase {
   label: "Rooms";
   children: Room[];
   onChildClick?: (room: Room) => void;
 }
-
 type NavItem = ChatNavItem | RoomNavItem;
 
 function CollapsibleNavItem({
@@ -107,33 +105,41 @@ function CollapsibleNavItem({
         </CollapsibleTrigger>
 
         <CollapsibleContent>
-          <SidebarMenuSub>
+          <SidebarMenuSub className="mx-0 px-0 border-l-0">
             {item.label === "Chats" && (
               <>
                 {item.children!.map((child) => {
                   const isActive = activeItem === child.id;
+                  const isUnread = !!child.hasUnread;
+                  const hasMention = !!child.hasMention;
+
                   return (
                     <SidebarMenuSubItem
-                      key={child?.id}
+                      key={child.id}
                       className="cursor-pointer group/item relative"
                       onClick={() => item?.onChildClick?.(child)}
                     >
                       <SidebarMenuSubButton
                         className={cn(
-                          "pl-8 pr-8 text-sm rounded-md py-1.5 transition-colors relative w-full",
+                          // kill default pl-8, tighten row, leave room for 3-dot on right
+                          "!pl-2 pr-8 py-1.5 text-sm rounded-md transition-colors relative w-full h-8",
                           isActive
                             ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-0.5 before:bg-primary before:rounded-r"
                             : "text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
+                          // Teams-style bold for unread
+                          isUnread &&
+                            !isActive &&
+                            "text-foreground font-semibold",
                         )}
                       >
                         {item.isIcons ? (
-                          <div className="flex gap-2 items-center min-w-0">
+                          <div className="flex items-center gap-2 min-w-0 w-full">
                             <div className="relative shrink-0">
-                              <Avatar size="sm" className="w-5 h-5">
+                              <Avatar size="sm" className="w-6 h-6">
                                 {child?.avatar ? (
                                   <AvatarImage
-                                    src={child?.avatar}
-                                    alt={child?.name}
+                                    src={child.avatar}
+                                    alt={child.name}
                                   />
                                 ) : (
                                   <AvatarFallback className="bg-primary text-white flex justify-center items-center text-xs">
@@ -143,26 +149,42 @@ function CollapsibleNavItem({
                               </Avatar>
                               <StatusDot status={getUserStatus(child.id)} />
                             </div>
-                            <div className="truncate">{child.name}</div>
+
+                            <span className="truncate flex-1 min-w-0">
+                              {child.name}
+                            </span>
+
+                            {/* Unread / mention dot — Teams style */}
+                            {isUnread && (
+                              <span
+                                className={cn(
+                                  "shrink-0 rounded-full",
+                                  hasMention
+                                    ? "h-2 w-2 bg-red-500"
+                                    : "h-2 w-2 bg-primary",
+                                )}
+                                aria-label={
+                                  hasMention ? "Unread mention" : "Unread"
+                                }
+                              />
+                            )}
                           </div>
                         ) : (
                           <span className="truncate">{child.name}</span>
                         )}
                       </SidebarMenuSubButton>
 
-                      {/* Hover actions */}
+                      {/* 3-dot — hover only, even when active */}
                       <button
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // your menu open logic here
+                          // menu open logic
                         }}
                         className={cn(
-                          "absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded flex items-center justify-center transition-opacity",
-                          "hover:bg-sidebar-accent-foreground/10",
-                          isActive
-                            ? "opacity-100"
-                            : "opacity-0 group-hover/item:opacity-100 focus:opacity-100",
+                          "absolute right-1.5 top-1/2 -translate-y-1/2 h-6 w-6 rounded flex items-center justify-center",
+                          "opacity-0 group-hover/item:opacity-100 focus:opacity-100",
+                          "hover:bg-sidebar-accent-foreground/10 transition-opacity",
                         )}
                         aria-label={`Options for ${child.name}`}
                       >
@@ -171,6 +193,7 @@ function CollapsibleNavItem({
                     </SidebarMenuSubItem>
                   );
                 })}
+
                 <SidebarMenuSubItem
                   className="cursor-pointer"
                   onClick={() => {}}
@@ -178,7 +201,7 @@ function CollapsibleNavItem({
                   <CustomButton
                     variant="outline"
                     size="sm"
-                    className="w-100 text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
+                    className="w-full text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
                   >
                     <MessageCirclePlus /> New Chat
                   </CustomButton>
@@ -187,15 +210,78 @@ function CollapsibleNavItem({
             )}
 
             {item.label === "Rooms" && (
-              <SidebarMenuSubItem className="cursor-pointer" onClick={() => {}}>
-                <CustomButton
-                  variant="outline"
-                  size="sm"
-                  className="w-100 text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
+              <>
+                {item.children!.map((child) => {
+                  const isActive = activeItem === child.id;
+                  const isUnread = !!child.hasUnread;
+                  const hasMention = !!child.hasMention;
+
+                  return (
+                    <SidebarMenuSubItem
+                      key={child.id}
+                      className="cursor-pointer group/item relative"
+                      onClick={() => item?.onChildClick?.(child)}
+                    >
+                      <SidebarMenuSubButton
+                        className={cn(
+                          "!pl-2 pr-8 py-1.5 text-sm rounded-md transition-colors relative w-full h-8",
+                          isActive
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-0.5 before:bg-primary before:rounded-r"
+                            : "text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
+                          isUnread &&
+                            !isActive &&
+                            "text-foreground font-semibold",
+                        )}
+                      >
+                        <div className="flex items-center gap-2 min-w-0 w-full">
+                          <span className="truncate flex-1 min-w-0">
+                            {child.name}
+                          </span>
+                          {isUnread && (
+                            <span
+                              className={cn(
+                                "shrink-0 rounded-full h-2 w-2",
+                                hasMention ? "bg-red-500" : "bg-primary",
+                              )}
+                              aria-label={
+                                hasMention ? "Unread mention" : "Unread"
+                              }
+                            />
+                          )}
+                        </div>
+                      </SidebarMenuSubButton>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                        className={cn(
+                          "absolute right-1.5 top-1/2 -translate-y-1/2 h-6 w-6 rounded flex items-center justify-center",
+                          "opacity-0 group-hover/item:opacity-100 focus:opacity-100",
+                          "hover:bg-sidebar-accent-foreground/10 transition-opacity",
+                        )}
+                        aria-label={`Options for ${child.name}`}
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </button>
+                    </SidebarMenuSubItem>
+                  );
+                })}
+
+                <SidebarMenuSubItem
+                  className="cursor-pointer"
+                  onClick={() => {}}
                 >
-                  <Plus /> Create Room
-                </CustomButton>
-              </SidebarMenuSubItem>
+                  <CustomButton
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent"
+                  >
+                    <Plus /> Create Room
+                  </CustomButton>
+                </SidebarMenuSubItem>
+              </>
             )}
           </SidebarMenuSub>
         </CollapsibleContent>
@@ -224,7 +310,6 @@ export function SidebarContentSection() {
           children: data?.chats || [],
           onChildClick: (chat: Chat) => {
             setActiveChat(chat);
-            setActiveItem(chat.id);
             router.push(`/chats/${chat.id}`);
             closeMobile();
           },
@@ -234,7 +319,7 @@ export function SidebarContentSection() {
             ...item,
             label: "Rooms",
             children: data?.rooms || [],
-            oonChildClick: (room: Room) => {
+            onChildClick: (room: Room) => {
               setActiveItem(room.id);
               router.push(`/chats/${room.id}`);
               closeMobile();

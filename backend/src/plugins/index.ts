@@ -17,7 +17,13 @@ const mainPlugin: FastifyPluginAsync = async (app) => {
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });
   await app.register(fastifyCookie);
-  await app.register(multipart);
+  await app.register(multipart, {
+    limits: {
+      fileSize: 21 * 1024 * 1024, // 21 MB 
+      files: 5, //  max number of files per request
+      fields: 20, // max non-file fields
+    },
+  });
 
   // custom plugins
   await app.register(errorHandlerPlugin);

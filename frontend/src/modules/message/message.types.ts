@@ -69,7 +69,7 @@ interface MessagesPage {
   data: Message[];
 }
 
-type MessageseData = InfiniteData<MessagesPage>;
+type MessagesData = InfiniteData<MessagesPage>;
 
 interface TypingData {
   userId: string;
@@ -85,7 +85,7 @@ export type {
   Message,
   SendMessage,
   GetMessagesParams,
-  MessageseData,
+  MessagesData,
   TypingData,
   MessageAttachment,
   MessageStatus,
