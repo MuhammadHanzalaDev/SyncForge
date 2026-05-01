@@ -16,7 +16,7 @@ const getPersonalInfo = async (): Promise<PersonalInfo> => {
 
 const updateProfile = async (formData: FormData) => {
   try {
-    const res = await api.patch("/auth/update-profile", formData);
+    const res = await api.patch("/users/update-profile", formData);
     return res.data;
   } catch (err: unknown) {
     if (err instanceof AxiosError) {

@@ -82,6 +82,7 @@ const createAndUploadFile = async (
     key,
     userId,
   };
+  console.log("fileObj", fileObj)
   const parsed = validateCreateFile.parse(fileObj);
 
   const fileDoc = await createFile(parsed);
