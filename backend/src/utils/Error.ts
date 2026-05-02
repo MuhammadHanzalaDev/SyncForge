@@ -40,7 +40,7 @@ function socketHandler(handler: any) {
       await handler(socket, data);
     } catch (err: any) {
       console.error(err);
-      socket.emit("error", { message: err.message || "Something went wrong" });
+      socket?.emit?.("error", { message: err.message || "Something went wrong" });
     }
   };
 }

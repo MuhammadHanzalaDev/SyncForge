@@ -9,5 +9,6 @@ const DUMMY_MEMBERS: Member[] = [
   { id: "6", name: "Layla Hassan", status: "ONLINE", role: "member" },
 ];
 
+const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮"];
 
-export { DUMMY_MEMBERS };
+export { DUMMY_MEMBERS, QUICK_REACTIONS };

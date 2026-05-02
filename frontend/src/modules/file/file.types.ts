@@ -16,4 +16,15 @@ type MessageAttachmentsHandle = {
   clear: () => void;
 };
 
-export type { Attachment, MessageAttachmentsHandle };
+type NormalizedAttachment = {
+  id: string;
+  kind: "IMAGE" | "FILE";
+  filename: string;
+  size?: number;
+  /** URL to render (object URL for temp, backend URL for persisted) */
+  src?: string;
+  /** For file-icon lookup when kind === "FILE" */
+  mimetype?: string;
+};
+
+export type { Attachment, MessageAttachmentsHandle, NormalizedAttachment };

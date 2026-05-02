@@ -17,6 +17,7 @@ import {
 import { formatFileSize, getFileIcon } from "@/modules/file/file.utils";
 import { useUploadAttachments } from "@/modules/file/file.mutation";
 import { objectToFormData } from "@/shared/utils/formData";
+import Image from "next/image";
 
 type Props = {
   attachments: Attachment[];
@@ -51,7 +52,6 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
 
     const { mutateAsync: uploadAttachment } = useUploadAttachments();
 
-    // Revoke any lingering object URLs on unmount.
     useEffect(() => {
       return () => {
         attachments.forEach((a) => {
@@ -76,7 +76,6 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
       [attachments, onAttachmentsChange],
     );
 
-    // Upload a single attachment and update its status when done.
     const uploadSingle = async (attachment: Attachment) => {
       const formData = objectToFormData({
         file: attachment.file,
@@ -85,8 +84,6 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
 
       try {
         const uploaded = await uploadAttachment(formData);
-        console.log(uploaded);
-        // Expect backend to return the uploaded file object (or array with one item).
         const result = Array.isArray(uploaded) ? uploaded[0] : uploaded;
 
         onAttachmentsChange((prev) =>
@@ -114,7 +111,6 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
       const batch = createAttachments(files, forceKind);
       onAttachmentsChange((prev) => [...prev, ...batch]);
 
-      // Fire one request per file in parallel.
       batch.forEach(uploadSingle);
     };
 
@@ -128,7 +124,6 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
 
     return (
       <>
-        {/* Hidden file inputs — always mounted so refs are available */}
         <input
           ref={fileInputRef}
           type="file"
@@ -151,11 +146,10 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
           }}
         />
 
-        {/* Preview strip — only rendered when there are attachments */}
         {attachments.length > 0 && (
           <div
             className={cn(
-              "flex flex-wrap gap-2 px-3 pt-3 pb-1 border-b",
+              "flex flex-wrap gap-3 px-4 pt-3 pb-1 border-b",
               className,
             )}
           >
@@ -167,13 +161,14 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
                 return (
                   <div
                     key={att.id}
-                    className="group relative h-16 w-16 shrink-0 rounded-lg overflow-hidden border bg-muted"
+                    className="relative h-16 w-16 rounded-lg overflow-hidden border bg-muted group"
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={att.previewUrl}
                       alt={att.file.name}
-                      className="h-full w-full object-cover"
+                      fill
+                      className="object-cover"
+                      unoptimized
                     />
 
                     <UploadOverlay
@@ -181,14 +176,12 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
                       isError={isError}
                     />
 
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors pointer-events-none" />
                     <button
                       type="button"
                       onClick={() => removeAttachment(att.id)}
-                      aria-label={`Remove ${att.file.name}`}
-                      className="absolute top-0.5 right-0.5 z-10 flex items-center justify-center h-5 w-5 rounded-full bg-background/90 text-foreground shadow-sm opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+                      className="absolute top-1 right-1 z-20 flex items-center justify-center h-4 w-4 rounded-full bg-foreground text-background shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      <X className="h-3 w-3" />
+                      <X className="h-2.5 w-2.5" />
                     </button>
                   </div>
                 );
@@ -198,15 +191,16 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
               return (
                 <div
                   key={att.id}
-                  className="group relative flex items-center gap-2.5 pl-2 pr-8 py-2 rounded-lg border bg-muted/40 hover:bg-muted/60 transition-colors max-w-[220px] overflow-hidden"
+                  className="group relative flex items-center gap-2 pl-2 pr-2 py-2 rounded-lg border bg-muted/40 hover:bg-muted/60 transition-colors min-w-40 max-w-55"
                 >
                   <UploadOverlay isUploading={isUploading} isError={isError} />
 
-                  <div className="flex items-center justify-center h-8 w-8 shrink-0 rounded-md bg-primary/10 text-primary">
+                  <div className="flex items-center justify-center h-8 w-8 shrink-0 rounded-md bg-primary/10 text-primary dark:bg-primary/20">
                     <Icon className="h-4 w-4" />
                   </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-xs font-medium truncate">
+
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <span className="text-xs font-medium truncate text-foreground">
                       {att.file.name}
                     </span>
                     <span className="text-[10px] text-muted-foreground">
@@ -215,11 +209,12 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
                         : formatFileSize(att.file.size)}
                     </span>
                   </div>
+
                   <button
                     type="button"
                     onClick={() => removeAttachment(att.id)}
                     aria-label={`Remove ${att.file.name}`}
-                    className="absolute top-1/2 -translate-y-1/2 right-1.5 z-10 flex items-center justify-center h-5 w-5 rounded-full text-muted-foreground hover:text-foreground hover:bg-background transition-colors"
+                    className="z-20 shrink-0 flex items-center justify-center h-5 w-5 rounded-full text-muted-foreground hover:text-foreground hover:bg-background transition-colors opacity-0 group-hover:opacity-100"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -245,17 +240,15 @@ function UploadOverlay({ isUploading, isError }: UploadOverlayProps) {
 
   return (
     <>
-      {/* Indeterminate top progress bar */}
       {isUploading && (
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary/20 overflow-hidden z-10">
           <div className="h-full w-1/3 bg-primary animate-[indeterminate_1.2s_ease-in-out_infinite]" />
         </div>
       )}
 
-      {/* Dim overlay with centered spinner */}
       <div
         className={cn(
-          "absolute inset-0 flex items-center justify-center pointer-events-none z-[5]",
+          "absolute inset-0 flex items-center justify-center pointer-events-none z-5",
           isError ? "bg-destructive/30" : "bg-black/35",
         )}
       >
