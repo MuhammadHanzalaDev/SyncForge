@@ -13,8 +13,6 @@ import { UserAvatarGroup } from "..";
 import { WorkspaceRes } from "@/modules/workspace/workspace.types";
 import { getItem, setItem } from "@/shared/utils/localStorage";
 import useWorkspaceStore from "@/modules/workspace/workspace.store";
-import { useSocketStore } from "@/shared/store/socketStore";
-import { useAuthStore } from "@/shared/store/authStore";
 import { useRouter } from "next/navigation";
 
 interface WorkspaceSectionProps {
@@ -27,9 +25,7 @@ export function WorkspaceSection({
   workspacesLoading,
 }: WorkspaceSectionProps) {
   const router = useRouter();
-  const { accessToken } = useAuthStore();
-  const { connect, disconnect } = useSocketStore();
-  const { setWorkspaceId } = useWorkspaceStore();
+  const setWorkspaceId = useWorkspaceStore((state) => state.setWorkspaceId);
   const [activeId, setActiveId] = useState(getItem("workspace"));
   const [open, setOpen] = useState(false);
 
@@ -39,14 +35,7 @@ export function WorkspaceSection({
     setItem("workspace", activeId || "");
     setWorkspaceId(activeId || "");
     router.replace("/");
-
-    // connect socket again with new data
-    if (accessToken) {
-      connect(accessToken, activeId || "");
-    }
-
-    return () => disconnect();
-  }, [activeId, setWorkspaceId, accessToken, connect, disconnect, router]);
+  }, [activeId]);
 
   return (
     <div>

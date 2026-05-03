@@ -1,5 +1,3 @@
-import { InfiniteData } from "@tanstack/react-query";
-
 interface Chat {
   id: string;
   name: string;
@@ -9,6 +7,7 @@ interface Chat {
   status: "ONLINE" | "OFFLINE" | "BUSY" | "AWAY";
   hasUnread: boolean;
   hasMention: boolean;
+  roomId: string | null; // if the chat is not started yet, it won't have a roomId until the first message is sent
 }
 interface RoomMember {
   id: string;

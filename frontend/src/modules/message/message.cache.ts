@@ -1,6 +1,7 @@
 import { QueryClient } from "@tanstack/react-query";
 import { Message, MessageStatus, MessagesData } from "./message.types";
 import { ChatsAndRoomsData } from "../room/room.types";
+import { getItem } from "@/shared/utils/localStorage";
 
 // Helper: update hasUnread for a given roomId across all workspace caches
 const setUnreadFlag = (
@@ -8,15 +9,19 @@ const setUnreadFlag = (
   roomId: string,
   hasUnread: boolean,
 ): void => {
+  const workspaceId = getItem("workspace");
   queryClient.setQueriesData<ChatsAndRoomsData>(
-    { queryKey: ["chatsRooms"] },
+    { queryKey: ["chatsRooms", workspaceId] },
     (old) => {
       if (!old) return old;
 
       let changed = false;
 
       const chats = old.chats.map((c) => {
-        if (c.id === roomId && c.hasUnread !== hasUnread) {
+        console.log(c.roomId);
+        console.log(roomId);
+        console.log(c.roomId === roomId);
+        if (c.roomId === roomId && c.hasUnread !== hasUnread) {
           changed = true;
           return { ...c, hasUnread };
         }
@@ -82,7 +87,9 @@ export const addMessage = (
   const isActiveRoom = context?.activeRoomId === roomId;
   const isOptimisticReplace = !!message.tempId;
 
-  if (!isOwnMessage && !isActiveRoom && !isOptimisticReplace) {
+  console.log(isOwnMessage, isActiveRoom, isOptimisticReplace);
+
+  if (!isOwnMessage && !isActiveRoom) {
     setUnreadFlag(queryClient, roomId, true);
   }
 };

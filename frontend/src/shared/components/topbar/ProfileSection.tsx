@@ -14,17 +14,20 @@ import { useLogout } from "@/modules/auth/auth.mutation";
 import { ChevronsUpDown, LogOut, Settings, User } from "lucide-react";
 import { useAuthStore } from "@/shared/store/authStore";
 import { removeItem } from "@/shared/utils/localStorage";
+import { useSocketStore } from "@/shared/store/socketStore";
 
 const ProfileSection = () => {
   const router = useRouter();
   const { data: personalInfo, isLoading } = usePersonalInfo();
   const setAccessToken = useAuthStore((state) => state.setAccessToken);
+  const disconnect = useSocketStore((state) => state.disconnect);
   const { mutate } = useLogout();
 
   const handleLogout = () => {
     mutate(undefined, {
       onSuccess: () => {
         setAccessToken(null, false);
+        disconnect();
         removeItem("workspace");
         router.replace("/login");
       },

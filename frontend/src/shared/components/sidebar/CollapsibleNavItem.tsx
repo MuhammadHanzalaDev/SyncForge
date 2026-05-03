@@ -94,15 +94,20 @@ export default function CollapsibleNavItem({
                       <SidebarMenuSubButton
                         className={cn(
                           // kill default pl-8, tighten row, leave room for 3-dot on right
-                          "!pl-2 pr-8 py-1.5 text-sm rounded-md transition-colors relative w-full h-8",
+                          "pl-2! pr-8 py-1.5 text-sm rounded-md transition-colors relative w-full h-8",
                           isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-0.5 before:bg-primary before:rounded-r"
+                            ? "bg-accent text-accent-foreground font-medium border-l-2 pl-1.5!"
                             : "text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
                           // Teams-style bold for unread
                           isUnread &&
                             !isActive &&
                             "text-foreground font-semibold",
                         )}
+                        style={
+                          isActive
+                            ? { borderColor: "oklch(0.54 0.29 264)" }
+                            : {}
+                        }
                       >
                         {item.isIcons ? (
                           <div className="flex items-center gap-2 min-w-0 w-full">
@@ -129,12 +134,15 @@ export default function CollapsibleNavItem({
                             {/* Unread / mention dot — Teams style */}
                             {isUnread && (
                               <span
-                                className={cn(
-                                  "shrink-0 rounded-full",
-                                  hasMention
-                                    ? "h-2 w-2 bg-red-500"
-                                    : "h-2 w-2 bg-primary",
-                                )}
+                                style={{
+                                  backgroundColor: hasMention
+                                    ? "oklch(0.577 0.245 27.325)"
+                                    : "oklch(0.54 0.29 264)",
+                                  height: "8px",
+                                  width: "8px",
+                                  borderRadius: "9999px",
+                                  flexShrink: 0,
+                                }}
                                 aria-label={
                                   hasMention ? "Unread mention" : "Unread"
                                 }
@@ -196,25 +204,39 @@ export default function CollapsibleNavItem({
                     >
                       <SidebarMenuSubButton
                         className={cn(
-                          "!pl-2 pr-8 py-1.5 text-sm rounded-md transition-colors relative w-full h-8",
+                          // kill default pl-8, tighten row, leave room for 3-dot on right
+                          "pl-2! pr-8 py-1.5 text-sm rounded-md transition-colors relative w-full h-8",
                           isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-0.5 before:bg-primary before:rounded-r"
+                            ? "bg-accent text-accent-foreground font-medium border-l-2 pl-1.5!"
                             : "text-muted-foreground hover:text-sidebar-accent-foreground hover:bg-sidebar-accent",
+                          // Teams-style bold for unread
                           isUnread &&
                             !isActive &&
                             "text-foreground font-semibold",
                         )}
+                        style={
+                          isActive
+                            ? { borderColor: "oklch(0.54 0.29 264)" }
+                            : {}
+                        }
                       >
                         <div className="flex items-center gap-2 min-w-0 w-full">
                           <span className="truncate flex-1 min-w-0">
                             {child.name}
                           </span>
+
+                          {/* Unread / mention dot — Teams style */}
                           {isUnread && (
                             <span
-                              className={cn(
-                                "shrink-0 rounded-full h-2 w-2",
-                                hasMention ? "bg-red-500" : "bg-primary",
-                              )}
+                              style={{
+                                backgroundColor: hasMention
+                                  ? "oklch(0.577 0.245 27.325)"
+                                  : "oklch(0.54 0.29 264)",
+                                height: "8px",
+                                width: "8px",
+                                borderRadius: "9999px",
+                                flexShrink: 0,
+                              }}
                               aria-label={
                                 hasMention ? "Unread mention" : "Unread"
                               }

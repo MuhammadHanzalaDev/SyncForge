@@ -16,6 +16,8 @@ import { useRouter } from "next/navigation";
 import useWorkspaceStore from "@/modules/workspace/workspace.store";
 import useRoomStore from "@/modules/room/room.store";
 import CollapsibleNavItem from "./CollapsibleNavItem";
+import { useQueryClient } from "@tanstack/react-query";
+import { markRoomAsRead } from "@/modules/message/message.cache";
 
 interface NavItemBase {
   label: string;
@@ -35,6 +37,7 @@ interface RoomNavItem extends NavItemBase {
 export type NavItem = ChatNavItem | RoomNavItem;
 
 export function SidebarContentSection() {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const { isMobile, setOpenMobile } = useSidebar();
   const workspaceId = useWorkspaceStore((state) => state.workspaceId);
@@ -54,6 +57,8 @@ export function SidebarContentSection() {
           children: data?.chats || [],
           onChildClick: (chat: Chat) => {
             setActiveChat(chat);
+            setActiveItem(chat.id);
+            markRoomAsRead(queryClient, chat.roomId!);
             router.push(`/chats/${chat.id}`);
             closeMobile();
           },

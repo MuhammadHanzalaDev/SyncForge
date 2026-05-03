@@ -315,6 +315,16 @@ const readMessageService = async ({
       data: { status: "READ" },
     });
 
+    await tx.roomMember.update({
+      where: {
+        userId_roomId: {
+          userId,
+          roomId,
+        },
+      },
+      data: { lastReadAt: new Date() },
+    });
+
     return tx.messageReceipt.findMany({
       where: { messageId },
       select: { status: true, userId: true },

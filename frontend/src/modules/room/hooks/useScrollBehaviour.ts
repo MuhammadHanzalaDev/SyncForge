@@ -27,27 +27,25 @@ export function useScrollBehavior(
     const isFirstRunWithMessages =
       prevLastMessageIdRef.current === undefined && messages.length > 0;
 
-    // Container already scrolled to bottom on mount — just record state and exit
     if (isFirstRunWithMessages) {
+      scrollRef.current?.scrollToBottom("auto"); // Scroll to bottom on mount
+
       prevMessageCountRef.current = messages.length;
       prevLastMessageIdRef.current = lastMessage.id;
       prevFirstMessageIdRef.current = firstMessage?.id;
       return;
     }
 
-    const lastMessageChanged = lastMessage.id !== prevLastMessageIdRef.current;
-    const firstMessageChanged =
-      firstMessage?.id !== prevFirstMessageIdRef.current;
-    const countGrew = messages.length > prevMessageCountRef.current;
-
-    // New message at the bottom (not pagination prepending older ones)
     const isNewMessageAtBottom =
-      lastMessageChanged && !firstMessageChanged && countGrew;
+      lastMessage.id !== prevLastMessageIdRef.current;
 
     if (isNewMessageAtBottom) {
-      const nearBottom = scrollRef.current?.isNearBottom(150) ?? true;
+      const nearBottom = scrollRef.current?.isNearBottom(150);
+      if (nearBottom === undefined) return;
       if (nearBottom) {
-        scrollRef.current?.scrollToBottom("smooth");
+        requestAnimationFrame(() => {
+          scrollRef.current?.scrollToBottom("smooth");
+        });
       } else {
         options.onNewMessageWhileScrolledUp?.();
       }
@@ -57,4 +55,10 @@ export function useScrollBehavior(
     prevLastMessageIdRef.current = lastMessage.id;
     prevFirstMessageIdRef.current = firstMessage?.id;
   }, [messages, options, scrollRef]);
+
+  // useEffect(() => {
+  //   prevMessageCountRef.current = 0;
+  //   prevLastMessageIdRef.current = undefined;
+  //   prevFirstMessageIdRef.current = undefined;
+  // }, [roomId]);
 }

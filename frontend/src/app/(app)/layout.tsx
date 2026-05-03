@@ -10,21 +10,22 @@ import TopBar from "@/shared/components/topbar/AppTopbar";
 import useRegisterSocketEvents from "@/shared/hooks/useRegisterGlobalSocketEvents";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { accessToken } = useAuthStore();
-  const { workspaceId } = useWorkspaceStore();
-  const { connect, disconnect } = useSocketStore();
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const workspaceId = useWorkspaceStore((state) => state.workspaceId);
+  const connect = useSocketStore((state) => state.connect);
+  const disconnect = useSocketStore((state) => state.disconnect);
 
-  
   useEffect(() => {
-    if (accessToken) {
-      connect(accessToken, workspaceId || "");
-    }
+    if (!accessToken || !workspaceId) return;
+
+    connect(accessToken, workspaceId || "");
+
     return () => disconnect();
-  }, [accessToken]);
-  
+  }, [accessToken, workspaceId]);
+
   // register global hooks
   useRegisterSocketEvents();
-  
+
   return (
     <SidebarProvider>
       {/* ── Full-height shell ── */}
