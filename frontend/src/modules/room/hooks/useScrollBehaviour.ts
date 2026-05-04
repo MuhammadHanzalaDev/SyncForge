@@ -4,12 +4,13 @@ import type { Message } from "@/modules/message/message.types";
 
 type Options = {
   onNewMessageWhileScrolledUp?: () => void;
+  currentUserId?: string;
 };
 
 export function useScrollBehavior(
   messages: Message[],
   scrollRef: React.RefObject<InfiniteScrollContainerHandle | null>,
-  options: Options = {},
+  options: Options,
 ) {
   const prevMessageCountRef = useRef<number>(0);
   const prevLastMessageIdRef = useRef<string | undefined>(undefined);
@@ -40,14 +41,22 @@ export function useScrollBehavior(
       lastMessage.id !== prevLastMessageIdRef.current;
 
     if (isNewMessageAtBottom) {
-      const nearBottom = scrollRef.current?.isNearBottom(150);
-      if (nearBottom === undefined) return;
-      if (nearBottom) {
+      const isOwnMessage = lastMessage.sender.id === options.currentUserId;
+      if (isOwnMessage) {
+        // Always scroll to own messages, no badge
         requestAnimationFrame(() => {
-          scrollRef.current?.scrollToBottom("smooth");
+          scrollRef.current?.scrollToBottom("auto");
         });
       } else {
-        options.onNewMessageWhileScrolledUp?.();
+        const nearBottom = scrollRef.current?.isNearBottom(150);
+        if (nearBottom === undefined) return;
+        if (nearBottom) {
+          requestAnimationFrame(() => {
+            scrollRef.current?.scrollToBottom("auto");
+          });
+        } else {
+          options.onNewMessageWhileScrolledUp?.();
+        }
       }
     }
 

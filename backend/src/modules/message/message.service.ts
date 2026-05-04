@@ -89,6 +89,19 @@ const getMessagesService = async ({
           status: true,
         },
       },
+      parent: {
+        select: {
+          id: true,
+          content: true,
+          sender: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
     },
   });
 

@@ -38,6 +38,7 @@ import { useSendMessage } from "@/modules/message/message.mutation";
 import { useScrollBehavior } from "../hooks/useScrollBehaviour";
 import useUserStatusStore from "@/shared/store/userStatusStore";
 import StatusDot from "./StatusDot";
+import { usePersonalInfo } from "@/modules/user/user.query";
 
 export default function ChatScreen() {
   // refs
@@ -61,6 +62,7 @@ export default function ChatScreen() {
   // server states
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useMessages(roomId);
+  const { data: personalInfo } = usePersonalInfo();
 
   const messages: Message[] = useMemo(() => {
     const flat = data?.pages.flatMap((p) => p.data) || [];
@@ -71,6 +73,7 @@ export default function ChatScreen() {
   const { handleTyping, typingUsers } = useTypingSocket(roomId);
   useScrollBehavior(messages, scrollRef, {
     onNewMessageWhileScrolledUp: () => setHasUnreadBelow(true),
+    currentUserId: personalInfo?.id,
   });
 
   const handleSend = () => {
