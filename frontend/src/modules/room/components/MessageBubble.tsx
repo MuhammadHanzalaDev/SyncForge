@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useRef } from "react";
 import type { Message } from "@/modules/message/message.types";
 import {
   Avatar,
@@ -10,18 +10,23 @@ import {
 import { cn } from "@/shared/lib/utils";
 import { getInitials } from "../room.utils";
 import { formatTime } from "@/shared/utils/date";
-import { Reply, ThumbsUp, MoreVertical } from "lucide-react";
 import MessageStatusIcon from "./MessageStatusIcon";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shared/components/ui/tooltip";
 import MessageAttachmentsList from "./MessageAttachmentsList";
 import useMessageReadObserver from "../../message/hooks/useMessageReadObserver";
 import { usePersonalInfo } from "@/modules/user/user.query";
-import { QUICK_REACTIONS } from "../room.content";
+import MessageActions from "./MessageActions";
+import MessageReplyPreview from "./MessageReplyPreview";
+
+type MessageBubbleProps = {
+  message: Message;
+  showAvatar: boolean;
+  roomId: string;
+  onReply: (message: Message) => void;
+  onReact: (messageId: string, emoji: string) => void;
+  onScrollToMessage?: (messageId: string) => void;
+  registerRef?: (id: string, el: HTMLDivElement | null) => void;
+  isHighlighted?: boolean;
+};
 
 export default function MessageBubble({
   message,
@@ -29,17 +34,13 @@ export default function MessageBubble({
   roomId,
   onReply,
   onReact,
-}: {
-  message: Message;
-  showAvatar: boolean;
-  roomId: string;
-  // Parent sets these so the input box / reaction state lives outside this component.
-  onReply?: (message: Message) => void;
-  onReact?: (messageId: string, emoji: string) => void;
-}) {
+  onScrollToMessage,
+  registerRef,
+  isHighlighted,
+}: MessageBubbleProps) {
   const [hovered, setHovered] = useState(false);
   // Controls whether the quick-reaction strip is expanded in the toolbar.
-  const [reactionsOpen, setReactionsOpen] = useState(false);
+  const [reactionsOpen, setReactionsOpen] = useState<boolean>(false);
 
   const hasAttachments =
     (message.attachments && message.attachments.length > 0) ||
@@ -49,25 +50,36 @@ export default function MessageBubble({
   const { data: personalInfo } = usePersonalInfo();
   const isOwn = message.sender.id === personalInfo?.id;
 
-  const ref = useMessageReadObserver(
+  const elementRef = useRef<HTMLDivElement>(null);
+  useMessageReadObserver(
+    elementRef,
     message.id,
     roomId,
     message.status,
     isOwn || false,
   );
 
+  const setRefs = useCallback(
+    (el: HTMLDivElement | null) => {
+      elementRef.current = el;
+      registerRef?.(message.id, el);
+    },
+    [registerRef, message.id],
+  );
+
   return (
     <div
       className={cn(
-        "flex gap-3 group px-4 py-1 hover:bg-muted/30 rounded-lg transition-colors",
+        "flex gap-3 group px-4 py-1 hover:bg-muted/30 rounded-lg transition-colors duration-300",
         isOwn && "flex-row-reverse",
+        isHighlighted && "bg-primary/10 ring-2 ring-primary/40",
       )}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => {
         setHovered(false);
         setReactionsOpen(false);
       }}
-      ref={ref}
+      ref={setRefs}
     >
       {/* Avatar */}
       <div className="w-8 shrink-0 mt-1">
@@ -105,46 +117,32 @@ export default function MessageBubble({
           </div>
         )}
 
-        {/* ── Reply preview ──────────────────────────────────────────────
-            Shows when this message is a reply to another.
-            Requires message.parent to be populated (not just parentId).
-            If you only have parentId, fetch the parent and pass it in,
-            or include it in the Message type from your API response.     */}
-        {/* {message.parent && (
-          <button
-            type="button"
-            onClick={() => {}}
-            className={cn(
-              "flex items-start gap-2 mb-1 max-w-full text-left",
-              "rounded-lg px-2.5 py-1.5 text-xs",
-              "border-l-2 border-primary/50 bg-muted/60 hover:bg-muted transition-colors",
-              isOwn && "border-l-0 border-r-2",
-            )}
-          >
-            <div className="flex flex-col min-w-0">
-              <span className="font-semibold text-primary text-[11px] mb-0.5">
-                {message.parent.sender?.id === personalInfo?.id
-                  ? "You"
-                  : message.parent.sender?.name}
-              </span>
-              <span className="text-muted-foreground truncate max-w-[240px]">
-                {message.parent.content || "Attachment"}
-              </span>
-            </div>
-          </button>
-        )} */}
-
-        {/* Text bubble */}
-        {hasText && (
+        {/* Reply preview + text bubble */}
+        {(message.parent || hasText) && (
           <div
             className={cn(
-              "rounded-2xl px-3.5 py-2 text-sm leading-relaxed",
+              "rounded-2xl overflow-hidden max-w-full",
               isOwn
                 ? "bg-primary text-primary-foreground rounded-tr-sm"
                 : "bg-muted text-foreground rounded-tl-sm",
             )}
           >
-            {message.content}
+            {/* Reply preview — inside the bubble */}
+            {message.parent && (
+              <MessageReplyPreview
+                parent={message.parent}
+                isOwn={isOwn}
+                currentUserId={personalInfo?.id}
+                onClick={() => onScrollToMessage?.(message.parent!.id)}
+              />
+            )}
+
+            {/* Text content */}
+            {hasText && (
+              <div className="px-3.5 py-2 text-sm leading-relaxed">
+                {message.content}
+              </div>
+            )}
           </div>
         )}
 
@@ -211,88 +209,14 @@ export default function MessageBubble({
         </div>
       </div>
 
-      {/* ── Hover toolbar ──────────────────────────────────────────────────
-          Appears on message hover. Shows quick reactions inline when the
-          thumbs-up is clicked, then Reply + More as usual.                */}
-      <div
-        className={cn(
-          "flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity self-start mt-2",
-          isOwn && "flex-row-reverse",
-        )}
-      >
-        {/* Quick reaction strip — expands inline when reactionsOpen */}
-        {reactionsOpen && (
-          <div
-            className={cn(
-              "flex items-center gap-0.5 mr-1",
-              isOwn && "flex-row-reverse mr-0 ml-1",
-            )}
-          >
-            {QUICK_REACTIONS.map((emoji) => (
-              <button
-                key={emoji}
-                onClick={() => {
-                  onReact?.(message.id, emoji);
-                  setReactionsOpen(false);
-                }}
-                className="p-1 rounded-md hover:bg-muted transition-colors text-sm leading-none"
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Thumbs-up toggles the reaction strip */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => setReactionsOpen((o) => !o)}
-                className={cn(
-                  "p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors",
-                  reactionsOpen && "bg-muted text-foreground",
-                )}
-              >
-                <ThumbsUp className="h-3.5 w-3.5" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">
-              React
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        {/* Reply — calls onReply so the parent can populate the input */}
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={() => onReply?.(message)}
-                className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <Reply className="h-3.5 w-3.5" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">
-              Reply
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-                <MoreVertical className="h-3.5 w-3.5" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="top" className="text-xs">
-              More
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
+      <MessageActions
+        message={message}
+        isOwn={isOwn}
+        reactionsOpen={reactionsOpen}
+        setReactionsOpen={setReactionsOpen}
+        onReply={onReply}
+        onReact={onReact}
+      />
     </div>
   );
 }

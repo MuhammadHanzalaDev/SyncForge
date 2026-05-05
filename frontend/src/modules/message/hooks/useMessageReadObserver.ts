@@ -1,35 +1,33 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { MessageStatus } from "@/modules/message/message.types";
 import { useReadMessage } from "../message.mutation";
 
 const useMessageReadObserver = (
+  ref: React.RefObject<HTMLDivElement | null>,
   messageId: string,
   roomId: string,
   status: MessageStatus,
   isOwn: boolean,
 ) => {
   const { mutate: markMessageAsRead } = useReadMessage();
-  const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Don't track your own messages
     if (isOwn || status === "READ") return;
+    if (!ref.current) return;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           markMessageAsRead({ messageId, roomId });
-          observer.disconnect(); // only need to fire once
+          observer.disconnect();
         }
       },
-      { threshold: 0.5 }, // 50% of message must be visible
+      { threshold: 0.5 },
     );
 
-    if (ref.current) observer.observe(ref.current);
+    observer.observe(ref.current);
     return () => observer.disconnect();
-  }, [messageId, roomId, status, isOwn, markMessageAsRead]);
-
-  return ref;
+  }, [ref, messageId, roomId, status, isOwn, markMessageAsRead]);
 };
 
 export default useMessageReadObserver;

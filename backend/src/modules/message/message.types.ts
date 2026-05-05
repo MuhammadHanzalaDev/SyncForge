@@ -70,6 +70,15 @@ interface MessageAttachment {
   kind: "IMAGE" | "FILE";
 }
 
+interface MessageParent {
+  id: string;
+  content: string;
+  sender: {
+    id: string;
+    name: string;
+  };
+}
+
 interface Message {
   id: string;
   sender: MessageSender;
@@ -78,6 +87,7 @@ interface Message {
   updatedAt?: Date;
   isEdited?: boolean;
   parentId?: string | null;
+  parent?: MessageParent;
   attachments?: MessageAttachment[];
   reactions?: MessageReaction[];
   status: MessageStatus;

@@ -6,8 +6,18 @@ interface SendMessage {
   roomId: string;
   content: string;
   parentId?: string;
+  parent?: MessageParent;
   attachmentIds?: string[];
   attachments: Attachment[];
+}
+
+interface MessageParent {
+  id: string;
+  content: string;
+  sender: {
+    id: string;
+    name: string;
+  };
 }
 
 interface ReadMessage {
@@ -53,6 +63,7 @@ interface Message {
   updatedAt?: Date;
   isEdited?: boolean;
   parentId?: string;
+  parent?: MessageParent;
   attachments?: MessageAttachment[];
   tempAttachments?: Attachment[];
   reactions?: MessageReaction[];

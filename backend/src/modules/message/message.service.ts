@@ -127,6 +127,17 @@ const getMessagesService = async ({
       updatedAt: msg.updatedAt,
       isEdited: msg.isEdited,
       parentId: msg.parentId,
+      ...(msg.parent
+        ? {
+            parent: {
+              ...msg.parent,
+              sender: {
+                id: msg.parent.sender.id,
+                name: `${msg.parent.sender.firstName} ${msg.parent.sender.lastName}`,
+              },
+            },
+          }
+        : {}),
       attachments: await Promise.all(
         (msg.attachments || []).map(async (a) => ({
           ...a,
@@ -254,6 +265,19 @@ const createMessageService = async ({
             status: true,
           },
         },
+        parent: {
+          select: {
+            id: true,
+            content: true,
+            sender: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -292,6 +316,17 @@ const createMessageService = async ({
     updatedAt: message.updatedAt,
     isEdited: message.isEdited,
     parentId: message?.parentId,
+    ...(message.parent
+      ? {
+          parent: {
+            ...message.parent,
+            sender: {
+              id: message.parent.sender.id,
+              name: `${message.parent.sender.firstName} ${message.parent.sender.lastName}`,
+            },
+          },
+        }
+      : {}),
     attachments: formattedAttachments,
     reactions: message.messageReactions,
     status: getMessageStatus(message.messageReceipts || []),

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { readMessage, sendMessage } from "./message.api";
 import { usePersonalInfo } from "../user/user.query";
-import { Message, MessageseData, ReadMessage } from "./message.types";
+import { Message, MessagesData } from "./message.types";
 
 const useSendMessage = (roomId: string | null) => {
   const queryClient = useQueryClient();
@@ -15,7 +15,7 @@ const useSendMessage = (roomId: string | null) => {
         queryKey: ["messages", roomId],
       });
 
-      const previous = queryClient.getQueryData<MessageseData>([
+      const previous = queryClient.getQueryData<MessagesData>([
         "messages",
         roomId,
       ]);
@@ -34,9 +34,11 @@ const useSendMessage = (roomId: string | null) => {
         isOwn: true,
         tempAttachments: newMessage.attachments,
         status: "SENT",
+        parentId: newMessage.parentId,
+        parent: newMessage.parent,
       };
 
-      queryClient.setQueryData<MessageseData>(
+      queryClient.setQueryData<MessagesData>(
         ["messages", roomId],
         (oldData) => {
           if (!oldData) {
