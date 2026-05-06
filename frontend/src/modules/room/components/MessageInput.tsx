@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, RefObject, useEffect } from "react";
 import type { Message } from "@/modules/message/message.types";
 import { Paperclip, Smile, Send, ImageIcon, Mic } from "lucide-react";
 import {
@@ -27,7 +27,10 @@ interface MessageInputProps {
   replyingTo: Message | null;
   onCancelReply: () => void;
   onSent: () => void;
+  inputRef: RefObject<HTMLTextAreaElement | null>; // ← updated type
 }
+
+const MAX_ROWS = 6; // caps growth at ~6 lines
 
 const MessageInput = ({
   roomId,
@@ -35,29 +38,29 @@ const MessageInput = ({
   replyingTo,
   onCancelReply,
   onSent,
+  inputRef,
 }: MessageInputProps) => {
-  // refs
-  const inputRef = useRef<HTMLInputElement>(null);
   const attachmentsRef = useRef<MessageAttachmentsHandle>(null);
-
-  // local states
   const [inputValue, setInputValue] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
 
-  // mutations
   const { mutate: mutateSendMessage } = useSendMessage(roomId);
-
-  // server states
   const { data: personalInfo } = usePersonalInfo();
-
-  // hooks
   const { handleTyping } = useTypingSocket(roomId);
 
-  // local functions
+  // Auto-resize textarea
+  useEffect(() => {
+    const el = inputRef.current;
+    if (!el) return;
+    el.style.height = "auto"; // reset first so it can shrink
+    const lineHeight = parseInt(getComputedStyle(el).lineHeight || "20", 10);
+    const maxHeight = lineHeight * MAX_ROWS;
+    el.style.height = `${Math.min(el.scrollHeight, maxHeight)}px`;
+    el.style.overflowY = el.scrollHeight > maxHeight ? "auto" : "hidden";
+  }, [inputValue]);
+
   const handleSend = () => {
     if (!inputValue.trim() && attachments.length === 0) return;
-
-    // Block send while any attachment is still uploading.
     const stillUploading = attachments.some((a) => a.status === "uploading");
     if (stillUploading) return;
 
@@ -70,8 +73,8 @@ const MessageInput = ({
       tempId,
       roomId: roomId || "",
       content: inputValue.trim(),
-      attachmentIds: uploadedIds, // adjust key to match your send-message payload
-      attachments: attachments,
+      attachmentIds: uploadedIds,
+      attachments,
       ...(replyingTo
         ? {
             parentId: replyingTo.id,
@@ -89,6 +92,7 @@ const MessageInput = ({
 
     onSent();
     setInputValue("");
+    setAttachments([]);
     onCancelReply();
   };
 
@@ -96,7 +100,7 @@ const MessageInput = ({
     (inputValue.trim().length > 0 || attachments.length > 0) &&
     !attachments.some((a) => a.status === "uploading");
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
@@ -121,10 +125,10 @@ const MessageInput = ({
     { icon: Smile, label: "Emoji", onClick: () => {} },
     { icon: Mic, label: "Voice message", onClick: () => {} },
   ];
+
   return (
     <div className="px-4 pb-4 pt-2 shrink-0">
       <div className="flex flex-col rounded-xl border bg-background shadow-sm overflow-hidden">
-        {/* Reply preview */}
         {replyingTo && (
           <ReplyPreview
             message={replyingTo}
@@ -133,7 +137,6 @@ const MessageInput = ({
           />
         )}
 
-        {/* Attachments preview */}
         <MessageAttachments
           ref={attachmentsRef}
           attachments={attachments}
@@ -163,10 +166,12 @@ const MessageInput = ({
         </div>
 
         {/* Input row */}
-        <div className="flex items-center gap-2 px-3 pb-3">
-          <input
+        <div className="flex items-end gap-2 px-3 pb-3">
+          {" "}
+          {/* items-end so button stays at bottom as textarea grows */}
+          <textarea
             ref={inputRef}
-            type="text"
+            rows={1}
             value={inputValue}
             onChange={(e) => {
               setInputValue(e.target.value);
@@ -174,13 +179,13 @@ const MessageInput = ({
             }}
             onKeyDown={handleKeyDown}
             placeholder={`Message ${activeChat?.name || ""}`}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
+            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 resize-none leading-5 py-1.5 max-h-[7.5rem]"
           />
           <button
             onClick={handleSend}
             disabled={!canSend}
             className={cn(
-              "flex items-center justify-center h-8 w-8 rounded-lg transition-all",
+              "flex items-center justify-center h-8 w-8 rounded-lg transition-all shrink-0 mb-0.5",
               canSend
                 ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
                 : "text-muted-foreground/40 cursor-not-allowed",

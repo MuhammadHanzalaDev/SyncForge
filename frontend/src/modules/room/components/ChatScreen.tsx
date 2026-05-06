@@ -12,12 +12,13 @@ import { usePersonalInfo } from "@/modules/user/user.query";
 
 export default function ChatScreen() {
   // refs
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<InfiniteScrollContainerHandle>(null);
 
   // local states
   const [hasUnreadBelow, setHasUnreadBelow] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
-  
+
   // global client states
   const activeChat = useRoomStore((state) => state.activeChat);
   const roomId = useRoomStore((state) => state.roomId);
@@ -35,6 +36,12 @@ export default function ChatScreen() {
   // hooks
   const { typingUsers } = useTypingSocket(roomId);
 
+  // local functions
+  const handleReply = (message: Message) => {
+    setReplyingTo(message);
+    inputRef.current?.focus();
+  };
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Scrollable area — contains header + messages */}
@@ -48,7 +55,7 @@ export default function ChatScreen() {
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
         fetchNextPage={fetchNextPage}
-        onReply={setReplyingTo}
+        onReply={handleReply}
         scrollRef={scrollRef}
       />
 
@@ -78,6 +85,7 @@ export default function ChatScreen() {
           scrollRef.current?.scrollToBottom("smooth");
           setHasUnreadBelow(false);
         }}
+        inputRef={inputRef}
       />
     </div>
   );
