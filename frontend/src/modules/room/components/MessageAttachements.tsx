@@ -8,11 +8,12 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, Mic } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import {
   Attachment,
   MessageAttachmentsHandle,
+  AttachmentKind,
 } from "@/modules/file/file.types";
 import { formatFileSize, getFileIcon } from "@/modules/file/file.utils";
 import { useUploadAttachments } from "@/modules/file/file.mutation";
@@ -26,17 +27,22 @@ type Props = {
 };
 
 const createAttachments = (
-  files: FileList,
-  forceKind?: "IMAGE" | "FILE",
+  files: File[],
+  forceKind?: AttachmentKind,
+  meta?: { durationSec?: number },
 ): Attachment[] =>
-  Array.from(files).map((file) => {
-    const isImage = forceKind === "IMAGE" || file.type.startsWith("image/");
+  files.map((file) => {
+    const isImage =
+      forceKind === "IMAGE" || (!forceKind && file.type.startsWith("image/"));
+    const isVoice = forceKind === "VOICE";
+    const kind: AttachmentKind = isVoice ? "VOICE" : isImage ? "IMAGE" : "FILE";
     return {
       id: `att-${Date.now()}-${Math.random().toString(36).slice(2)}`,
       file,
-      kind: isImage ? "IMAGE" : "FILE",
+      kind,
       previewUrl: isImage ? URL.createObjectURL(file) : undefined,
       status: "uploading",
+      durationSec: meta?.durationSec,
     };
   });
 
@@ -66,6 +72,7 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
       () => ({
         openFilePicker: () => fileInputRef.current?.click(),
         openImagePicker: () => imageInputRef.current?.click(),
+        addFiles: (files, kind, meta) => handleFilesSelected(files, kind, meta),
         clear: () => {
           attachments.forEach((a) => {
             if (a.previewUrl) URL.revokeObjectURL(a.previewUrl);
@@ -103,14 +110,16 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
     };
 
     const handleFilesSelected = (
-      files: FileList | null,
-      forceKind?: "IMAGE" | "FILE",
+      files: FileList | File[] | null,
+      forceKind?: AttachmentKind,
+      meta?: { durationSec?: number },
     ) => {
-      if (!files || files.length === 0) return;
+      if (!files) return;
+      const arr = Array.from(files);
+      if (arr.length === 0) return;
 
-      const batch = createAttachments(files, forceKind);
+      const batch = createAttachments(arr, forceKind, meta);
       onAttachmentsChange((prev) => [...prev, ...batch]);
-
       batch.forEach(uploadSingle);
     };
 
@@ -156,6 +165,18 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
             {attachments.map((att) => {
               const isUploading = att.status === "uploading";
               const isError = att.status === "error";
+
+              if (att.kind === "VOICE") {
+                return (
+                  <VoicePreviewTile
+                    key={att.id}
+                    attachment={att}
+                    isUploading={isUploading}
+                    isError={isError}
+                    onRemove={() => removeAttachment(att.id)}
+                  />
+                );
+              }
 
               if (att.kind === "IMAGE" && att.previewUrl) {
                 return (
@@ -261,3 +282,53 @@ function UploadOverlay({ isUploading, isError }: UploadOverlayProps) {
 }
 
 export default MessageAttachments;
+
+type VoicePreviewTileProps = {
+  attachment: Attachment;
+  isUploading: boolean;
+  isError: boolean;
+  onRemove: () => void;
+};
+
+// ------- Voice Preview -------
+
+function VoicePreviewTile({
+  attachment,
+  isUploading,
+  isError,
+  onRemove,
+}: VoicePreviewTileProps) {
+  const seconds = attachment.durationSec ?? 0;
+  const mm = Math.floor(seconds / 60)
+    .toString()
+    .padStart(2, "0");
+  const ss = (seconds % 60).toString().padStart(2, "0");
+
+  return (
+    <div className="group relative flex items-center gap-2 pl-2 pr-2 py-2 rounded-lg border bg-muted/40 hover:bg-muted/60 transition-colors min-w-40 max-w-55">
+      <UploadOverlay isUploading={isUploading} isError={isError} />
+
+      <div className="flex items-center justify-center h-8 w-8 shrink-0 rounded-md bg-primary/10 text-primary dark:bg-primary/20">
+        <Mic className="h-4 w-4" />
+      </div>
+
+      <div className="flex flex-col min-w-0 flex-1">
+        <span className="text-xs font-medium truncate text-foreground">
+          Voice message
+        </span>
+        <span className="text-[10px] text-muted-foreground">
+          {isError ? "Upload failed" : `${mm}:${ss}`}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        onClick={onRemove}
+        aria-label="Remove voice message"
+        className="z-20 shrink-0 flex items-center justify-center h-5 w-5 rounded-full text-muted-foreground hover:text-foreground hover:bg-background transition-colors opacity-0 group-hover:opacity-100"
+      >
+        <X className="h-3 w-3" />
+      </button>
+    </div>
+  );
+}

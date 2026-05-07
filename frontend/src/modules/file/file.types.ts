@@ -1,10 +1,14 @@
+type AttachmentKind = "IMAGE" | "FILE" | "VOICE";
+type AttachmentStatus = "uploading" | "done" | "error";
+
 type Attachment = {
   id: string;
   file: File;
-  kind: "IMAGE" | "FILE";
+  kind: AttachmentKind;
   previewUrl?: string;
-  status: "uploading" | "done" | "error";
+  status: AttachmentStatus;
   uploadedId?: string;
+  durationSec?: number;
 };
 
 type MessageAttachmentsHandle = {
@@ -14,17 +18,26 @@ type MessageAttachmentsHandle = {
   openImagePicker: () => void;
   /** Revokes all preview URLs and clears attachments. Call after send. */
   clear: () => void;
+
+  addFiles: (files: File[], kind?: AttachmentKind, meta?: { durationSec?: number }) => void; // new
 };
 
 type NormalizedAttachment = {
   id: string;
-  kind: "IMAGE" | "FILE";
+  kind: AttachmentKind;
   filename: string;
   size?: number;
   /** URL to render (object URL for temp, backend URL for persisted) */
   src?: string;
   /** For file-icon lookup when kind === "FILE" */
   mimetype?: string;
+  durationSec?: number;
 };
 
-export type { Attachment, MessageAttachmentsHandle, NormalizedAttachment };
+export type {
+  Attachment,
+  MessageAttachmentsHandle,
+  NormalizedAttachment,
+  AttachmentKind,
+  AttachmentStatus,
+};

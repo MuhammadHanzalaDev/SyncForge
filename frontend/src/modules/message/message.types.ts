@@ -1,5 +1,5 @@
 import { InfiniteData } from "@tanstack/react-query";
-import type { Attachment } from "../file/file.types";
+import type { Attachment, AttachmentKind } from "../file/file.types";
 
 interface SendMessage {
   tempId?: string; // Temporary ID for optimistic UI updates
@@ -52,7 +52,8 @@ interface MessageAttachment {
   filename: string; // Original filename
   mimetype: string; // e.g., "image/png"
   size: number; // Bytes
-  kind: "IMAGE" | "FILE";
+  kind: AttachmentKind;
+  durationSec?: number;
 }
 
 interface Message {

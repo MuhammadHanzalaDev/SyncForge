@@ -6,6 +6,7 @@ import type { MessageAttachment } from "@/modules/message/message.types";
 import { NormalizedAttachment } from "@/modules/file/file.types";
 import ImageTile from "@/modules/file/components/ImageTile";
 import FileTile from "@/modules/file/components/FileTile";
+import VoiceMessageTile from "@/modules/message/components/VoiceMessageTile";
 
 type Props = {
   attachments?: MessageAttachment[];
@@ -51,6 +52,7 @@ export default function MessageAttachmentsList({
   // Split for layout: images go in a grid, files stack vertically.
   const images = items.filter((i) => i.kind === "IMAGE");
   const files = items.filter((i) => i.kind === "FILE");
+  const voices = items.filter((i) => i.kind === "VOICE");
 
   return (
     <div
@@ -87,6 +89,14 @@ export default function MessageAttachmentsList({
         >
           {images.map((img) => (
             <ImageTile key={img.id} item={img} single={images.length === 1} />
+          ))}
+        </div>
+      )}
+
+      {voices.length > 0 && (
+        <div className="flex flex-col gap-1">
+          {voices.map((v) => (
+            <VoiceMessageTile key={v.id} item={v} isOwn={isOwn} />
           ))}
         </div>
       )}

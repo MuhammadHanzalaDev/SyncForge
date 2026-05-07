@@ -20,6 +20,7 @@ import useTypingSocket from "@/modules/message/hooks/useTypingSocket";
 import { useSendMessage } from "@/modules/message/message.mutation";
 import { usePersonalInfo } from "@/modules/user/user.query";
 import { Chat } from "../room.types";
+import VoiceRecorder from "@/modules/message/components/VoiceRecorder";
 
 interface MessageInputProps {
   roomId: string | null;
@@ -43,6 +44,7 @@ const MessageInput = ({
   const attachmentsRef = useRef<MessageAttachmentsHandle>(null);
   const [inputValue, setInputValue] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
 
   const { mutate: mutateSendMessage } = useSendMessage(roomId);
   const { data: personalInfo } = usePersonalInfo();
@@ -111,6 +113,11 @@ const MessageInput = ({
     }
   };
 
+  // Handler: pushes recorded audio into the attachment pipeline
+  const handleVoiceRecorded = (file: File, durationSec: number) => {
+    attachmentsRef.current?.addFiles([file], "VOICE", { durationSec });
+  };
+
   const toolbarButtons = [
     {
       icon: Paperclip,
@@ -123,7 +130,7 @@ const MessageInput = ({
       onClick: () => attachmentsRef.current?.openImagePicker(),
     },
     { icon: Smile, label: "Emoji", onClick: () => {} },
-    { icon: Mic, label: "Voice message", onClick: () => {} },
+    { icon: Mic, label: "Voice message", onClick: () => setIsRecording(true) },
   ];
 
   return (
@@ -166,34 +173,41 @@ const MessageInput = ({
         </div>
 
         {/* Input row */}
-        <div className="flex items-end gap-2 px-3 pb-3">
-          {" "}
-          {/* items-end so button stays at bottom as textarea grows */}
-          <textarea
-            ref={inputRef}
-            rows={1}
-            value={inputValue}
-            onChange={(e) => {
-              setInputValue(e.target.value);
-              handleTyping();
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder={`Message ${activeChat?.name || ""}`}
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 resize-none leading-5 py-1.5 max-h-[7.5rem]"
+        {isRecording ? (
+          <VoiceRecorder
+            onSend={handleVoiceRecorded}
+            onClose={() => setIsRecording(false)}
           />
-          <button
-            onClick={handleSend}
-            disabled={!canSend}
-            className={cn(
-              "flex items-center justify-center h-8 w-8 rounded-lg transition-all shrink-0 mb-0.5",
-              canSend
-                ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
-                : "text-muted-foreground/40 cursor-not-allowed",
-            )}
-          >
-            <Send className="h-4 w-4" />
-          </button>
-        </div>
+        ) : (
+          <div className="flex items-end gap-2 px-3 pb-3">
+            {" "}
+            {/* items-end so button stays at bottom as textarea grows */}
+            <textarea
+              ref={inputRef}
+              rows={1}
+              value={inputValue}
+              onChange={(e) => {
+                setInputValue(e.target.value);
+                handleTyping();
+              }}
+              onKeyDown={handleKeyDown}
+              placeholder={`Message ${activeChat?.name || ""}`}
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 resize-none leading-5 py-1.5 max-h-[7.5rem]"
+            />
+            <button
+              onClick={handleSend}
+              disabled={!canSend}
+              className={cn(
+                "flex items-center justify-center h-8 w-8 rounded-lg transition-all shrink-0 mb-0.5",
+                canSend
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                  : "text-muted-foreground/40 cursor-not-allowed",
+              )}
+            >
+              <Send className="h-4 w-4" />
+            </button>
+          </div>
+        )}
       </div>
 
       <p className="text-center text-[11px] text-muted-foreground mt-1.5">
