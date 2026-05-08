@@ -8,11 +8,11 @@ import {
   AvatarImage,
 } from "@/shared/components/ui/avatar";
 import { cn } from "@/shared/lib/utils";
-import { getInitials } from "../room.utils";
+import { getInitials } from "../../room/room.utils";
 import { formatTime } from "@/shared/utils/date";
 import MessageStatusIcon from "./MessageStatusIcon";
 import MessageAttachmentsList from "./MessageAttachmentsList";
-import useMessageReadObserver from "../../message/hooks/useMessageReadObserver";
+import useMessageReadObserver from "../hooks/useMessageReadObserver";
 import { usePersonalInfo } from "@/modules/user/user.query";
 import MessageActions from "./MessageActions";
 import MessageReplyPreview from "./MessageReplyPreview";

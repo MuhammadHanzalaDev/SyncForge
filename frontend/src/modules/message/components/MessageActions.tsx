@@ -9,7 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
-import { QUICK_REACTIONS } from "../room.content";
+import { QUICK_REACTIONS } from "../../room/room.content";
 
 interface MessageActionsProps {
   message: Message;

@@ -6,11 +6,11 @@ import { Loader2 } from "lucide-react";
 import { formatDateDivider } from "@/shared/utils/date";
 import { Separator } from "@/shared/components/ui/separator";
 import MessageBubble from "./MessageBubble";
-import ConversationStartHeader from "./ConversationStartHeader";
+import ConversationStartHeader from "../../room/components/ConversationStartHeader";
 import { InfiniteScrollContainer } from "@/shared/components";
 import type { InfiniteScrollContainerHandle } from "@/shared/components/common/InfiniteScrollContainer";
-import { useScrollBehavior } from "../hooks/useScrollBehaviour";
-import { Chat } from "../room.types";
+import { useScrollBehavior } from "../../room/hooks/useScrollBehaviour";
+import { Chat } from "../../room/room.types";
 import useUserStatusStore from "@/shared/store/userStatusStore";
 import message from "@/shared/utils/toast";
 

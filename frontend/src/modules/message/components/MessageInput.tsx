@@ -11,7 +11,7 @@ import {
 } from "@/shared/components/ui/tooltip";
 import { cn } from "@/shared/lib/utils";
 import MessageAttachments from "./MessageAttachements";
-import ReplyPreview from "./ReplyPreview";
+import ReplyPreview from "../../room/components/ReplyPreview";
 import {
   Attachment,
   MessageAttachmentsHandle,
@@ -19,7 +19,7 @@ import {
 import useTypingSocket from "@/modules/message/hooks/useTypingSocket";
 import { useSendMessage } from "@/modules/message/message.mutation";
 import { usePersonalInfo } from "@/modules/user/user.query";
-import { Chat } from "../room.types";
+import { Chat } from "../../room/room.types";
 import VoiceRecorder from "@/modules/message/components/VoiceRecorder";
 
 interface MessageInputProps {

@@ -2,8 +2,8 @@
 
 import { useState, useRef, useMemo } from "react";
 import type { Message } from "@/modules/message/message.types";
-import MessageInput from "./MessageInput";
-import MessageList from "./MessageList";
+import MessageInput from "../../message/components/MessageInput";
+import MessageList from "../../message/components/MessageList";
 import useRoomStore from "../room.store";
 import useTypingSocket from "@/modules/message/hooks/useTypingSocket";
 import { useMessages } from "@/modules/message/message.query";
