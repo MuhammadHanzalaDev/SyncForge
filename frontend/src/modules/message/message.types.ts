@@ -8,7 +8,7 @@ interface SendMessage {
   parentId?: string;
   parent?: MessageParent;
   attachmentIds?: string[];
-  attachments: Attachment[];
+  attachments?: Attachment[];
 }
 
 interface MessageParent {

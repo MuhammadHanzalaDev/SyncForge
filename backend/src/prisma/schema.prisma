@@ -182,14 +182,15 @@ model Otp {
 }
 
 model File {
-  id        String     @id @default(uuid())
-  filename  String
-  key       String
-  mimetype  String
-  size      Int
-  status    FileStatus @default(PENDING)
-  createdAt DateTime   @default(now())
-  kind      FileKind   @default(FILE)
+  id          String     @id @default(uuid())
+  filename    String
+  key         String
+  mimetype    String
+  size        Int
+  status      FileStatus @default(PENDING)
+  createdAt   DateTime   @default(now())
+  kind        FileKind   @default(FILE)
+  durationSec Int?
 
   userId String
   user   User   @relation("UserFiles", fields: [userId], references: [id], onDelete: Cascade)
@@ -212,6 +213,7 @@ enum FileStatus {
 enum FileKind {
   IMAGE
   FILE
+  VOICE
 }
 
 model Notification {

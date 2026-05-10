@@ -14,7 +14,8 @@ const validateCreateFile = z.object({
   size: z.number(),
   userId: z.string(),
   status: z.string().optional(),
-  kind: z.enum(["IMAGE", "FILE"]).optional(),
+  kind: z.enum(["IMAGE", "FILE", "VOICE"]).optional(),
+  durationSec: z.number().optional(),
 });
 
 export { validateFile, validateCreateFile }

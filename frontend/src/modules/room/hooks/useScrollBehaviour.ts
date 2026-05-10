@@ -5,6 +5,7 @@ import type { Message } from "@/modules/message/message.types";
 type Options = {
   onNewMessageWhileScrolledUp?: () => void;
   currentUserId?: string;
+  activeId: string;
 };
 
 export function useScrollBehavior(
@@ -12,6 +13,7 @@ export function useScrollBehavior(
   scrollRef: React.RefObject<InfiniteScrollContainerHandle | null>,
   options: Options,
 ) {
+  const { currentUserId, onNewMessageWhileScrolledUp, activeId } = options;
   const prevMessageCountRef = useRef<number>(0);
   const prevLastMessageIdRef = useRef<string | undefined>(undefined);
   const prevFirstMessageIdRef = useRef<string | undefined>(undefined);
@@ -65,9 +67,9 @@ export function useScrollBehavior(
     prevFirstMessageIdRef.current = firstMessage?.id;
   }, [messages, options, scrollRef]);
 
-  // useEffect(() => {
-  //   prevMessageCountRef.current = 0;
-  //   prevLastMessageIdRef.current = undefined;
-  //   prevFirstMessageIdRef.current = undefined;
-  // }, [roomId]);
+  useEffect(() => {
+    prevMessageCountRef.current = 0;
+    prevLastMessageIdRef.current = undefined;
+    prevFirstMessageIdRef.current = undefined;
+  }, [activeId]);
 }

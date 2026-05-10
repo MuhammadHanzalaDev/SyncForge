@@ -19,7 +19,9 @@ const getMessages = async (
 
 const sendMessage = async (data: SendMessage) => {
   try {
-    const res = await api.post(`/messages/${data.roomId}`, data);
+    const payload: SendMessage = data;
+    delete payload?.attachments; // attachments are already uploaded we just send ids in attachmentIds
+    const res = await api.post(`/messages/${data.roomId}`, payload);
     return res.data;
   } catch (err: unknown) {
     if (err instanceof AxiosError) {

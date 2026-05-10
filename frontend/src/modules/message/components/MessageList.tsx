@@ -57,6 +57,7 @@ export default function MessageList({
   useScrollBehavior(messages, scrollRef, {
     onNewMessageWhileScrolledUp: () => setHasUnreadBelow(true),
     currentUserId,
+    activeId: activeChat?.id || "",
   });
 
   const registerMessageRef = useCallback(

@@ -25,16 +25,18 @@ function normalize(
     size: a.size,
     src: a.url,
     mimetype: a.mimetype,
+    durationSec: a.durationSec,
   }));
 
   const fromLocal: NormalizedAttachment[] = (tempAttachments ?? []).map(
     (a) => ({
       id: a.id,
-      kind: a.kind === "IMAGE" ? "IMAGE" : "FILE",
+      kind: a.kind,
       filename: a.file.name,
       size: a.file.size,
       src: a.previewUrl,
       mimetype: a.file.type,
+      durationSec: a.durationSec,
     }),
   );
 

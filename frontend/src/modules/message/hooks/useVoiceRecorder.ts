@@ -92,7 +92,8 @@ export const useVoiceRecorder = (): UseVoiceRecorderResult => {
       sum += v * v;
     }
     const rms = Math.sqrt(sum / data.length);
-    setAudioLevel(Math.min(1, rms * 2.5)); // scale up so quiet voice is visible
+    const amplified = Math.min(1, rms * 8); // much more aggressive scaling
+    setAudioLevel((prev) => prev * 0.3 + amplified * 0.7); // smooth with EMA // scale up so quiet voice is visible
     rafRef.current = requestAnimationFrame(measureLevel);
   }, []);
 
@@ -136,7 +137,7 @@ export const useVoiceRecorder = (): UseVoiceRecorderResult => {
       source.connect(analyser);
       analyserRef.current = analyser;
 
-      recorder.start(100); // collect chunks every 100ms
+      recorder.start(); // collect chunks every 100ms
       startedAtRef.current = Date.now();
       setDuration(0);
       setState("recording");

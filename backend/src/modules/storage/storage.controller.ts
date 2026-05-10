@@ -43,9 +43,10 @@ const uploadAttachmentsController = async (
       key: keys[idx],
       userId,
       status: "PENDING",
-      kind: data?.kind || "FILE"
+      kind: data?.kind || "FILE",
+      ...(data?.durationSec ? { durationSec: Number(data.durationSec) } : {}),
     };
-    const formatted = validateCreateFile.parse(fileObj)
+    const formatted = validateCreateFile.parse(fileObj);
 
     return formatted;
   });

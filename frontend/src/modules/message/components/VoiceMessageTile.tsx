@@ -71,13 +71,23 @@ export default function VoiceMessageTile({ item, isOwn }: Props) {
       audio.currentTime = 0;
     };
     const onWaiting = () => setIsLoading(true);
-    const onPlaying = () => setIsLoading(false);
+    const onPlaying = () => {
+      setIsLoading(false);
+      setIsPlaying(true);
+    };
+    const onError = () => {
+      setIsLoading(false);
+      setIsPlaying(false);
+    };
 
     audio.addEventListener("loadedmetadata", onLoaded);
     audio.addEventListener("timeupdate", onTime);
     audio.addEventListener("ended", onEnd);
     audio.addEventListener("waiting", onWaiting);
     audio.addEventListener("playing", onPlaying);
+    audio.addEventListener("error", onError);
+    audio.addEventListener("stalled", onError);
+    audio.addEventListener("abort", onError);
 
     return () => {
       audio.removeEventListener("loadedmetadata", onLoaded);
@@ -85,22 +95,30 @@ export default function VoiceMessageTile({ item, isOwn }: Props) {
       audio.removeEventListener("ended", onEnd);
       audio.removeEventListener("waiting", onWaiting);
       audio.removeEventListener("playing", onPlaying);
+      audio.removeEventListener("error", onError);
+      audio.removeEventListener("stalled", onError);
+      audio.removeEventListener("abort", onError);
     };
   }, [duration, item.durationSec]);
 
   const togglePlay = async () => {
     const audio = audioRef.current;
     if (!audio) return;
+
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
       return;
     }
+
     try {
       setIsLoading(true);
+
+      audio.load();
+
       await audio.play();
-      setIsPlaying(true);
-    } catch {
+    } catch (err) {
+      console.error(err);
       setIsLoading(false);
     }
   };
@@ -195,9 +213,10 @@ export default function VoiceMessageTile({ item, isOwn }: Props) {
       </div>
 
       <audio
+        key={item.src}
         ref={audioRef}
         src={item.src}
-        preload="metadata"
+        preload="auto"
         className="hidden"
       />
     </div>

@@ -182,31 +182,24 @@ export default function MessageBubble({
         )}
 
         {/* Timestamp + status */}
-        <div
-          className={cn(
-            "flex items-center gap-2 mt-1",
-            isOwn && "flex-row-reverse",
-          )}
-        >
-          {!showAvatar &&
-            (isOwn ? (
-              hovered && (
-                <span className="text-[10px] text-muted-foreground">
-                  {formatTime(message.createdAt)}
-                </span>
-              )
-            ) : (
-              <span
-                className={cn(
-                  "text-[10px] text-muted-foreground transition-opacity duration-200",
-                  hovered ? "opacity-100" : "opacity-0",
-                )}
-              >
-                {formatTime(message.createdAt)}
-              </span>
-            ))}
-          {isOwn && <MessageStatusIcon status={message.status} />}
-        </div>
+        {!showAvatar && (
+          <div
+            className={cn(
+              "flex items-center gap-1 mt-0.5",
+              isOwn ? "justify-end" : "justify-start",
+            )}
+          >
+            <span
+              className={cn(
+                "text-[10px] text-muted-foreground transition-opacity duration-200",
+                hovered ? "opacity-100" : "opacity-0",
+              )}
+            >
+              {formatTime(message.createdAt)}
+            </span>
+            {isOwn && <MessageStatusIcon status={message.status} />}
+          </div>
+        )}
       </div>
 
       <MessageActions

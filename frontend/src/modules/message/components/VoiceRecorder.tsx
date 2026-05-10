@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Mic, Trash2, Send, Loader2 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { useVoiceRecorder } from "@/modules/message/hooks/useVoiceRecorder";
@@ -14,7 +14,9 @@ interface VoiceRecorderProps {
 }
 
 const formatTime = (s: number) => {
-  const m = Math.floor(s / 60).toString().padStart(2, "0");
+  const m = Math.floor(s / 60)
+    .toString()
+    .padStart(2, "0");
   const sec = (s % 60).toString().padStart(2, "0");
   return `${m}:${sec}`;
 };
@@ -29,6 +31,10 @@ const VoiceRecorder = ({
 }: VoiceRecorderProps) => {
   const { state, duration, audioLevel, error, start, stop, cancel } =
     useVoiceRecorder();
+  const barsRef = useRef<number[]>(Array(BAR_COUNT).fill(0.05));
+  const audioLevelRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const sendingRef = useRef(false);
   const [bars, setBars] = useState<number[]>(() => Array(BAR_COUNT).fill(0.05));
   const [submitting, setSubmitting] = useState(false);
 
@@ -40,15 +46,32 @@ const VoiceRecorder = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Push audio level into a sliding bar buffer for waveform feel
+  // Keep audioLevel in a ref so the RAF always has the latest value
   useEffect(() => {
-    if (state !== "recording") return;
-    setBars((prev) => {
-      const next = prev.slice(1);
-      next.push(Math.max(0.05, audioLevel));
-      return next;
-    });
-  }, [audioLevel, state]);
+    audioLevelRef.current = audioLevel;
+  }, [audioLevel]);
+
+  // Drive bar updates from a RAF loop — not from React state changes
+  useEffect(() => {
+    if (state !== "recording") {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      return;
+    }
+
+    const tick = () => {
+      barsRef.current = [
+        ...barsRef.current.slice(1),
+        Math.max(0.05, audioLevelRef.current),
+      ];
+      setBars([...barsRef.current]);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, [state]);
 
   // Enforce max duration
   useEffect(() => {
@@ -64,10 +87,12 @@ const VoiceRecorder = ({
   };
 
   const handleSend = async () => {
-    if (state !== "recording") return;
+    if (state !== "recording" || sendingRef.current) return;
+    sendingRef.current = true;
     setSubmitting(true);
     const result = await stop();
     setSubmitting(false);
+    sendingRef.current = false;
     if (!result) {
       onClose();
       return;
@@ -77,11 +102,9 @@ const VoiceRecorder = ({
       : result.mimeType.includes("ogg")
         ? "ogg"
         : "webm";
-    const file = new File(
-      [result.blob],
-      `voice-${Date.now()}.${ext}`,
-      { type: result.mimeType },
-    );
+    const file = new File([result.blob], `voice-${Date.now()}.${ext}`, {
+      type: result.mimeType,
+    });
     onSend(file, result.duration);
     onClose();
   };

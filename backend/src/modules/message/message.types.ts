@@ -1,3 +1,5 @@
+import type { FileKind } from "../storage/storage.types";
+
 interface GetMessageRequest {
   Params: {
     roomId: string;
@@ -67,7 +69,8 @@ interface MessageAttachment {
   filename: string; // Original filename
   mimetype: string; // e.g., "image/png"
   size: number; // Bytes
-  kind: "IMAGE" | "FILE";
+  kind: FileKind; // "IMAGE", "FILE", or "VOICE"
+  durationSec?: number | null; // Only for voice messages
 }
 
 interface MessageParent {

@@ -1,3 +1,4 @@
+type FileKind = "IMAGE" | "FILE" | "VOICE";
 interface FileType {
   id?: string;
   name?: string;
@@ -8,6 +9,8 @@ interface FileType {
   createdAt?: Date | string;
   messageId?: string;
   status?: string;
+  kind?: FileKind;
+  durationSec?: number;
 }
 
 type UploadedFile = {
@@ -18,4 +21,4 @@ type UploadedFile = {
   size: number;
 };
 
-export type { FileType, UploadedFile };
+export type { FileType, UploadedFile, FileKind };
