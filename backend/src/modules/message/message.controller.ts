@@ -62,4 +62,12 @@ const readMessageController = async (
   return { data: null };
 };
 
+const messageReactionController = async (
+  request: FastifyRequest<ReadMessageRequest>,
+  reply: FastifyReply,
+) => {
+  const userId = request.user?.userId;
+  const { messageId, roomId } = request.params;
+}
+
 export { getMessagesController, sendMessageController, readMessageController };

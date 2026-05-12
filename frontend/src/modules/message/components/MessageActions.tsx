@@ -63,7 +63,7 @@ const MessageActions = ({
         <Tooltip>
           <TooltipTrigger asChild>
             <button
-              onClick={() => setReactionsOpen((o) => !o)}
+              onClick={() => setReactionsOpen(!reactionsOpen)}
               className={cn(
                 "p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors",
                 reactionsOpen && "bg-muted text-foreground",
