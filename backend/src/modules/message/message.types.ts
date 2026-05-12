@@ -23,6 +23,16 @@ interface ReadMessageRequest {
   };
 }
 
+interface MessageReactionRequest {
+  Params: {
+    roomId: string;
+    messageId: string;
+  };
+  Body: {
+    emoji: string;
+  };
+}
+
 interface SendMessage {
   roomId: string;
   content: string;
@@ -97,6 +107,16 @@ interface Message {
   tempId?: string;
 }
 
+type MessageReactionAction = "added" | "removed" | "updated";
+
+interface MessageReactionEventPayload {
+  action: MessageReactionAction;
+  messageId: string;
+  userId: string;
+  roomId: string;
+  emoji: string;
+}
+
 export type {
   GetMessageRequest,
   SendMessage,
@@ -106,4 +126,6 @@ export type {
   ReadMessageRequest,
   MessageReadData,
   Message,
+  MessageReactionRequest,
+  MessageReactionEventPayload,
 };

@@ -1,7 +1,10 @@
 import prisma from "@/lib/prisma";
 import { ApiError } from "@/utils/Error";
 import { getFileUrl } from "../storage/storage.service";
-import { createMessageValidation } from "./message.validation";
+import {
+  createMessageValidation,
+  messageReactionValidation,
+} from "./message.validation";
 import { MessageStatus } from "@prisma/client";
 import { emitMessageReceived } from "./message.events";
 import { format, parse } from "node:path";
@@ -388,4 +391,91 @@ const readMessageService = async ({
   return { data, roomMembers };
 };
 
-export { getMessagesService, createMessageService, readMessageService };
+const messageReactionService = async ({
+  messageId,
+  userId,
+  roomId,
+  emoji,
+}: {
+  messageId: string;
+  userId: string;
+  roomId: string;
+  emoji: string;
+}) => {
+  const validated = messageReactionValidation.parse({
+    messageId,
+    userId,
+    roomId,
+    emoji,
+  });
+
+  const existingReaction = await prisma.messageReaction.findUnique({
+    where: {
+      messageId_userId: {
+        messageId: validated.messageId,
+        userId: validated.userId,
+      },
+    },
+  });
+
+  let action: "added" | "removed" | "updated";
+
+  if (!existingReaction) {
+    await prisma.messageReaction.create({
+      data: {
+        messageId: validated.messageId,
+        userId: validated.userId,
+        emoji: validated.emoji,
+      },
+    });
+
+    action = "added";
+  } else if (existingReaction.emoji === validated.emoji) {
+    await prisma.messageReaction.delete({
+      where: {
+        messageId_userId: {
+          messageId: validated.messageId,
+          userId: validated.userId,
+        },
+      },
+    });
+
+    action = "removed";
+  } else {
+    await prisma.messageReaction.update({
+      where: {
+        messageId_userId: {
+          messageId: validated.messageId,
+          userId: validated.userId,
+        },
+      },
+      data: {
+        emoji: validated.emoji,
+      },
+    });
+
+    action = "updated";
+  }
+
+  const allMembers = await prisma.roomMember.findMany({
+    where: { roomId },
+    select: { userId: true },
+  });
+
+  const data = {
+    action,
+    messageId: validated.messageId,
+    userId: validated.userId,
+    roomId: validated.roomId,
+    emoji: validated.emoji,
+  };
+
+  return { data, memberIds: allMembers.map((m) => m.userId) };
+};
+
+export {
+  getMessagesService,
+  createMessageService,
+  readMessageService,
+  messageReactionService,
+};

@@ -1,7 +1,11 @@
 import { Socket } from "socket.io";
 import { createMessageService } from "./message.service";
 import { getIO } from "@/lib/socket";
-import { Message, MessageReadData } from "./message.types";
+import {
+  Message,
+  MessageReadData,
+  MessageReactionEventPayload,
+} from "./message.types";
 
 function registerMessageEvents(socket: Socket) {
   socket.on("message:send", async (payload) => {
@@ -45,9 +49,19 @@ const emitMessageReceived = (
   io.to(rooms).emit("message:new", { message, roomId });
 };
 
+const emitMessageReaction = (
+  memberIds: string[],
+  data: MessageReactionEventPayload,
+) => {
+  const io = getIO();
+  const rooms = memberIds.map((id) => `user:${id}`);
+  io.to(rooms).emit("message:reaction", data);
+};
+
 export {
   registerMessageEvents,
   registerTypingEvents,
   emitMessageRead,
   emitMessageReceived,
+  emitMessageReaction,
 };

@@ -9,4 +9,11 @@ const createMessageValidation = z.object({
   attachmentIds: z.array(z.string()).default([]).optional(),
 });
 
-export { createMessageValidation };
+const messageReactionValidation = z.object({
+  messageId: z.string("messageId is required!"),
+  userId: z.string("userId is required!"),
+  roomId: z.string("roomId is required!"),
+  emoji: z.string("emoji is required!"),
+});
+
+export { createMessageValidation, messageReactionValidation };

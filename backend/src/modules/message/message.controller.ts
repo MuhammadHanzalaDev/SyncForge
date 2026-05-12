@@ -5,14 +5,15 @@ import {
   createMessageService,
   getMessagesService,
   readMessageService,
+  messageReactionService,
 } from "./message.service";
 import {
   GetMessageRequest,
   ReadMessageRequest,
   SendMessageRequest,
+  MessageReactionRequest,
 } from "./message.types";
-import { getIO } from "@/lib/socket";
-import { emitMessageRead } from "./message.events";
+import { emitMessageReaction, emitMessageRead } from "./message.events";
 
 const getMessagesController = async (
   request: FastifyRequest<GetMessageRequest>,
@@ -56,18 +57,38 @@ const readMessageController = async (
   const userId = request.user?.userId;
   const { messageId, roomId } = request.params;
 
-  const { data, roomMembers } = await readMessageService({ userId, messageId, roomId });
+  const { data, roomMembers } = await readMessageService({
+    userId,
+    messageId,
+    roomId,
+  });
   if (data) emitMessageRead(data, roomMembers);
 
   return { data: null };
 };
 
 const messageReactionController = async (
-  request: FastifyRequest<ReadMessageRequest>,
+  request: FastifyRequest<MessageReactionRequest>,
   reply: FastifyReply,
 ) => {
   const userId = request.user?.userId;
   const { messageId, roomId } = request.params;
-}
+  const { emoji } = request.body;
 
-export { getMessagesController, sendMessageController, readMessageController };
+  const { data, memberIds } = await messageReactionService({
+    userId,
+    messageId,
+    roomId,
+    emoji,
+  });
+  if (data) emitMessageReaction(memberIds, data);
+
+  return { data: null };
+};
+
+export {
+  getMessagesController,
+  sendMessageController,
+  readMessageController,
+  messageReactionController,
+};
