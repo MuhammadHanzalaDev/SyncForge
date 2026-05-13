@@ -1,7 +1,15 @@
 import useSocketEvent from "@/shared/hooks/useSocketEvent";
-import { MessageStatus, NewMessage } from "../message.types";
+import {
+  MessageReactionEventPayload,
+  MessageStatus,
+  NewMessage,
+} from "../message.types";
 import { useQueryClient } from "@tanstack/react-query";
-import { addMessage, updateMessageStatus } from "../message.cache";
+import {
+  addMessage,
+  updateMessageReaction,
+  updateMessageStatus,
+} from "../message.cache";
 import { usePersonalInfo } from "@/modules/user/user.query";
 import useRoomStore from "@/modules/room/room.store";
 
@@ -33,7 +41,14 @@ export default function useMessageSocket() {
     updateMessageStatus(queryClient, roomId, messageId, status);
   };
 
+  const handleMessageReaction = (data: MessageReactionEventPayload) => {
+    console.log("new message reaction: ", data);
+
+    updateMessageReaction(queryClient, data);
+  };
+
   // events
   useSocketEvent("message:new", handleNewMessage);
   useSocketEvent("message:read", handleMessageRead);
+  useSocketEvent("message:reaction", handleMessageReaction);
 }

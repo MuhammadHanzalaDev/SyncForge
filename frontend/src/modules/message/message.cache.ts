@@ -1,5 +1,10 @@
 import { QueryClient } from "@tanstack/react-query";
-import { Message, MessageStatus, MessagesData } from "./message.types";
+import {
+  Message,
+  MessageReactionEventPayload,
+  MessageStatus,
+  MessagesData,
+} from "./message.types";
 import { ChatsAndRoomsData } from "../room/room.types";
 import { getItem } from "@/shared/utils/localStorage";
 
@@ -118,4 +123,20 @@ export const markRoomAsRead = (
   roomId: string,
 ): void => {
   setUnreadFlag(queryClient, roomId, false);
+};
+
+export const updateMessageReaction = (
+  queryClient: QueryClient,
+  data: MessageReactionEventPayload,
+) => {
+  queryClient.setQueryData<MessagesData>(["messages", data.roomId], (old) => {
+    if (!old) return old;
+    return {
+      ...old,
+      pages: old.pages.map((page) => ({
+        ...page,
+        data: page.data.map((m) => (m.id === messageId ? { ...m, status } : m)),
+      })),
+    };
+  });
 };

@@ -93,6 +93,17 @@ interface NewMessage {
   roomId: string;
 }
 
+type MessageReactionAction = "added" | "removed" | "updated";
+
+interface MessageReactionEventPayload {
+  action: MessageReactionAction;
+  messageId: string;
+  userId: string;
+  roomId: string;
+  emoji: string;
+}
+
+
 export type {
   Message,
   SendMessage,
@@ -104,4 +115,5 @@ export type {
   MessageReceipt,
   ReadMessage,
   NewMessage,
+  MessageReactionEventPayload,
 };
