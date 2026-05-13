@@ -32,7 +32,6 @@ interface MessageSender {
 }
 
 interface MessageReaction {
-  id: string;
   userId: string;
   emoji: string;
 }
@@ -115,5 +114,6 @@ export type {
   MessageReceipt,
   ReadMessage,
   NewMessage,
+  MessageReaction,
   MessageReactionEventPayload,
 };

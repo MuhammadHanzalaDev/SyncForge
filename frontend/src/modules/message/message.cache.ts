@@ -4,6 +4,7 @@ import {
   MessageReactionEventPayload,
   MessageStatus,
   MessagesData,
+  MessageReaction,
 } from "./message.types";
 import { ChatsAndRoomsData } from "../room/room.types";
 import { getItem } from "@/shared/utils/localStorage";
@@ -128,14 +129,52 @@ export const markRoomAsRead = (
 export const updateMessageReaction = (
   queryClient: QueryClient,
   data: MessageReactionEventPayload,
-) => {
+): void => {
   queryClient.setQueryData<MessagesData>(["messages", data.roomId], (old) => {
     if (!old) return old;
+
     return {
       ...old,
       pages: old.pages.map((page) => ({
         ...page,
-        data: page.data.map((m) => (m.id === messageId ? { ...m, status } : m)),
+        data: page.data.map((m) => {
+          if (m.id !== data.messageId) return m;
+
+          const existingReactions = m.reactions || [];
+
+          let updatedReactions: MessageReaction[] = existingReactions;
+
+          if (data.action === "added") {
+            // prevent duplicate reaction from same user
+            const alreadyExists = existingReactions.find(
+              (r) => r.userId === data.userId,
+            );
+
+            if (!alreadyExists) {
+              updatedReactions = [
+                ...existingReactions,
+                { userId: data.userId, emoji: data.emoji },
+              ];
+            }
+          }
+
+          if (data.action === "removed") {
+            updatedReactions = existingReactions.filter(
+              (r) => r.userId !== data.userId,
+            );
+          }
+
+          if (data.action === "updated") {
+            updatedReactions = existingReactions.map((r) =>
+              r.userId === data.userId ? { ...r, emoji: data.emoji } : r,
+            );
+          }
+
+          return {
+            ...m,
+            reactions: updatedReactions,
+          };
+        }),
       })),
     };
   });

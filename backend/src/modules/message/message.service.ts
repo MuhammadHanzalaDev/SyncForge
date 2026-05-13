@@ -84,6 +84,7 @@ const getMessagesService = async ({
           mimetype: true,
           size: true,
           kind: true,
+          durationSec: true,
         },
       },
       messageReactions: true,
