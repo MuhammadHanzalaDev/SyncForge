@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useRef, useMemo } from "react";
-import type { Message } from "@/modules/message/message.types";
+import type {
+  Message,
+  QuickMessageReactions,
+} from "@/modules/message/message.types";
 import MessageInput from "../../message/components/MessageInput";
 import MessageList from "../../message/components/MessageList";
 import useRoomStore from "../room.store";
@@ -9,6 +12,7 @@ import useTypingSocket from "@/modules/message/hooks/useTypingSocket";
 import { useMessages } from "@/modules/message/message.query";
 import type { InfiniteScrollContainerHandle } from "@/shared/components/common/InfiniteScrollContainer";
 import { usePersonalInfo } from "@/modules/user/user.query";
+import { useReactMessage } from "@/modules/message/message.mutation";
 
 export default function ChatScreen() {
   // refs
@@ -28,6 +32,9 @@ export default function ChatScreen() {
     useMessages(roomId);
   const { data: personalInfo } = usePersonalInfo();
 
+  // mutations
+  const { mutate: mutateReact } = useReactMessage();
+
   const messages: Message[] = useMemo(() => {
     const flat = data?.pages.flatMap((p) => p.data) || [];
     return [...flat].reverse();
@@ -40,6 +47,21 @@ export default function ChatScreen() {
   const handleReply = (message: Message) => {
     setReplyingTo(message);
     inputRef.current?.focus();
+  };
+
+  const handleReact = (messageId: string, emoji: QuickMessageReactions) => {
+    if (!roomId) return;
+    const data = {
+      messageId,
+      emoji,
+      roomId: roomId,
+      user: {
+        id: personalInfo?.id || "",
+        firstName: personalInfo?.firstName || "",
+        lastName: personalInfo?.lastName || "",
+      },
+    };
+    mutateReact(data);
   };
 
   return (

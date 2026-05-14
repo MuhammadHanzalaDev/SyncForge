@@ -25,11 +25,11 @@ interface ReadMessageRequest {
 
 interface MessageReactionRequest {
   Params: {
-    roomId: string;
     messageId: string;
   };
   Body: {
     emoji: string;
+    roomId: string;
   };
 }
 
@@ -61,8 +61,11 @@ interface MessageSender {
 }
 
 interface MessageReaction {
-  id: string;
-  userId: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
   emoji: string;
 }
 
@@ -112,7 +115,11 @@ type MessageReactionAction = "added" | "removed" | "updated";
 interface MessageReactionEventPayload {
   action: MessageReactionAction;
   messageId: string;
-  userId: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
   roomId: string;
   emoji: string;
 }

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { readMessage, sendMessage } from "./message.api";
+import { reactMessage, readMessage, sendMessage } from "./message.api";
 import { usePersonalInfo } from "../user/user.query";
-import { Message, MessagesData } from "./message.types";
+import { Message, MessagesData, ReactMessage } from "./message.types";
 
 const useSendMessage = (roomId: string | null) => {
   const queryClient = useQueryClient();
@@ -77,4 +77,64 @@ const useReadMessage = () => {
   });
 };
 
-export { useSendMessage, useReadMessage };
+const useReactMessage = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: reactMessage,
+
+    onMutate: async (data: ReactMessage) => {
+      // cancel in-flight fetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["messages", data.roomId] });
+
+      // snapshot for rollback
+      const previous = queryClient.getQueryData<MessagesData>([
+        "messages",
+        data.roomId,
+      ]);
+
+      // figure out what action the server will take, based on current cache
+      let action: "added" | "removed" | "updated" = "added";
+
+      if (previous) {
+        for (const page of previous.pages) {
+          const msg = page.data.find((m) => m.id === data.messageId);
+          if (!msg) continue;
+          const existing = msg.reactions?.find(
+            (r) => r.user.id === data.user.id,
+          );
+          if (existing) {
+            action = existing.emoji === data.emoji ? "removed" : "updated";
+          }
+          break;
+        }
+      }
+
+      // reuse the same cache updater the socket uses
+      updateMessageReaction(queryClient, {
+        action,
+        messageId: vars.messageId,
+        roomId: vars.roomId,
+        emoji: vars.emoji,
+        user: {
+          id: currentUser.id,
+          firstName: currentUser.firstName,
+          lastName: currentUser.lastName,
+        },
+      });
+
+      return { previous };
+    },
+
+    onError: (_err, vars, context) => {
+      // rollback
+      if (context?.previous) {
+        queryClient.setQueryData(["messages", vars.roomId], context.previous);
+      }
+    },
+
+    // no onSuccess needed — the socket event from the server will fire
+    // updateMessageReaction with the authoritative state
+  });
+};
+export { useSendMessage, useReadMessage, useReactMessage };

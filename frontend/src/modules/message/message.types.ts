@@ -25,6 +25,19 @@ interface ReadMessage {
   messageId: string;
 }
 
+type QuickMessageReactions = "👍" | "❤️" | "😂" | "😮";
+
+interface ReactMessage {
+  roomId: string;
+  messageId?: string;
+  emoji: QuickMessageReactions;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
+}
+
 interface MessageSender {
   id: string;
   name: string;
@@ -32,7 +45,11 @@ interface MessageSender {
 }
 
 interface MessageReaction {
-  userId: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
   emoji: string;
 }
 
@@ -97,11 +114,14 @@ type MessageReactionAction = "added" | "removed" | "updated";
 interface MessageReactionEventPayload {
   action: MessageReactionAction;
   messageId: string;
-  userId: string;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
   roomId: string;
   emoji: string;
 }
-
 
 export type {
   Message,
@@ -116,4 +136,6 @@ export type {
   NewMessage,
   MessageReaction,
   MessageReactionEventPayload,
+  ReactMessage,
+  QuickMessageReactions,
 };

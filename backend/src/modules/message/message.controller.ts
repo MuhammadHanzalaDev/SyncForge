@@ -71,9 +71,9 @@ const messageReactionController = async (
   request: FastifyRequest<MessageReactionRequest>,
   reply: FastifyReply,
 ) => {
-  const userId = request.user?.userId;
-  const { messageId, roomId } = request.params;
-  const { emoji } = request.body;
+  const userId = request.user.userId;
+  const { messageId } = request.params;
+  const { roomId, emoji } = request.body;
 
   const { data, memberIds } = await messageReactionService({
     userId,

@@ -147,26 +147,26 @@ export const updateMessageReaction = (
           if (data.action === "added") {
             // prevent duplicate reaction from same user
             const alreadyExists = existingReactions.find(
-              (r) => r.userId === data.userId,
+              (r) => r.user.id === data.user.id,
             );
 
             if (!alreadyExists) {
               updatedReactions = [
                 ...existingReactions,
-                { userId: data.userId, emoji: data.emoji },
+                { user: data.user, emoji: data.emoji },
               ];
             }
           }
 
           if (data.action === "removed") {
             updatedReactions = existingReactions.filter(
-              (r) => r.userId !== data.userId,
+              (r) => r.user.id !== data.user.id,
             );
           }
 
           if (data.action === "updated") {
             updatedReactions = existingReactions.map((r) =>
-              r.userId === data.userId ? { ...r, emoji: data.emoji } : r,
+              r.user.id === data.user.id ? { ...r, emoji: data.emoji } : r,
             );
           }
 

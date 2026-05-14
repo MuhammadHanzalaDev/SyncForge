@@ -8,6 +8,7 @@ import {
 import { MessageStatus } from "@prisma/client";
 import { emitMessageReceived } from "./message.events";
 import { format, parse } from "node:path";
+import { findRoom } from "../room/room.repository";
 
 interface GetMessagesParams {
   userId: string;
@@ -87,7 +88,18 @@ const getMessagesService = async ({
           durationSec: true,
         },
       },
-      messageReactions: true,
+      messageReactions: {
+        select: {
+          emoji: true,
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      },
       messageReceipts: {
         select: {
           status: true,
@@ -264,7 +276,18 @@ const createMessageService = async ({
             durationSec: true,
           },
         },
-        messageReactions: true,
+        messageReactions: {
+          select: {
+            emoji: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
         messageReceipts: {
           select: {
             status: true,
@@ -458,15 +481,26 @@ const messageReactionService = async ({
     action = "updated";
   }
 
-  const allMembers = await prisma.roomMember.findMany({
-    where: { roomId },
-    select: { userId: true },
-  });
+  const [allMembers, user] = await Promise.all([
+    prisma.roomMember.findMany({
+      where: { roomId },
+      select: { userId: true },
+    }),
+    prisma.user.findUnique({ where: { id: userId } }),
+  ]);
+
+  if (!user) {
+    throw new ApiError("User not found!", 404);
+  }
 
   const data = {
     action,
     messageId: validated.messageId,
-    userId: validated.userId,
+    user: {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    },
     roomId: validated.roomId,
     emoji: validated.emoji,
   };
