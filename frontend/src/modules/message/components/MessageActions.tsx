@@ -1,6 +1,9 @@
 "use client";
 
-import type { Message } from "@/modules/message/message.types";
+import type {
+  Message,
+  QuickMessageReactions,
+} from "@/modules/message/message.types";
 import { cn } from "@/shared/lib/utils";
 import { Reply, ThumbsUp, MoreVertical } from "lucide-react";
 import {
@@ -17,7 +20,8 @@ interface MessageActionsProps {
   reactionsOpen: boolean;
   setReactionsOpen: (val: boolean) => void;
   onReply: (val: Message) => void;
-  onReact: (val1: string, val2: string) => void;
+  onReact: (messageId: string, emoji: QuickMessageReactions) => void;
+  myEmojis: Set<QuickMessageReactions>;
 }
 
 const MessageActions = ({
@@ -27,6 +31,7 @@ const MessageActions = ({
   setReactionsOpen,
   onReact,
   onReply,
+  myEmojis,
 }: MessageActionsProps) => {
   return (
     <div
@@ -43,18 +48,24 @@ const MessageActions = ({
             isOwn && "flex-row-reverse mr-0 ml-1",
           )}
         >
-          {QUICK_REACTIONS.map((emoji) => (
-            <button
-              key={emoji}
-              onClick={() => {
-                // onReact?.(message.id, emoji);
-                setReactionsOpen(false);
-              }}
-              className="p-1 rounded-md hover:bg-muted transition-colors text-sm leading-none"
-            >
-              {emoji}
-            </button>
-          ))}
+          {QUICK_REACTIONS.map((emoji) => {
+            const isMine = myEmojis.has(emoji);
+            return (
+              <button
+                key={emoji}
+                onClick={() => {
+                  onReact?.(message.id, emoji);
+                  setReactionsOpen(false);
+                }}
+                className={cn(
+                  "p-1 rounded-md hover:bg-muted transition-colors text-sm leading-none",
+                  isMine && "bg-primary/10 ring-1 ring-primary",
+                )}
+              >
+                {emoji}
+              </button>
+            );
+          })}
         </div>
       )}
 

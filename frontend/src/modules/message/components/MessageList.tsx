@@ -1,7 +1,10 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import type { Message } from "@/modules/message/message.types";
+import type {
+  Message,
+  QuickMessageReactions,
+} from "@/modules/message/message.types";
 import { Loader2 } from "lucide-react";
 import { formatDateDivider } from "@/shared/utils/date";
 import { Separator } from "@/shared/components/ui/separator";
@@ -31,7 +34,7 @@ type MessageListProps = {
 
   // Reply integration — bubble triggers, ChatScreen owns the state
   onReply: (message: Message) => void;
-  onReact?: (messageId: string, emoji: string) => void;
+  onReact: (messageId: string, emoji: QuickMessageReactions) => void;
 };
 
 export default function MessageList({
@@ -142,7 +145,7 @@ export default function MessageList({
               showAvatar={showAvatar}
               roomId={roomId || ""}
               onReply={onReply}
-              onReact={() => {}}
+              onReact={onReact}
               onScrollToMessage={scrollToMessage}
               registerRef={registerMessageRef}
               isHighlighted={highlightedId === message.id}

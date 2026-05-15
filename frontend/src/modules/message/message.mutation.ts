@@ -1,7 +1,13 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { reactMessage, readMessage, sendMessage } from "./message.api";
 import { usePersonalInfo } from "../user/user.query";
-import { Message, MessagesData, ReactMessage } from "./message.types";
+import {
+  Message,
+  MessageReactionAction,
+  MessagesData,
+  ReactMessage,
+} from "./message.types";
+import { updateMessageReaction } from "./message.cache";
 
 const useSendMessage = (roomId: string | null) => {
   const queryClient = useQueryClient();
@@ -94,7 +100,7 @@ const useReactMessage = () => {
       ]);
 
       // figure out what action the server will take, based on current cache
-      let action: "added" | "removed" | "updated" = "added";
+      let action: MessageReactionAction = "added";
 
       if (previous) {
         for (const page of previous.pages) {
@@ -113,13 +119,13 @@ const useReactMessage = () => {
       // reuse the same cache updater the socket uses
       updateMessageReaction(queryClient, {
         action,
-        messageId: vars.messageId,
-        roomId: vars.roomId,
-        emoji: vars.emoji,
+        messageId: data.messageId || "",
+        roomId: data.roomId,
+        emoji: data.emoji,
         user: {
-          id: currentUser.id,
-          firstName: currentUser.firstName,
-          lastName: currentUser.lastName,
+          id: data.user.id,
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
         },
       });
 

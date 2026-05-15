@@ -1,3 +1,4 @@
+import { QuickMessageReactions } from "../message/message.types";
 import type { Member } from "./room.types";
 
 const DUMMY_MEMBERS: Member[] = [
@@ -9,6 +10,6 @@ const DUMMY_MEMBERS: Member[] = [
   { id: "6", name: "Layla Hassan", status: "ONLINE", role: "member" },
 ];
 
-const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮"];
+const QUICK_REACTIONS: QuickMessageReactions[] = ["👍", "❤️", "😂", "😮"];
 
 export { DUMMY_MEMBERS, QUICK_REACTIONS };

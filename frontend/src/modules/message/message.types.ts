@@ -50,7 +50,7 @@ interface MessageReaction {
     firstName: string;
     lastName: string;
   };
-  emoji: string;
+  emoji: QuickMessageReactions;
 }
 
 type MessageStatus = "SENT" | "DELIVERED" | "READ";
@@ -123,6 +123,13 @@ interface MessageReactionEventPayload {
   emoji: string;
 }
 
+type AggregatedReaction = {
+  emoji: QuickMessageReactions;
+  count: number;
+  userIds: string[];
+  reactedByMe: boolean;
+};
+
 export type {
   Message,
   SendMessage,
@@ -138,4 +145,6 @@ export type {
   MessageReactionEventPayload,
   ReactMessage,
   QuickMessageReactions,
+  MessageReactionAction,
+  AggregatedReaction,
 };

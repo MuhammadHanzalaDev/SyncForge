@@ -78,6 +78,7 @@ export default function ChatScreen() {
         isFetchingNextPage={isFetchingNextPage}
         fetchNextPage={fetchNextPage}
         onReply={handleReply}
+        onReact={handleReact}
         scrollRef={scrollRef}
       />
 

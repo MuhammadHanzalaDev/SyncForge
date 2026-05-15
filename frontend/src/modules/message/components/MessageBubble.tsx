@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
-import type { Message } from "@/modules/message/message.types";
+import { useState, useCallback, useRef, useMemo } from "react";
+import type {
+  Message,
+  QuickMessageReactions,
+  AggregatedReaction,
+} from "@/modules/message/message.types";
 import {
   Avatar,
   AvatarFallback,
@@ -22,7 +26,7 @@ type MessageBubbleProps = {
   showAvatar: boolean;
   roomId: string;
   onReply: (message: Message) => void;
-  onReact: (messageId: string, emoji: string) => void;
+  onReact: (messageId: string, emoji: QuickMessageReactions) => void;
   onScrollToMessage?: (messageId: string) => void;
   registerRef?: (id: string, el: HTMLDivElement | null) => void;
   isHighlighted?: boolean;
@@ -65,6 +69,38 @@ export default function MessageBubble({
       registerRef?.(message.id, el);
     },
     [registerRef, message.id],
+  );
+
+  const aggregatedReactions = useMemo(() => {
+    if (!message.reactions?.length) return [];
+
+    const map = new Map<QuickMessageReactions, AggregatedReaction>();
+
+    for (const r of message.reactions) {
+      const existing = map.get(r.emoji);
+      if (existing) {
+        existing.count += 1;
+        existing.userIds.push(r.user.id);
+        if (r.user.id === personalInfo?.id) existing.reactedByMe = true;
+      } else {
+        map.set(r.emoji, {
+          emoji: r.emoji,
+          count: 1,
+          userIds: [r.user.id],
+          reactedByMe: r.user.id === personalInfo?.id,
+        });
+      }
+    }
+
+    return Array.from(map.values());
+  }, [message.reactions, personalInfo?.id]);
+
+  const myEmojis = useMemo(
+    () =>
+      new Set(
+        aggregatedReactions.filter((r) => r.reactedByMe).map((r) => r.emoji),
+      ),
+    [aggregatedReactions],
   );
 
   return (
@@ -156,26 +192,31 @@ export default function MessageBubble({
         )}
 
         {/* Reaction pills */}
-        {message.reactions && message.reactions.length > 0 && (
+        {aggregatedReactions.length > 0 && (
           <div
             className={cn(
               "flex flex-wrap gap-1 mt-1",
               isOwn ? "justify-end" : "justify-start",
             )}
           >
-            {message.reactions.map((r) => (
+            {aggregatedReactions.map((r) => (
               <button
                 key={r.emoji}
                 onClick={() => onReact?.(message.id, r.emoji)}
                 className={cn(
                   "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full border transition-colors",
-                  false
-                    ? "bg-primary/10 border-primary/30 text-primary"
+                  r.reactedByMe
+                    ? "bg-primary/10 border-primary text-primary hover:bg-primary/20"
                     : "bg-muted border-border hover:bg-muted/80 text-foreground",
                 )}
+                title={
+                  r.reactedByMe
+                    ? "Click to remove your reaction"
+                    : "Click to react"
+                }
               >
                 <span>{r.emoji}</span>
-                {/* <span className="font-medium">{r.count}</span> */}
+                {r.count > 1 && <span className="font-medium">{r.count}</span>}
               </button>
             ))}
           </div>
@@ -209,6 +250,7 @@ export default function MessageBubble({
         setReactionsOpen={setReactionsOpen}
         onReply={onReply}
         onReact={onReact}
+        myEmojis={myEmojis}
       />
     </div>
   );

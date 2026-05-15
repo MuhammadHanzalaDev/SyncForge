@@ -55,7 +55,7 @@ const reactMessage = async (data: ReactMessage) => {
     const messageId = data.messageId;
     const payload = { ...data };
     delete payload.messageId;
-    const res = await api.post(`/messages/${messageId}/read`, payload);
+    const res = await api.post(`/messages/${messageId}/react`, payload);
     return res.data;
   } catch (err: unknown) {
     if (err instanceof AxiosError) {
