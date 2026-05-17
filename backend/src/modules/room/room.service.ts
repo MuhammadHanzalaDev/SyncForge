@@ -1,6 +1,9 @@
-import { createRoom, findRoom } from "./room.repository";
+import * as roomRepo from "./room.repository";
 import prisma from "@/lib/prisma";
-import { getFileUrl } from "../storage/storage.service";
+import { createAndUploadFile, getFileUrl } from "../storage/storage.service";
+import { CreateRoomData } from "./room.types";
+import { createRoomSchema } from "./room.schema";
+import { UploadedFile } from "../storage/storage.types";
 
 const joinDirectRoomService = async (
   workspaceId: string,
@@ -10,10 +13,10 @@ const joinDirectRoomService = async (
   const sorted = [currentUserId, targetUserId].sort();
   const uniqueKey = `${workspaceId}_${sorted[0]}_${sorted[1]}`;
 
-  let room = await findRoom({ uniqueKey });
+  let room = await roomRepo.findRoom({ uniqueKey });
 
   if (!room) {
-    room = await createRoom({
+    room = await roomRepo.createRoom({
       workspaceId,
       type: "DIRECT",
       uniqueKey,
@@ -143,4 +146,36 @@ const getRoomsService = async (userId: string, workspaceId: string) => {
   return { chats: sortedChats, rooms };
 };
 
-export { joinDirectRoomService, getRoomsService };
+const createRoomService = async (
+  userId: string,
+  data: CreateRoomData,
+  file?: UploadedFile,
+) => {
+  const parsed = createRoomSchema.parse(data);
+
+  let avatarId = null;
+  if (file) {
+    const fileDoc = await createAndUploadFile(userId, file, "avatars");
+    avatarId = fileDoc.id;
+  }
+
+  // create workspace
+  const members = [
+    { userId, isAdmin: true },
+    ...(data.memberIds
+      ? data.memberIds.map((id) => ({ userId: id, isAdmin: false }))
+      : []),
+  ];
+  const room = await roomRepo.createRoom({
+    workspaceId: parsed.workspaceId,
+    type: parsed.type,
+    name: parsed.name,
+    roomMembers: {
+      create: members,
+    },
+  });
+
+  return room;
+};
+
+export { joinDirectRoomService, getRoomsService, createRoomService };

@@ -20,6 +20,7 @@ import useMessageReadObserver from "../hooks/useMessageReadObserver";
 import { usePersonalInfo } from "@/modules/user/user.query";
 import MessageActions from "./MessageActions";
 import MessageReplyPreview from "./MessageReplyPreview";
+import ReactionPopover from "./ReactionPopover";
 
 type MessageBubbleProps = {
   message: Message;
@@ -77,16 +78,21 @@ export default function MessageBubble({
     const map = new Map<QuickMessageReactions, AggregatedReaction>();
 
     for (const r of message.reactions) {
+      const fullName = `${r.user.firstName} ${r.user.lastName}`;
       const existing = map.get(r.emoji);
       if (existing) {
         existing.count += 1;
         existing.userIds.push(r.user.id);
+        existing.userNames.push(
+          r.user.id === personalInfo?.id ? "You" : fullName,
+        );
         if (r.user.id === personalInfo?.id) existing.reactedByMe = true;
       } else {
         map.set(r.emoji, {
           emoji: r.emoji,
           count: 1,
           userIds: [r.user.id],
+          userNames: [r.user.id === personalInfo?.id ? "You" : fullName],
           reactedByMe: r.user.id === personalInfo?.id,
         });
       }
@@ -200,24 +206,12 @@ export default function MessageBubble({
             )}
           >
             {aggregatedReactions.map((r) => (
-              <button
+              <ReactionPopover
                 key={r.emoji}
-                onClick={() => onReact?.(message.id, r.emoji)}
-                className={cn(
-                  "flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full border transition-colors",
-                  r.reactedByMe
-                    ? "bg-primary/10 border-primary text-primary hover:bg-primary/20"
-                    : "bg-muted border-border hover:bg-muted/80 text-foreground",
-                )}
-                title={
-                  r.reactedByMe
-                    ? "Click to remove your reaction"
-                    : "Click to react"
-                }
-              >
-                <span>{r.emoji}</span>
-                {r.count > 1 && <span className="font-medium">{r.count}</span>}
-              </button>
+                reaction={r}
+                isOwn={isOwn}
+                onReact={(emoji) => onReact(message.id, emoji)}
+              />
             ))}
           </div>
         )}

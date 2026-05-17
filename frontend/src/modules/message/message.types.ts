@@ -127,6 +127,7 @@ type AggregatedReaction = {
   emoji: QuickMessageReactions;
   count: number;
   userIds: string[];
+  userNames: string[];
   reactedByMe: boolean;
 };
 

@@ -14,6 +14,7 @@ import { WorkspaceRes } from "@/modules/workspace/workspace.types";
 import { getItem, setItem } from "@/shared/utils/localStorage";
 import useWorkspaceStore from "@/modules/workspace/workspace.store";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface WorkspaceSectionProps {
   workspaces: WorkspaceRes[];
@@ -51,9 +52,20 @@ export function WorkspaceSection({
               )}
             >
               {/* Active workspace icon */}
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white shrink-0">
-                <MonitorCloud className="h-4 w-4" />
-              </div>
+              {activeItem?.logo ? (
+                <div className="h-10 w-10 relative rounded-lg shrink-0">
+                  <Image
+                    src={activeItem.logo}
+                    alt="logo"
+                    fill
+                    className="object-cover rounded-lg"
+                  />
+                </div>
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white shrink-0">
+                  <MonitorCloud className="h-4 w-4" />
+                </div>
+              )}
 
               {/* Name + plan */}
               <div className="flex flex-col gap-0.5 leading-none">

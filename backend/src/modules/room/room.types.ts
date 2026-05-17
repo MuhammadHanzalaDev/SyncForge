@@ -9,4 +9,13 @@ interface getRoomsRequest {
   };
 }
 
-export type { JoinDirectRoom, getRoomsRequest };
+type RoomType = "PUBLIC" | "PRIVATE" | "DIRECT";
+
+interface CreateRoomData {
+  workspaceId: string;
+  name: string;
+  type: RoomType;
+  memberIds?: string[];
+}
+
+export type { JoinDirectRoom, getRoomsRequest, CreateRoomData, RoomType };

@@ -3,14 +3,14 @@ import type { UploadedFile } from "@/modules/storage/storage.types";
 
 export type MultipartFields = Record<string, string | string[]>;
 
-export type ParsedMultipart = {
-  data: MultipartFields;
+export type ParsedMultipart<T = MultipartFields> = {
+  data: T;
   files: UploadedFile[];
 };
 
-export const parseMultipart = async (
+export const parseMultipart = async <T = MultipartFields>(
   request: FastifyRequest,
-): Promise<ParsedMultipart> => {
+): Promise<ParsedMultipart<T>> => {
   const fields: MultipartFields = {};
   const files: UploadedFile[] = [];
 
@@ -39,7 +39,7 @@ export const parseMultipart = async (
   }
 
   return {
-    data: fields,
+    data: fields as T,
     files,
   };
 };

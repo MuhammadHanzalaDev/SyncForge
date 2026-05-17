@@ -12,4 +12,15 @@ const DUMMY_MEMBERS: Member[] = [
 
 const QUICK_REACTIONS: QuickMessageReactions[] = ["👍", "❤️", "😂", "😮"];
 
-export { DUMMY_MEMBERS, QUICK_REACTIONS };
+const roomTypeOptions = [
+  {
+    label: "Public (All workspace members)",
+    value: "PUBLIC",
+  },
+  {
+    label: "Private (Select specific members)",
+    value: "PRIVATE",
+  },
+];
+
+export { DUMMY_MEMBERS, QUICK_REACTIONS, roomTypeOptions };

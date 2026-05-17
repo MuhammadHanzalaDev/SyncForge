@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/shared/components/ui/dialog";
 import { FormProvider, UseFormReturn, FieldValues } from "react-hook-form";
-import CustomButton from "../form/CustomButtom";
+import CustomButton from "../form/CustomButton";
 
 interface FormDialogProps<T extends FieldValues> {
   children: React.ReactNode;

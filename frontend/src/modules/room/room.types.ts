@@ -1,3 +1,6 @@
+import z from "zod";
+import { createRoomSchema } from "./room.schema";
+
 interface Chat {
   id: string;
   name: string;
@@ -36,4 +39,24 @@ type ChatsAndRoomsData = {
   chats: Chat[];
 };
 
-export type { Chat, Room, RoomMember, UnreadInfo, ChatsAndRoomsData };
+type RoomType = "PUBLIC" | "PRIVATE" | "DIRECT";
+
+interface CreateRoomPayload {
+  workspaceId: string;
+  name: string;
+  type: RoomType;
+  memberIds?: string[];
+}
+
+type CreateRoomValues = z.infer<typeof createRoomSchema>;
+
+export type {
+  Chat,
+  Room,
+  RoomMember,
+  UnreadInfo,
+  ChatsAndRoomsData,
+  RoomType,
+  CreateRoomPayload,
+  CreateRoomValues,
+};

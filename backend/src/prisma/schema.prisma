@@ -99,6 +99,7 @@ enum RoomType {
 model RoomMember {
   userId     String
   roomId     String
+  isAdmin    Boolean   @default(false)
   lastReadAt DateTime?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

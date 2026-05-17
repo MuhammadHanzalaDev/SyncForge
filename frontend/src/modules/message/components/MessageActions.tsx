@@ -6,13 +6,8 @@ import type {
 } from "@/modules/message/message.types";
 import { cn } from "@/shared/lib/utils";
 import { Reply, ThumbsUp, MoreVertical } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/shared/components/ui/tooltip";
 import { QUICK_REACTIONS } from "../../room/room.content";
+import { CustomTooltip } from "@/shared/components";
 
 interface MessageActionsProps {
   message: Message;
@@ -70,54 +65,33 @@ const MessageActions = ({
       )}
 
       {/* Thumbs-up toggles the reaction strip */}
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => setReactionsOpen(!reactionsOpen)}
-              className={cn(
-                "p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors",
-                reactionsOpen && "bg-muted text-foreground",
-              )}
-            >
-              <ThumbsUp className="h-3.5 w-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">
-            React
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <CustomTooltip content={"React"}>
+        <button
+          onClick={() => setReactionsOpen(!reactionsOpen)}
+          className={cn(
+            "p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors",
+            reactionsOpen && "bg-muted text-foreground",
+          )}
+        >
+          <ThumbsUp className="h-3.5 w-3.5" />
+        </button>
+      </CustomTooltip>
 
       {/* Reply — calls onReply so the parent can populate the input */}
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              onClick={() => onReply?.(message)}
-              className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <Reply className="h-3.5 w-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">
-            Reply
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <CustomTooltip content={"Reply"}>
+        <button
+          onClick={() => onReply?.(message)}
+          className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Reply className="h-3.5 w-3.5" />
+        </button>
+      </CustomTooltip>
 
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-              <MoreVertical className="h-3.5 w-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="text-xs">
-            More
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <CustomTooltip content={"More"}>
+        <button className="p-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+          <MoreVertical className="h-3.5 w-3.5" />
+        </button>
+      </CustomTooltip>
     </div>
   );
 };

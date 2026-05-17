@@ -1,13 +1,12 @@
 import { FastifyPluginAsync } from "fastify";
 import { getRoomsRequest } from "./room.types";
-import { getRooms } from "./room.controller";
+import { getRooms, createRoom } from "./room.controller";
 
 const roomRoutes: FastifyPluginAsync = async (app) => {
-  app.get<getRoomsRequest>(
-    "/:workspaceId",
-    { preHandler: app.authenticate },
-    getRooms,
-  );
+  app.addHook("preHandler", app.authenticate);
+
+  app.get<getRoomsRequest>("/:workspaceId", getRooms);
+  app.post("/", createRoom);
 };
 
 export default roomRoutes;

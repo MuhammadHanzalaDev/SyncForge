@@ -9,7 +9,6 @@ import { WorkspaceSection } from "./WorkspaceSection";
 import ProfileSection from "./ProfileSection";
 import { useWorkspaces } from "@/modules/workspace/workspace.query";
 import { CustomInputFieldWithContent } from "..";
-import { Button } from "../ui/button";
 
 export default function TopBar() {
   const { data: workspaces, isLoading } = useWorkspaces();
