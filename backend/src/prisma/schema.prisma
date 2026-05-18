@@ -84,6 +84,9 @@ model Room {
 
   uniqueKey String? @unique // for direct rooms workspaceId_userId1_userId2
 
+  avatarId String?
+  avatar   File?   @relation("RoomAvatar", fields: [avatarId], references: [id])
+
   workspace      Workspace       @relation(fields: [workspaceId], references: [id])
   messages       Message[]
   roomMembers    RoomMember[]
@@ -201,6 +204,7 @@ model File {
 
   avatarOfUsers      User[]      @relation("UserAvatar")
   avatarOfWorkspaces Workspace[] @relation("WorkspaceAvatar")
+  roomAvatars        Room[]      @relation("RoomAvatar")
 
   @@index([userId])
   @@index([messageId])

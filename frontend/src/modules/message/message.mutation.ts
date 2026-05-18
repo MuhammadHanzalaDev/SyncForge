@@ -132,10 +132,10 @@ const useReactMessage = () => {
       return { previous };
     },
 
-    onError: (_err, vars, context) => {
+    onError: (_err, data, context) => {
       // rollback
       if (context?.previous) {
-        queryClient.setQueryData(["messages", vars.roomId], context.previous);
+        queryClient.setQueryData(["messages", data.roomId], context.previous);
       }
     },
 
