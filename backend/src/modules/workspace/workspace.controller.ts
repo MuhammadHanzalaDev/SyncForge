@@ -73,4 +73,56 @@ const joinWorkspace = async (
   reply.redirect(env.CLIENT_URL);
 };
 
-export { getAllWorkspaces, createWorkspace, joinWorkspace };
+interface getAllWorkspaceMembersWithFiltersRequest {
+  Querystring: {
+    workspaceId: string;
+  };
+}
+
+const getAllWorkspaceMembersforFilters = async (
+  request: FastifyRequest<getAllWorkspaceMembersWithFiltersRequest>,
+) => {
+  const userId = request.user?.userId;
+  const workspaceId = request.query?.workspaceId;
+  console.log("workspaceId", workspaceId);
+  console.log("userId", userId);
+
+  const members = await prisma.workspaceMember.findMany({
+    where: {
+      workspaceId,
+      NOT: { userId },
+      user: {
+        AND: [
+          {
+            firstName: {
+              not: "",
+            },
+          },
+          {
+            lastName: {
+              not: "",
+            },
+          },
+        ],
+      },
+    },
+    select: { user: { select: { id: true, firstName: true, lastName: true } } },
+  });
+  console.log("members", members);
+
+  const data = members.map((m) => ({
+    label: `${m.user.firstName} ${m.user.lastName}`,
+    value: m.user.id,
+  }));
+
+  return { data };
+};
+
+export {
+  getAllWorkspaces,
+  createWorkspace,
+  joinWorkspace,
+  getAllWorkspaceMembersforFilters,
+};
+
+export type { getAllWorkspaceMembersWithFiltersRequest };

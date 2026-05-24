@@ -1,20 +1,22 @@
 "use client";
 
-import type { Member } from "../room.types";
+import type { RoomMember } from "../room.types";
 import { X, MessageSquare, UserPlus } from "lucide-react";
 import MemberAvatar from "./MemberAvatar";
 import { Badge } from "@/shared/components/ui/badge";
 import { CustomButton } from "@/shared/components";
+import useUserStatusStore from "@/shared/store/userStatusStore";
 
 export default function MemberListPanel({
-  members,
+  members = [],
   onClose,
 }: {
-  members: Member[];
+  members?: RoomMember[];
   onClose: () => void;
 }) {
-  const online = members.filter((m) => m.status !== "ONLINE");
-  const offline = members.filter((m) => m.status === "OFFLINE");
+  const getUserStatus = useUserStatusStore((state) => state.getUserStatus);
+  const online = members.filter((m) => getUserStatus(m.id) === "ONLINE");
+  const offline = members.filter((m) => getUserStatus(m.id) === "OFFLINE");
 
   return (
     <div className="w-64 border-l flex flex-col bg-background shrink-0">
@@ -40,7 +42,7 @@ export default function MemberListPanel({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-medium truncate">{m.name}</span>
-                {m.role === "admin" && (
+                {m.isAdmin && (
                   <Badge
                     variant="secondary"
                     className="text-[10px] px-1 py-0 h-4 shrink-0"
@@ -50,7 +52,7 @@ export default function MemberListPanel({
                 )}
               </div>
               <span className="text-[11px] text-muted-foreground capitalize">
-                {m.status}
+                {getUserStatus(m.id)}
               </span>
             </div>
             <button className="opacity-0 group-hover:opacity-100 p-1 hover:bg-muted rounded text-muted-foreground">

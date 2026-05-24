@@ -79,21 +79,19 @@ const joinWorkspaceService = async (token: string, reply: any) => {
   const user = await findUserByEmail(parsed.email);
 
   if (user) {
-    const workspaceMember = await findWorkspaceMember({
-      userId_workspaceId: {
+    try {
+      await createWorkspaceMember({
         userId: user.id,
         workspaceId: parsed.workspaceId,
-      },
-    });
-    if (workspaceMember) {
-      throw new ApiError("Workspace already joined!");
-    }
+        role: "MEMBER",
+      });
+    } catch (error: any) {
+      if (error.code === "P2002") {
+        throw new ApiError("Workspace already joined!");
+      }
 
-    await createWorkspaceMember({
-      userId: user.id,
-      workspaceId: parsed.workspaceId,
-      role: "MEMBER",
-    });
+      throw error;
+    }
   } else {
     const newUser = await createUser({
       email: parsed.email,

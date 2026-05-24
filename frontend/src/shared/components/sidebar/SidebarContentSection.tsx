@@ -43,6 +43,7 @@ export function SidebarContentSection() {
   const workspaceId = useWorkspaceStore((state) => state.workspaceId);
   const { data } = useChatsAndRooms(workspaceId);
   const setActiveChat = useRoomStore((state) => state.setActiveChat);
+  const setActiveRoom = useRoomStore((state) => state.setActiveRoom);
   const [activeItem, setActiveItem] = useState("");
 
   const closeMobile = () => {
@@ -69,8 +70,10 @@ export function SidebarContentSection() {
             label: "Rooms",
             children: data?.rooms || [],
             onChildClick: (room: Room) => {
+              setActiveRoom(room);
               setActiveItem(room.id);
-              router.push(`/chats/${room.id}`);
+              markRoomAsRead(queryClient, room.id);
+              router.push(`/rooms/${room.id}`);
               closeMobile();
             },
           }

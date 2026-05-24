@@ -13,7 +13,7 @@ import ConversationStartHeader from "../../room/components/ConversationStartHead
 import { InfiniteScrollContainer } from "@/shared/components";
 import type { InfiniteScrollContainerHandle } from "@/shared/components/common/InfiniteScrollContainer";
 import { useScrollBehavior } from "../../room/hooks/useScrollBehaviour";
-import { Chat } from "../../room/room.types";
+import { Chat, Room } from "../../room/room.types";
 import useUserStatusStore from "@/shared/store/userStatusStore";
 import message from "@/shared/utils/toast";
 
@@ -21,7 +21,7 @@ type MessageListProps = {
   // Data
   messages: Message[];
   roomId: string | null;
-  activeChat: Chat | null;
+  activeItem: Chat | Room | null;
   currentUserId?: string;
   hasUnreadBelow: boolean;
   setHasUnreadBelow: (val: boolean) => void;
@@ -35,12 +35,14 @@ type MessageListProps = {
   // Reply integration — bubble triggers, ChatScreen owns the state
   onReply: (message: Message) => void;
   onReact: (messageId: string, emoji: QuickMessageReactions) => void;
+
+  isRoom: boolean;
 };
 
 export default function MessageList({
   messages,
   roomId,
-  activeChat,
+  activeItem,
   currentUserId,
   hasUnreadBelow,
   setHasUnreadBelow,
@@ -50,17 +52,18 @@ export default function MessageList({
   scrollRef,
   onReply,
   onReact,
+  isRoom,
 }: MessageListProps) {
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   const getUserStatus = useUserStatusStore((state) => state.getUserStatus);
-  const userStatus = getUserStatus(activeChat?.id || "");
+  const userStatus = getUserStatus(activeItem?.id || "");
 
   useScrollBehavior(messages, scrollRef, {
     onNewMessageWhileScrolledUp: () => setHasUnreadBelow(true),
     currentUserId,
-    activeId: activeChat?.id || "",
+    activeId: activeItem?.id || "",
   });
 
   const registerMessageRef = useCallback(
@@ -105,10 +108,10 @@ export default function MessageList({
         )}
 
         {/* Conversation start header — only shown when no more messages to load */}
-        {!hasNextPage && (
+        {!hasNextPage && !isRoom && (
           <>
             <ConversationStartHeader
-              activeChat={activeChat}
+              activeChat={activeItem as Chat}
               userStatus={userStatus}
             />
 

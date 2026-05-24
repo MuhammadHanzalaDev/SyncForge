@@ -3,6 +3,8 @@ import {
   getAllWorkspaces,
   createWorkspace,
   joinWorkspace,
+  getAllWorkspaceMembersforFilters,
+  getAllWorkspaceMembersWithFiltersRequest,
 } from "./workspace.controller";
 
 declare module "fastify" {
@@ -33,6 +35,11 @@ const workspaceRoutes: FastifyPluginAsync = async (app) => {
     createWorkspace,
   );
   app.get("/join", joinWorkspace);
+  app.get<getAllWorkspaceMembersWithFiltersRequest>(
+    "/members/filters",
+    { preHandler: app.authenticate },
+    getAllWorkspaceMembersforFilters,
+  );
 };
 
 export default workspaceRoutes;

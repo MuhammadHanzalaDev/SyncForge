@@ -16,14 +16,14 @@ interface RoomMember {
   id: string;
   name: string;
   avatar?: string;
-  status: "ONLINE" | "AWAY" | "BUSY" | "OFFLINE";
-  role?: "admin" | "member";
+  isAdmin: boolean;
 }
 
 interface Room {
   id: string;
   name: string;
   type: string;
+  avatar?: string;
   members: RoomMember[];
   hasUnread: boolean;
   hasMention: boolean;

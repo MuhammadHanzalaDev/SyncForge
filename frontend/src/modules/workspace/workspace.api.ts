@@ -25,4 +25,18 @@ const createWorkspace = async (formData: FormData) => {
   }
 };
 
-export { getAllWorkspaces, createWorkspace };
+const getAllWorkspaceMembersForFilters = async (workspaceId?: string | null) => {
+  try {
+    const res = await api.get("/workspaces/members/filters", {
+      params: { workspaceId },
+    });
+    return res.data.data;
+  } catch (err: unknown) {
+    if (err instanceof AxiosError) {
+      throw err.response?.data || err.message;
+    }
+    throw err;
+  }
+};
+
+export { getAllWorkspaces, createWorkspace, getAllWorkspaceMembersForFilters };

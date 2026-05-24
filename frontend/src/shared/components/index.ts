@@ -12,6 +12,7 @@ export { default as CustomInputField } from "./form/CustomInputField";
 export { default as ProfileUploader } from "./form/ProfileUploader";
 export { default as CustomInputFieldWithContent } from "./form/CustomInputFieldWithContent";
 export { default as CustomSelectField } from "./form/CustomSelectField";
+export { default as CustomMultiSelectField } from "./form/CustomMultiSelectField";
 
 // Loaders
 export { default as CustomLoader } from "./loaders/CustomLoader";

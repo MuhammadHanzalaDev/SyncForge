@@ -1,9 +1,11 @@
 "use client";
 
 import { ChevronsUpDown } from "lucide-react";
-import { useState } from "react";
+import { Controller, useFormContext } from "react-hook-form";
+
 import { Button } from "@/shared/components/ui/button";
 import { Checkbox } from "@/shared/components/ui/checkbox";
+
 import {
   Command,
   CommandEmpty,
@@ -12,70 +14,117 @@ import {
   CommandItem,
   CommandList,
 } from "@/shared/components/ui/command";
+
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/shared/components/ui/popover";
 
-const categories = [
-  { value: "electronics", label: "Electronics" },
-  { value: "clothing", label: "Clothing" },
-  { value: "books", label: "Books" },
-  { value: "sports", label: "Sports" },
-  { value: "home", label: "Home & Garden" },
-];
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/shared/components/ui/field";
 
-const Example = () => {
-  const [open, setOpen] = useState(false);
-  const [selectedValues, setSelectedValues] = useState<string[]>([]);
+type Option = {
+  label: string;
+  value: string;
+};
+
+interface CustomMultiSelectFieldProps {
+  name: string;
+  label?: string;
+  description?: string;
+  placeholder?: string;
+  options: Option[];
+}
+
+const CustomMultiSelectField = ({
+  name,
+  label,
+  description,
+  placeholder = "Select options...",
+  options,
+}: CustomMultiSelectFieldProps) => {
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext();
+
+  const fieldError = errors[name]?.message as string | undefined;
 
   return (
-    <Popover onOpenChange={setOpen} open={open}>
-      <PopoverTrigger asChild>
-        <Button
-          aria-expanded={open}
-          className="w-[250px] justify-between"
-          role="combobox"
-          variant="outline"
-        >
-          {selectedValues.length > 0
-            ? `${selectedValues.length} categor${selectedValues.length > 1 ? "ies" : "y"}`
-            : "Select categories..."}
-          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[250px] p-0">
-        <Command>
-          <CommandInput placeholder="Search categories..." />
-          <CommandList>
-            <CommandEmpty>No category found.</CommandEmpty>
-            <CommandGroup>
-              {categories.map((category) => (
-                <CommandItem
-                  key={category.value}
-                  onSelect={(currentValue) => {
-                    setSelectedValues(
-                      selectedValues.includes(currentValue)
-                        ? selectedValues.filter((v) => v !== currentValue)
-                        : [...selectedValues, currentValue],
-                    );
-                  }}
-                  value={category.value}
+    <Field data-invalid={!!fieldError}>
+      {label && <FieldLabel>{label}</FieldLabel>}
+
+      <Controller
+        name={name}
+        control={control}
+        render={({ field }) => {
+          const selectedValues: string[] = field.value || [];
+
+          return (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  role="combobox"
+                  variant="outline"
+                  className="w-full justify-between"
                 >
-                  <Checkbox
-                    checked={selectedValues.includes(category.value)}
-                    className="mr-2"
-                  />
-                  {category.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+                  {selectedValues.length > 0
+                    ? `${selectedValues.length} selected`
+                    : placeholder}
+
+                  <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Search..." />
+
+                  <CommandList>
+                    <CommandEmpty>No option found.</CommandEmpty>
+
+                    <CommandGroup>
+                      {options.map((option) => (
+                        <CommandItem
+                          key={option.value}
+                          value={option.value}
+                          onSelect={(currentValue) => {
+                            const updatedValues = selectedValues.includes(
+                              currentValue,
+                            )
+                              ? selectedValues.filter((v) => v !== currentValue)
+                              : [...selectedValues, currentValue];
+
+                            field.onChange(updatedValues);
+                          }}
+                        >
+                          <Checkbox
+                            checked={selectedValues.includes(option.value)}
+                            className="mr-2"
+                          />
+
+                          {option.label}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          );
+        }}
+      />
+
+      {description && <FieldDescription>{description}</FieldDescription>}
+
+      {fieldError && <FieldError errors={[{ message: fieldError }]} />}
+    </Field>
   );
 };
 
-export default Example;
+export default CustomMultiSelectField;

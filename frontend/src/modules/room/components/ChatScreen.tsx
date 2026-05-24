@@ -13,6 +13,7 @@ import { useMessages } from "@/modules/message/message.query";
 import type { InfiniteScrollContainerHandle } from "@/shared/components/common/InfiniteScrollContainer";
 import { usePersonalInfo } from "@/modules/user/user.query";
 import { useReactMessage } from "@/modules/message/message.mutation";
+import TypingIndicator from "./TypingIndicator";
 
 export default function ChatScreen() {
   // refs
@@ -41,7 +42,7 @@ export default function ChatScreen() {
   }, [data?.pages]);
 
   // hooks
-  const { typingUsers } = useTypingSocket(roomId);
+  const { typingUsers, handleTypingStop } = useTypingSocket(roomId);
 
   // local functions
   const handleReply = (message: Message) => {
@@ -70,7 +71,7 @@ export default function ChatScreen() {
       <MessageList
         messages={messages}
         roomId={roomId}
-        activeChat={activeChat}
+        activeItem={activeChat}
         currentUserId={personalInfo?.id}
         hasUnreadBelow={hasUnreadBelow}
         setHasUnreadBelow={setHasUnreadBelow}
@@ -80,6 +81,7 @@ export default function ChatScreen() {
         onReply={handleReply}
         onReact={handleReact}
         scrollRef={scrollRef}
+        isRoom={false}
       />
 
       {/* Typing indicator */}
@@ -101,7 +103,7 @@ export default function ChatScreen() {
       {/* Input Area */}
       <MessageInput
         roomId={roomId}
-        activeChat={activeChat}
+        activeItem={activeChat}
         replyingTo={replyingTo}
         onCancelReply={() => setReplyingTo(null)}
         onSent={() => {
@@ -109,6 +111,7 @@ export default function ChatScreen() {
           setHasUnreadBelow(false);
         }}
         inputRef={inputRef}
+        handleTypingStop={handleTypingStop}
       />
     </div>
   );

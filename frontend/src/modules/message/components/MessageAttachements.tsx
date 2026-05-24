@@ -84,7 +84,6 @@ const MessageAttachments = forwardRef<MessageAttachmentsHandle, Props>(
     );
 
     const uploadSingle = async (attachment: Attachment) => {
-      console.log("Uploading attachment", attachment);
       const formData = objectToFormData({
         file: attachment.file,
         kind: attachment.kind,

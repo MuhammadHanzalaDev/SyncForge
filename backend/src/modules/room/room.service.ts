@@ -30,11 +30,38 @@ const joinDirectRoomService = async (
   return room.id;
 };
 
+const joinRoomService = async (workspaceId: string, roomId: string) => {
+  let room = await roomRepo.findRoom({ id: roomId, workspaceId });
+
+  if (!room) {
+    throw new Error("Room not found!");
+  }
+
+  return room.id;
+};
+
 const getRoomsService = async (userId: string, workspaceId: string) => {
   // 1. Fetch workspace members and rooms in parallel
   const [workspaceMembers, userRooms] = await Promise.all([
     prisma.workspaceMember.findMany({
-      where: { workspaceId, NOT: { userId } },
+      where: {
+        workspaceId,
+        NOT: { userId },
+        user: {
+          AND: [
+            {
+              firstName: {
+                not: "",
+              },
+            },
+            {
+              lastName: {
+                not: "",
+              },
+            },
+          ],
+        },
+      },
       select: {
         status: true,
         lastSeenAt: true,
@@ -56,7 +83,15 @@ const getRoomsService = async (userId: string, workspaceId: string) => {
           select: {
             userId: true,
             lastReadAt: true,
-            user: { select: { id: true, firstName: true, lastName: true } },
+            isAdmin: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatarId: true,
+              },
+            },
           },
         },
         messages: { orderBy: { createdAt: "desc" }, take: 1 },
@@ -132,16 +167,30 @@ const getRoomsService = async (userId: string, workspaceId: string) => {
   });
 
   // 6. Format group rooms
-  const rooms = sortedRooms
-    .filter((r) => r.type !== "DIRECT")
-    .map((room) => ({
-      id: room.id,
-      name: room.name,
-      type: room.type,
-      members: room.roomMembers.map((rm) => rm.user),
-      hasUnread: hasUnreadByRoomId.has(room.id),
-      hasMention: false,
-    }));
+  const rooms = await Promise.all(
+    sortedRooms
+      .filter((r) => r.type !== "DIRECT")
+      .map(async (room) => ({
+        id: room.id,
+        name: room.name,
+        type: room.type,
+        avatar: room.avatarId ? await getFileUrl(room.avatarId) : null,
+
+        members: await Promise.all(
+          room.roomMembers.map(async (rm) => ({
+            id: rm.user.id,
+            name: `${rm.user.firstName} ${rm.user.lastName}`,
+            avatar: rm.user.avatarId
+              ? await getFileUrl(rm.user.avatarId)
+              : null,
+            isAdmin: rm.isAdmin,
+          })),
+        ),
+
+        hasUnread: hasUnreadByRoomId.has(room.id),
+        hasMention: false,
+      })),
+  );
 
   return { chats: sortedChats, rooms };
 };
@@ -162,8 +211,8 @@ const createRoomService = async (
   // create workspace
   const members = [
     { userId, isAdmin: true },
-    ...(data.memberIds
-      ? data.memberIds.map((id) => ({ userId: id, isAdmin: false }))
+    ...(parsed.memberIds
+      ? parsed.memberIds.map((id) => ({ userId: id, isAdmin: false }))
       : []),
   ];
   const room = await roomRepo.createRoom({
@@ -173,9 +222,15 @@ const createRoomService = async (
     roomMembers: {
       create: members,
     },
+    avatarId,
   });
 
   return room;
 };
 
-export { joinDirectRoomService, getRoomsService, createRoomService };
+export {
+  joinDirectRoomService,
+  getRoomsService,
+  createRoomService,
+  joinRoomService,
+};

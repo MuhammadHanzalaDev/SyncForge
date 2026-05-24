@@ -65,7 +65,9 @@ export default function CollapsibleNavItem({
   return (
     <>
       {/* Create Room Modal */}
-      <CreateRoom isOpen={isCreateRoomOpen} setIsOpen={setIsCreateRoomOpen} />
+      {isCreateRoomOpen && (
+        <CreateRoom isOpen={isCreateRoomOpen} setIsOpen={setIsCreateRoomOpen} />
+      )}
 
       <Collapsible open={open} onOpenChange={setOpen}>
         <SidebarMenuItem>
@@ -123,6 +125,7 @@ export default function CollapsibleNavItem({
                                     <AvatarImage
                                       src={child.avatar}
                                       alt={child.name}
+                                      className="object-cover"
                                     />
                                   ) : (
                                     <AvatarFallback className="bg-primary text-white flex justify-center items-center text-xs">
@@ -226,29 +229,49 @@ export default function CollapsibleNavItem({
                               : {}
                           }
                         >
-                          <div className="flex items-center gap-2 min-w-0 w-full">
-                            <span className="truncate flex-1 min-w-0">
-                              {child.name}
-                            </span>
+                          {item.isIcons ? (
+                            <div className="flex items-center gap-2 min-w-0 w-full">
+                              <div className="relative shrink-0">
+                                <Avatar size="sm" className="w-6 h-6">
+                                  {child?.avatar ? (
+                                    <AvatarImage
+                                      src={child.avatar}
+                                      alt={child.name}
+                                      className="object-cover"
+                                    />
+                                  ) : (
+                                    <AvatarFallback className="bg-primary text-white flex justify-center items-center text-xs">
+                                      {child?.name?.slice(0, 1)}
+                                    </AvatarFallback>
+                                  )}
+                                </Avatar>
+                              </div>
 
-                            {/* Unread / mention dot — Teams style */}
-                            {isUnread && (
-                              <span
-                                style={{
-                                  backgroundColor: hasMention
-                                    ? "oklch(0.577 0.245 27.325)"
-                                    : "oklch(0.54 0.29 264)",
-                                  height: "8px",
-                                  width: "8px",
-                                  borderRadius: "9999px",
-                                  flexShrink: 0,
-                                }}
-                                aria-label={
-                                  hasMention ? "Unread mention" : "Unread"
-                                }
-                              />
-                            )}
-                          </div>
+                              <span className="truncate flex-1 min-w-0">
+                                {child.name}
+                              </span>
+
+                              {/* Unread / mention dot — Teams style */}
+                              {isUnread && (
+                                <span
+                                  style={{
+                                    backgroundColor: hasMention
+                                      ? "oklch(0.577 0.245 27.325)"
+                                      : "oklch(0.54 0.29 264)",
+                                    height: "8px",
+                                    width: "8px",
+                                    borderRadius: "9999px",
+                                    flexShrink: 0,
+                                  }}
+                                  aria-label={
+                                    hasMention ? "Unread mention" : "Unread"
+                                  }
+                                />
+                              )}
+                            </div>
+                          ) : (
+                            <span className="truncate">{child.name}</span>
+                          )}
                         </SidebarMenuSubButton>
 
                         <button

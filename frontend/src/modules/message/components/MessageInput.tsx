@@ -19,27 +19,29 @@ import {
 import useTypingSocket from "@/modules/message/hooks/useTypingSocket";
 import { useSendMessage } from "@/modules/message/message.mutation";
 import { usePersonalInfo } from "@/modules/user/user.query";
-import { Chat } from "../../room/room.types";
+import { Chat, Room } from "../../room/room.types";
 import VoiceRecorder from "@/modules/message/components/VoiceRecorder";
 
 interface MessageInputProps {
   roomId: string | null;
-  activeChat: Chat | null;
+  activeItem: Chat | Room | null;
   replyingTo: Message | null;
   onCancelReply: () => void;
   onSent: () => void;
   inputRef: RefObject<HTMLTextAreaElement | null>; // ← updated type
+  handleTypingStop: () => void;
 }
 
 const MAX_ROWS = 6; // caps growth at ~6 lines
 
 const MessageInput = ({
   roomId,
-  activeChat,
+  activeItem,
   replyingTo,
   onCancelReply,
   onSent,
   inputRef,
+  handleTypingStop,
 }: MessageInputProps) => {
   const attachmentsRef = useRef<MessageAttachmentsHandle>(null);
   const [inputValue, setInputValue] = useState("");
@@ -71,6 +73,9 @@ const MessageInput = ({
       .map((a) => a.uploadedId!);
 
     const tempId = `local-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    // stop typing before sending message
+    handleTypingStop();
+    // mutate send
     mutateSendMessage({
       tempId,
       roomId: roomId || "",
@@ -90,7 +95,6 @@ const MessageInput = ({
             },
           }
         : {}),
-      
     });
 
     onSent();
@@ -192,7 +196,7 @@ const MessageInput = ({
                 handleTyping();
               }}
               onKeyDown={handleKeyDown}
-              placeholder={`Message ${activeChat?.name || ""}`}
+              placeholder={`Message ${activeItem?.name || ""}`}
               className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 resize-none leading-5 py-1.5 max-h-[7.5rem]"
             />
             <button

@@ -19,14 +19,14 @@ function registerMessageEvents(socket: Socket) {
 
 function registerTypingEvents(socket: Socket) {
   socket.on("typing:start", ({ roomId }) => {
-    const userId = socket.handshake?.auth?.userId;
+    const userId = socket.user?.userId;
     socket.to(roomId).emit("typing:start", {
       userId,
     });
   });
 
   socket.on("typing:stop", ({ roomId }) => {
-    const userId = socket.handshake?.auth?.userId;
+    const userId = socket.user?.userId;
     socket.to(roomId).emit("typing:stop", {
       userId,
     });

@@ -3,6 +3,11 @@ interface JoinDirectRoom {
   targetUserId: string;
 }
 
+interface JoinRoom {
+  workspaceId: string;
+  roomId: string;
+}
+
 interface getRoomsRequest {
   Params: {
     workspaceId: string;
@@ -18,4 +23,10 @@ interface CreateRoomData {
   memberIds?: string[];
 }
 
-export type { JoinDirectRoom, getRoomsRequest, CreateRoomData, RoomType };
+export type {
+  JoinDirectRoom,
+  getRoomsRequest,
+  CreateRoomData,
+  RoomType,
+  JoinRoom,
+};

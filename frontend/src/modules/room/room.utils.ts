@@ -1,6 +1,7 @@
 import { UserStatusType } from "../user/user.types";
 
 function getInitials(name: string) {
+  if (!name) return "";
   return name
     .split(" ")
     .map((n) => n[0])

@@ -20,7 +20,7 @@ declare module "fastify" {
 const authPluggin: FastifyPluginAsync = async (app) => {
   app.decorate(
     "authenticate",
-    async (request: FastifyRequest, reply: FastifyReply) => {
+    async (request: FastifyRequest) => {
       try {
         const token = request.headers.authorization?.split(" ")[1];
         if (!token) {
