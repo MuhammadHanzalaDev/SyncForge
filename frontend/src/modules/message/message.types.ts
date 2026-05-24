@@ -120,7 +120,7 @@ interface MessageReactionEventPayload {
     lastName: string;
   };
   roomId: string;
-  emoji: string;
+  emoji: QuickMessageReactions;
 }
 
 type AggregatedReaction = {
