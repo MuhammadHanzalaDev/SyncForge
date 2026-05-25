@@ -37,6 +37,7 @@ type MessageListProps = {
   onReact: (messageId: string, emoji: QuickMessageReactions) => void;
 
   isRoom: boolean;
+  isPersonalChat?: boolean;
 };
 
 export default function MessageList({
@@ -53,6 +54,7 @@ export default function MessageList({
   onReply,
   onReact,
   isRoom,
+  isPersonalChat,
 }: MessageListProps) {
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
@@ -113,6 +115,7 @@ export default function MessageList({
             <ConversationStartHeader
               activeChat={activeItem as Chat}
               userStatus={userStatus}
+              isPersonalChat={isPersonalChat}
             />
 
             {/* Date divider for first message */}

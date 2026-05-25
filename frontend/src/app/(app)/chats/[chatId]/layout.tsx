@@ -32,6 +32,7 @@ import { CustomButton } from "@/shared/components";
 import useChatSocket from "@/modules/room/hooks/useChatSocket";
 import useRoomStore from "@/modules/room/room.store";
 import useUserStatusStore from "@/shared/store/userStatusStore";
+import { usePersonalInfo } from "@/modules/user/user.query";
 
 export default function ChatLayout({
   children,
@@ -39,12 +40,14 @@ export default function ChatLayout({
   children: React.ReactNode;
 }) {
   const params = useParams();
+  const { data: personalInfo } = usePersonalInfo();
   const activeChat = useRoomStore((state) => state.activeChat);
   const id = params?.chatId as string;
   const getUserStatus = useUserStatusStore((state) => state.getUserStatus);
   useChatSocket(id);
 
   const userStatus = getUserStatus(activeChat?.id || "");
+  const isPersonalChat = personalInfo?.id === activeChat?.id;
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-background">
@@ -82,8 +85,12 @@ export default function ChatLayout({
           <div className="flex items-center gap-0.5 shrink-0">
             <TooltipProvider>
               {[
-                { icon: Phone, label: "Voice Call" },
-                { icon: Video, label: "Video Call" },
+                ...(!isPersonalChat
+                  ? [
+                      { icon: Phone, label: "Voice Call" },
+                      { icon: Video, label: "Video Call" },
+                    ]
+                  : []),
                 { icon: Search, label: "Search" },
               ].map(({ icon: Icon, label }) => (
                 <Tooltip key={label}>

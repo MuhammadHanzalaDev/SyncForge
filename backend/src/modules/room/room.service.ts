@@ -16,15 +16,27 @@ const joinDirectRoomService = async (
   let room = await roomRepo.findRoom({ uniqueKey });
 
   if (!room) {
-    room = await roomRepo.createRoom({
-      workspaceId,
-      type: "DIRECT",
-      uniqueKey,
-      name: "direct",
-      roomMembers: {
-        create: [{ userId: currentUserId }, { userId: targetUserId }],
-      },
-    });
+    if (targetUserId === currentUserId) {
+      room = await roomRepo.createRoom({
+        workspaceId,
+        type: "DIRECT",
+        uniqueKey,
+        name: "direct",
+        roomMembers: {
+          create: [{ userId: currentUserId }],
+        },
+      });
+    } else {
+      room = await roomRepo.createRoom({
+        workspaceId,
+        type: "DIRECT",
+        uniqueKey,
+        name: "direct",
+        roomMembers: {
+          create: [{ userId: currentUserId }, { userId: targetUserId }],
+        },
+      });
+    }
   }
 
   return room.id;
@@ -46,7 +58,7 @@ const getRoomsService = async (userId: string, workspaceId: string) => {
     prisma.workspaceMember.findMany({
       where: {
         workspaceId,
-        NOT: { userId },
+        // NOT: { userId },
         user: {
           AND: [
             {
@@ -208,13 +220,25 @@ const createRoomService = async (
     avatarId = fileDoc.id;
   }
 
-  // create workspace
-  const members = [
-    { userId, isAdmin: true },
-    ...(parsed.memberIds
-      ? parsed.memberIds.map((id) => ({ userId: id, isAdmin: false }))
-      : []),
-  ];
+  // create room
+  let members;
+  if (parsed.type === "PUBLIC") {
+    const workspaceMembers = await prisma.workspaceMember.findMany({
+      where: { workspaceId: parsed.workspaceId, NOT: { userId } },
+      select: { userId: true },
+    });
+    members = [
+      { userId, isAdmin: true },
+      ...workspaceMembers?.map((m) => ({ userId: m.userId, isAdmin: false })),
+    ];
+  } else {
+    members = [
+      { userId, isAdmin: true },
+      ...(parsed.memberIds
+        ? parsed.memberIds.map((id) => ({ userId: id, isAdmin: false }))
+        : []),
+    ];
+  }
   const room = await roomRepo.createRoom({
     workspaceId: parsed.workspaceId,
     type: parsed.type,

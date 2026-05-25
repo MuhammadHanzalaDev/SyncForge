@@ -13,7 +13,6 @@ import { useMessages } from "@/modules/message/message.query";
 import type { InfiniteScrollContainerHandle } from "@/shared/components/common/InfiniteScrollContainer";
 import { usePersonalInfo } from "@/modules/user/user.query";
 import { useReactMessage } from "@/modules/message/message.mutation";
-import TypingIndicator from "./TypingIndicator";
 
 export default function ChatScreen() {
   // refs
@@ -40,6 +39,8 @@ export default function ChatScreen() {
     const flat = data?.pages.flatMap((p) => p.data) || [];
     return [...flat].reverse();
   }, [data?.pages]);
+
+  const isPersonalChat = personalInfo?.id === activeChat?.id;
 
   // hooks
   const { typingUsers, handleTypingStop } = useTypingSocket(roomId);
@@ -82,6 +83,7 @@ export default function ChatScreen() {
         onReact={handleReact}
         scrollRef={scrollRef}
         isRoom={false}
+        isPersonalChat={isPersonalChat}
       />
 
       {/* Typing indicator */}
@@ -112,6 +114,7 @@ export default function ChatScreen() {
         }}
         inputRef={inputRef}
         handleTypingStop={handleTypingStop}
+        isRoom={false}
       />
     </div>
   );

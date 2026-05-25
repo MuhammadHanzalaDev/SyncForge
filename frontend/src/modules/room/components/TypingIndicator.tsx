@@ -1,23 +1,7 @@
 "use client";
 
 import type { RoomMember } from "../room.types";
-import { getInitials } from "../room.utils";
 import MemberAvatar from "./MemberAvatar";
-
-// Deterministic color per user so avatars don't flicker
-const AVATAR_COLORS = [
-  "bg-violet-100 text-violet-700",
-  "bg-sky-100 text-sky-700",
-  "bg-emerald-100 text-emerald-700",
-  "bg-rose-100 text-rose-700",
-  "bg-amber-100 text-amber-700",
-];
-function avatarColor(id: string) {
-  let hash = 0;
-  for (const ch of id) hash = (hash * 31 + ch.charCodeAt(0)) & 0xffff;
-  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
-}
-
 const MAX_SHOWN = 2; // names shown before "+ N more"
 
 export default function TypingIndicator({

@@ -7,7 +7,7 @@ import {
   ProfileUploader,
   CustomMultiSelectField,
 } from "@/shared/components";
-import { CreateRoomValues } from "../../room.types";
+import { CreateRoomValues, Room } from "../../room.types";
 import { createRoomSchema } from "../../room.schema";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,6 +17,8 @@ import { objectToFormData } from "@/shared/utils/formData";
 import { roomTypeOptions } from "../../room.content";
 import { useGetMembersForFilters } from "@/modules/workspace/workspace.query";
 import useWorkspaceStore from "@/modules/workspace/workspace.store";
+import { addRoomToCache } from "../../room.cache";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CreateWorkSpaceProps {
   isOpen: boolean;
@@ -24,6 +26,7 @@ interface CreateWorkSpaceProps {
 }
 
 const CreateRoom = ({ isOpen, setIsOpen }: CreateWorkSpaceProps) => {
+  const queryClient = useQueryClient();
   const { mutate, isPending } = useCreateRoom();
   const workspaceId = useWorkspaceStore((state) => state.workspaceId);
   const { data: members } = useGetMembersForFilters(workspaceId);
@@ -46,9 +49,13 @@ const CreateRoom = ({ isOpen, setIsOpen }: CreateWorkSpaceProps) => {
     };
     const data = objectToFormData(obj);
     mutate(data, {
-      onSuccess: (data) => {
-        console.log("room created", data);
+      onSuccess: (data: Room) => {
         setIsOpen(false);
+        addRoomToCache({
+          queryClient,
+          workspaceId: workspaceId || "",
+          room: data,
+        });
       },
     });
   };

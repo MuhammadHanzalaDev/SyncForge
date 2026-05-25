@@ -103,6 +103,7 @@ export default function RoomScreen() {
         }}
         inputRef={inputRef}
         handleTypingStop={handleTypingStop}
+        isRoom={true}
       />
     </div>
   );

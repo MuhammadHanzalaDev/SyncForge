@@ -1,7 +1,11 @@
 "use client";
 
 import { Info } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/shared/components/ui/avatar";
 import { getInitials } from "../room.utils";
 import {
   Tooltip,
@@ -17,16 +21,19 @@ import { UserStatusType } from "@/modules/user/user.types";
 interface ConversationStartHeaderProps {
   activeChat: Chat | null;
   userStatus: UserStatusType;
+  isPersonalChat?: boolean;
 }
 
 const ConversationStartHeader = ({
   activeChat,
   userStatus,
+  isPersonalChat,
 }: ConversationStartHeaderProps) => {
   return (
     <div className="flex flex-col items-center gap-2 py-6 px-4 text-center">
       <div className="relative">
         <Avatar className="h-16 w-16">
+          <AvatarImage src={activeChat?.avatar} className="object-cover" />
           <AvatarFallback className="bg-primary/10 text-primary font-bold text-xl">
             {getInitials(activeChat?.name || "")}
           </AvatarFallback>
@@ -53,8 +60,16 @@ const ConversationStartHeader = ({
           </TooltipProvider>
         </div>
         <p className="text-xs text-muted-foreground mt-0.5">
-          This is the beginning of your direct message history with{" "}
-          <span className="font-medium">{activeChat?.name}</span>.
+          {isPersonalChat ? (
+            "This is your own personal chat space, save drafts, files or test features before using them in a real chat."
+          ) : (
+            <div>
+              <span>
+                This is the beginning of your direct message history with
+              </span>{" "}
+              <span className="font-medium">{activeChat?.name}.</span>
+            </div>
+          )}
         </p>
       </div>
     </div>

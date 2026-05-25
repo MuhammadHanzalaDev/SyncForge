@@ -30,6 +30,7 @@ interface MessageInputProps {
   onSent: () => void;
   inputRef: RefObject<HTMLTextAreaElement | null>; // ← updated type
   handleTypingStop: () => void;
+  isRoom: boolean;
 }
 
 const MAX_ROWS = 6; // caps growth at ~6 lines
@@ -42,6 +43,7 @@ const MessageInput = ({
   onSent,
   inputRef,
   handleTypingStop,
+  isRoom,
 }: MessageInputProps) => {
   const attachmentsRef = useRef<MessageAttachmentsHandle>(null);
   const [inputValue, setInputValue] = useState("");
@@ -196,7 +198,9 @@ const MessageInput = ({
                 handleTyping();
               }}
               onKeyDown={handleKeyDown}
-              placeholder={`Message ${activeItem?.name || ""}`}
+              placeholder={
+                isRoom ? "Type a message" : `Message ${activeItem?.name || ""}`
+              }
               className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60 resize-none leading-5 py-1.5 max-h-[7.5rem]"
             />
             <button
