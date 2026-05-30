@@ -47,6 +47,7 @@ const getMessagesService = async ({
         roomId,
       },
     },
+    select: { lastReadAt: true },
   });
 
   if (!roomMember) {
@@ -103,6 +104,8 @@ const getMessagesService = async ({
       messageReceipts: {
         select: {
           status: true,
+          userId: true,
+          updatedAt: true,
         },
       },
       parent: {
@@ -163,6 +166,7 @@ const getMessagesService = async ({
       reactions: msg.messageReactions,
       status: getMessageStatus(msg.messageReceipts),
       isOwn: msg.senderId === userId,
+      receipts: msg.messageReceipts,
     })),
   );
 
@@ -170,6 +174,7 @@ const getMessagesService = async ({
     data: formatted,
     nextCursor,
     hasMore: !!nextCursor,
+    lastReadAt: roomMember.lastReadAt,
   };
 };
 
@@ -247,11 +252,13 @@ const createMessageService = async ({
     });
 
     await tx.messageReceipt.createMany({
-      data: roomMembers.map((m) => ({
-        messageId: message.id,
-        userId: m.userId,
-        status: m.userId === parsed.senderId ? "READ" : "DELIVERED",
-      })),
+      data: roomMembers
+        .filter((m) => m.userId !== parsed.senderId)
+        .map((m) => ({
+          messageId: message.id,
+          userId: m.userId,
+          status: "DELIVERED",
+        })),
     });
 
     const freshMessage = await tx.message.findUnique({
@@ -291,6 +298,8 @@ const createMessageService = async ({
         messageReceipts: {
           select: {
             status: true,
+            userId: true,
+            updatedAt: true,
           },
         },
         parent: {
@@ -358,6 +367,7 @@ const createMessageService = async ({
     attachments: formattedAttachments,
     reactions: message.messageReactions,
     status: getMessageStatus(message.messageReceipts || []),
+    receipts: message.messageReceipts,
   };
 
   // emit message received
@@ -382,7 +392,12 @@ const readMessageService = async ({
   roomId: string;
 }) => {
   // Update the receipt status to READ
-  const allReceipts = await prisma.$transaction(async (tx) => {
+  const { receipts, roomMembers } = await prisma.$transaction(async (tx) => {
+    const message = await prisma.message.findUnique({
+      where: { id: messageId },
+      select: { createdAt: true },
+    });
+
     await tx.messageReceipt.update({
       where: {
         messageId_userId: { messageId, userId },
@@ -398,19 +413,24 @@ const readMessageService = async ({
           roomId,
         },
       },
-      data: { lastReadAt: new Date() },
+      data: { lastReadAt: message?.createdAt },
     });
 
-    return tx.messageReceipt.findMany({
+    const receipts = await tx.messageReceipt.findMany({
       where: { messageId },
       select: { status: true, userId: true },
     });
+    const roomMembers = await tx.roomMember.findMany({
+      where: { roomId },
+      select: { userId: true },
+    });
+
+    return { receipts, roomMembers: roomMembers.map((m) => m.userId) };
   });
 
-  const newStatus = getMessageStatus(allReceipts);
+  const newStatus = getMessageStatus(receipts);
 
-  const data = { messageId, status: newStatus, roomId };
-  const roomMembers = allReceipts?.map((r) => r.userId);
+  const data = { messageId, status: newStatus, roomId, userId };
 
   return { data, roomMembers };
 };

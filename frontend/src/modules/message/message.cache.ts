@@ -103,6 +103,7 @@ export const addMessage = (
 export const updateMessageStatus = (
   queryClient: QueryClient,
   roomId: string,
+  userId: string,
   messageId: string,
   status: MessageStatus,
 ): void => {
@@ -112,7 +113,17 @@ export const updateMessageStatus = (
       ...old,
       pages: old.pages.map((page) => ({
         ...page,
-        data: page.data.map((m) => (m.id === messageId ? { ...m, status } : m)),
+        data: page.data.map((m) =>
+          m.id === messageId
+            ? {
+                ...m,
+                status,
+                receipts: m.receipts.map((r) =>
+                  r.userId === userId ? { ...r, status: "READ" } : r,
+                ),
+              }
+            : m,
+        ),
       })),
     };
   });

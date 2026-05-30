@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type {
   Message,
   QuickMessageReactions,
@@ -38,6 +38,7 @@ type MessageListProps = {
 
   isRoom: boolean;
   isPersonalChat?: boolean;
+  lastReadAt: Date | null;
 };
 
 export default function MessageList({
@@ -55,8 +56,10 @@ export default function MessageList({
   onReact,
   isRoom,
   isPersonalChat,
+  lastReadAt,
 }: MessageListProps) {
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const hasScrolledToUnread = useRef(false);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
 
   const getUserStatus = useUserStatusStore((state) => state.getUserStatus);
@@ -76,21 +79,50 @@ export default function MessageList({
     [],
   );
 
-  const scrollToMessage = useCallback((messageId: string) => {
-    const el = messageRefs.current.get(messageId);
+  const scrollToMessage = useCallback(
+    (messageId: string, shouldHighlight = true) => {
+      const el = messageRefs.current.get(messageId);
 
-    if (!el) {
-      // Parent not loaded — Scenario B fallback
-      message.info("Message not loaded.");
-      return;
-    }
+      if (!el) {
+        // Parent not loaded — Scenario B fallback
+        message.info("Message not loaded.");
+        return;
+      }
 
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    setHighlightedId(messageId);
+      el.scrollIntoView({
+        behavior: shouldHighlight ? "smooth" : "auto",
+        block: "center",
+      });
+      if (shouldHighlight) {
+        setHighlightedId(messageId);
 
-    // Clear highlight after animation
-    setTimeout(() => setHighlightedId(null), 1500);
-  }, []);
+        // Clear highlight after animation
+        setTimeout(() => setHighlightedId(null), 1500);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (hasScrolledToUnread.current) return;
+
+    if (!lastReadAt || messages.length === 0) return;
+
+    const lastReadTime = new Date(lastReadAt);
+
+    const firstUnreadMessage = messages.find(
+      (m) =>
+        new Date(m.createdAt) > lastReadTime && m.sender.id !== currentUserId,
+    );
+
+    if (!firstUnreadMessage) return;
+
+    hasScrolledToUnread.current = true;
+
+    requestAnimationFrame(() => {
+      scrollToMessage(firstUnreadMessage.id, false);
+    });
+  }, [messages, lastReadAt, scrollToMessage]);
 
   return (
     <>
@@ -111,51 +143,77 @@ export default function MessageList({
 
         {/* Conversation start header — only shown when no more messages to load */}
         {!hasNextPage && !isRoom && (
-          <>
-            <ConversationStartHeader
-              activeChat={activeItem as Chat}
-              userStatus={userStatus}
-              isPersonalChat={isPersonalChat}
-            />
-
-            {/* Date divider for first message */}
-            {messages[0] && (
-              <div className="flex items-center gap-3 px-4 py-2">
-                <Separator className="flex-1" />
-                <span className="text-[11px] font-medium text-muted-foreground bg-background px-2 shrink-0">
-                  {formatDateDivider(messages[0].createdAt)}
-                </span>
-                <Separator className="flex-1" />
-              </div>
-            )}
-          </>
+          <ConversationStartHeader
+            activeChat={activeItem as Chat}
+            userStatus={userStatus}
+            isPersonalChat={isPersonalChat}
+          />
         )}
 
         {/* Messages in natural order: oldest -> newest */}
         {messages.map((message, idx) => {
           const prevMessage = messages[idx - 1];
-          const currTime = new Date(message.createdAt).getTime();
-          const prevTime = prevMessage
-            ? new Date(prevMessage.createdAt).getTime()
-            : 0;
+
+          const currDate = new Date(message.createdAt).toDateString();
+
+          const prevDate = prevMessage
+            ? new Date(prevMessage.createdAt).toDateString()
+            : null;
+
+          const showDateDivider = currDate !== prevDate;
+
+          const isUnread = lastReadAt
+            ? new Date(message.createdAt) > new Date(lastReadAt)
+            : false;
+
+          const wasPrevUnread =
+            prevMessage && lastReadAt
+              ? new Date(prevMessage.createdAt) > new Date(lastReadAt)
+              : false;
+
+          const isOwn = message.sender.id === currentUserId;
+
+          const showLastReadAtDivider = isUnread && !wasPrevUnread && !isOwn;
 
           const showAvatar =
             !prevMessage ||
             prevMessage.sender.id !== message.sender.id ||
-            currTime - prevTime > 1000 * 60 * 5;
+            showDateDivider;
 
           return (
-            <MessageBubble
-              key={message?.id}
-              message={message}
-              showAvatar={showAvatar}
-              roomId={roomId || ""}
-              onReply={onReply}
-              onReact={onReact}
-              onScrollToMessage={scrollToMessage}
-              registerRef={registerMessageRef}
-              isHighlighted={highlightedId === message.id}
-            />
+            <div key={message.id}>
+              {/* Date Divider */}
+              {showDateDivider && (
+                <div className="flex justify-center gap-3 px-4 py-3">
+                  <span className="text-[11px] font-medium text-muted-foreground bg-background px-2 shrink-0">
+                    {formatDateDivider(message.createdAt)}
+                  </span>
+                </div>
+              )}
+
+              {showLastReadAtDivider && (
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <Separator className="flex-1 bg-primary" />
+
+                  <span className="text-[11px] font-medium font-semibold text-primary bg-background px-2 shrink-0">
+                    Last Read
+                  </span>
+
+                  <Separator className="flex-1 bg-primary" />
+                </div>
+              )}
+
+              <MessageBubble
+                message={message}
+                showAvatar={showAvatar}
+                roomId={roomId || ""}
+                onReply={onReply}
+                onReact={onReact}
+                onScrollToMessage={scrollToMessage}
+                registerRef={registerMessageRef}
+                isHighlighted={highlightedId === message.id}
+              />
+            </div>
           );
         })}
       </InfiniteScrollContainer>

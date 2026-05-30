@@ -23,6 +23,7 @@ interface MessageParent {
 interface ReadMessage {
   roomId: string;
   messageId: string;
+  messageCreatedAt: string | Date;
 }
 
 type QuickMessageReactions = "👍" | "❤️" | "😂" | "😮";
@@ -56,7 +57,6 @@ interface MessageReaction {
 type MessageStatus = "SENT" | "DELIVERED" | "READ";
 
 interface MessageReceipt {
-  messageId: string;
   userId: string;
   status: MessageStatus;
   updatedAt: Date;
@@ -87,6 +87,7 @@ interface Message {
   status: MessageStatus;
   isOwn?: boolean;
   tempId?: string;
+  receipts: MessageReceipt[];
 }
 
 interface GetMessagesParams {
@@ -95,6 +96,8 @@ interface GetMessagesParams {
 
 interface MessagesPage {
   data: Message[];
+  lastReadAt: string | Date;
+  nextCursor: string | null;
 }
 
 type MessagesData = InfiniteData<MessagesPage>;

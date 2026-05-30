@@ -41,17 +41,11 @@ interface SendMessage {
 }
 
 type MessageStatus = "SENT" | "DELIVERED" | "READ";
-
-interface MessageReceipt {
-  messageId: string;
-  userId: string;
-  status: MessageStatus;
-  updatedAt: Date;
-}
-
 interface MessageReadData {
   messageId: string;
   status: MessageStatus;
+  roomId: string;
+  userId: string;
 }
 
 interface MessageSender {
@@ -67,13 +61,6 @@ interface MessageReaction {
     lastName: string;
   };
   emoji: string;
-}
-
-interface MessageReceipt {
-  messageId: string;
-  userId: string;
-  status: MessageStatus;
-  updatedAt: Date;
 }
 
 interface MessageAttachment {
@@ -94,6 +81,11 @@ interface MessageParent {
     name: string;
   };
 }
+interface MessageReceipt {
+  userId: string;
+  status: MessageStatus;
+  updatedAt: Date;
+}
 
 interface Message {
   id: string;
@@ -107,7 +99,10 @@ interface Message {
   attachments?: MessageAttachment[];
   reactions?: MessageReaction[];
   status: MessageStatus;
+  isOwn?: boolean;
+  isRead?: boolean;
   tempId?: string;
+  receipts: MessageReceipt[];
 }
 
 type MessageReactionAction = "added" | "removed" | "updated";

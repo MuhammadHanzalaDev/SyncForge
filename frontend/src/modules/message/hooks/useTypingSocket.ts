@@ -35,12 +35,10 @@ export default function useTypingSocket(roomId: string | null) {
 
   // events
   useSocketEvent("typing:start", (data) => {
-    console.log("start", data);
     setTypingUsers((prev) => [...new Set([...prev, data.userId])]);
   });
 
   useSocketEvent("typing:stop", (data) => {
-    console.log("stop", data);
     setTypingUsers((prev) => prev.filter((id) => id !== data.userId));
   });
 

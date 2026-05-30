@@ -1,9 +1,14 @@
 function formatTime(date: Date) {
+  if (!date) return "";
   const dateReceived = new Date(date);
-  return dateReceived.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+
+  return dateReceived
+    .toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    })
+    .toUpperCase();
 }
 
 function formatDateDivider(date: Date) {

@@ -6,8 +6,11 @@ import {
   MessageReactionAction,
   MessagesData,
   ReactMessage,
+  ReadMessage,
 } from "./message.types";
 import { updateMessageReaction } from "./message.cache";
+import { Chat, ChatsAndRoomsData, Room } from "../room/room.types";
+import useWorkspaceStore from "../workspace/workspace.store";
 
 const useSendMessage = (roomId: string | null) => {
   const queryClient = useQueryClient();
@@ -42,6 +45,7 @@ const useSendMessage = (roomId: string | null) => {
         status: "SENT",
         parentId: newMessage.parentId,
         parent: newMessage.parent,
+        receipts: [],
       };
 
       queryClient.setQueryData<MessagesData>(
@@ -49,7 +53,9 @@ const useSendMessage = (roomId: string | null) => {
         (oldData) => {
           if (!oldData) {
             return {
-              pages: [{ data: [newMsg], nextCursor: null }],
+              pages: [
+                { data: [newMsg], nextCursor: null, lastReadAt: new Date() },
+              ],
               pageParams: [null],
             };
           }
@@ -78,8 +84,60 @@ const useSendMessage = (roomId: string | null) => {
 };
 
 const useReadMessage = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: readMessage,
+
+    onMutate: async ({ roomId, messageCreatedAt }: ReadMessage) => {
+      console.log("marking message as read: ", messageCreatedAt);
+      // stop overwrites
+      await queryClient.cancelQueries({
+        queryKey: ["messages", roomId],
+      });
+
+      // snapshot for rollback
+      const previous = queryClient.getQueryData<MessagesData>([
+        "messages",
+        roomId,
+      ]);
+
+      // optimistic update
+      queryClient.setQueryData<MessagesData>(
+        ["messages", roomId],
+        (oldData) => {
+          if (!oldData) return oldData;
+
+          const pages = [...oldData.pages];
+
+          const current = pages[0]?.lastReadAt
+            ? new Date(pages[0].lastReadAt).getTime()
+            : 0;
+
+          const incoming = new Date(messageCreatedAt).getTime();
+
+          pages[0] = {
+            ...pages[0],
+            lastReadAt:
+              incoming > current ? messageCreatedAt : pages[0].lastReadAt,
+          };
+
+          return {
+            ...oldData,
+            pages,
+          };
+        },
+      );
+
+      return { previous };
+    },
+
+    onError: (_err, _vars, context) => {
+      // rollback on failure
+      if (context?.previous) {
+        queryClient.setQueryData(["messages", _vars.roomId], context.previous);
+      }
+    },
   });
 };
 

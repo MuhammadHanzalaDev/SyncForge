@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Play, Pause, Loader2 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import type { NormalizedAttachment } from "@/modules/file/file.types";
@@ -8,6 +8,7 @@ import type { NormalizedAttachment } from "@/modules/file/file.types";
 type Props = {
   item: NormalizedAttachment;
   isOwn?: boolean;
+  metaNode?: ReactNode;
 };
 
 const BAR_COUNT = 32;
@@ -23,8 +24,6 @@ const formatTime = (s: number) => {
   return `${m}:${sec}`;
 };
 
-// Deterministic pseudo-waveform from the attachment id, so each message
-// has a stable but unique bar pattern without decoding the audio.
 const generateBars = (seed: string): number[] => {
   let h = 0;
   for (let i = 0; i < seed.length; i++) {
@@ -32,19 +31,17 @@ const generateBars = (seed: string): number[] => {
   }
   return Array.from({ length: BAR_COUNT }, () => {
     h = (h * 1664525 + 1013904223) >>> 0;
-    const v = (h % 1000) / 1000; // 0..1
-    return 0.25 + v * 0.75; // 0.25..1.0 so no flat bars
+    const v = (h % 1000) / 1000;
+    return 0.25 + v * 0.75;
   });
 };
 
-export default function VoiceMessageTile({ item, isOwn }: Props) {
+export default function VoiceMessageTile({ item, isOwn, metaNode }: Props) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState(0); // 0..1
+  const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-
-  // Use stored duration if available; otherwise fall back to audio metadata.
   const [duration, setDuration] = useState(item.durationSec ?? 0);
 
   const bars = generateBars(item.id);
@@ -54,9 +51,8 @@ export default function VoiceMessageTile({ item, isOwn }: Props) {
     if (!audio) return;
 
     const onLoaded = () => {
-      if (!item.durationSec && isFinite(audio.duration)) {
+      if (!item.durationSec && isFinite(audio.duration))
         setDuration(audio.duration);
-      }
       setIsLoading(false);
     };
     const onTime = () => {
@@ -104,18 +100,14 @@ export default function VoiceMessageTile({ item, isOwn }: Props) {
   const togglePlay = async () => {
     const audio = audioRef.current;
     if (!audio) return;
-
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
       return;
     }
-
     try {
       setIsLoading(true);
-
       audio.load();
-
       await audio.play();
     } catch (err) {
       console.error(err);
@@ -141,7 +133,7 @@ export default function VoiceMessageTile({ item, isOwn }: Props) {
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-2xl px-3 py-2 max-w-[280px] min-w-[240px]",
+        "flex items-center gap-3 rounded-xl px-3 py-2 max-w-[280px] min-w-[240px]",
         isOwn
           ? "bg-primary text-primary-foreground"
           : "bg-muted text-foreground",
@@ -193,23 +185,36 @@ export default function VoiceMessageTile({ item, isOwn }: Props) {
                       ? "bg-primary-foreground/40"
                       : "bg-foreground/30",
                 )}
-                style={{
-                  height: `${Math.max(20, h * 100)}%`,
-                  minWidth: 2,
-                }}
+                style={{ height: `${Math.max(20, h * 100)}%`, minWidth: 2 }}
               />
             );
           })}
         </div>
 
-        <span
-          className={cn(
-            "text-[10px] font-mono tabular-nums",
-            isOwn ? "text-primary-foreground/70" : "text-muted-foreground",
+        {/* Duration row — metaNode sits inline on the right */}
+        <div className="flex items-center justify-between">
+          <span
+            className={cn(
+              "text-[10px] font-mono tabular-nums",
+              isOwn ? "text-primary-foreground/70" : "text-muted-foreground",
+            )}
+          >
+            {formatTime(displayTime)}
+          </span>
+
+          {metaNode && (
+            <span
+              className={cn(
+                "text-[10px]",
+                isOwn
+                  ? "[&_span]:text-primary-foreground/70 [&_svg]:text-primary-foreground"
+                  : "",
+              )}
+            >
+              {metaNode}
+            </span>
           )}
-        >
-          {formatTime(displayTime)}
-        </span>
+        </div>
       </div>
 
       <audio

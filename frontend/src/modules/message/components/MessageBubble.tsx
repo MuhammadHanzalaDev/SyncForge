@@ -43,8 +43,6 @@ export default function MessageBubble({
   registerRef,
   isHighlighted,
 }: MessageBubbleProps) {
-  const [hovered, setHovered] = useState(false);
-  // Controls whether the quick-reaction strip is expanded in the toolbar.
   const [reactionsOpen, setReactionsOpen] = useState<boolean>(false);
 
   const hasAttachments =
@@ -55,12 +53,15 @@ export default function MessageBubble({
   const { data: personalInfo } = usePersonalInfo();
   const isOwn = message.sender.id === personalInfo?.id;
 
+  // true = first message in a group → gets the directional sharp corner
+  const isFirstInGroup = showAvatar;
+
   const elementRef = useRef<HTMLDivElement>(null);
   useMessageReadObserver(
     elementRef,
-    message.id,
+    message,
     roomId,
-    message.status,
+    personalInfo?.id || "",
     isOwn || false,
   );
 
@@ -109,23 +110,56 @@ export default function MessageBubble({
     [aggregatedReactions],
   );
 
+  // Bubble corner radius:
+  // • First in group  → rounded-xl with one sharp (sender-side top) corner
+  // • Subsequent      → rounded-md (subtle, not pill-like)
+  const bubbleRadius = isOwn
+    ? isFirstInGroup
+      ? "rounded-xl rounded-tr-sm"
+      : "rounded-md"
+    : isFirstInGroup
+      ? "rounded-xl rounded-tl-sm"
+      : "rounded-md";
+
+  // Meta node rendered inside text bubbles (floated right)
+  const inlineMetaNode = (
+    <span className="inline-flex items-center gap-1 ml-2 float-right self-end translate-y-[2px]">
+      <span
+        className={cn(
+          "text-[10px] leading-none",
+          isOwn ? "text-primary-foreground/70" : "text-muted-foreground",
+        )}
+      >
+        {formatTime(message.createdAt)}
+      </span>
+      {isOwn && <MessageStatusIcon status={message.status} insideBubble />}
+    </span>
+  );
+
+  // Meta node passed into attachment tiles — plain colors (outside bubble bg)
+  const attachmentMetaNode = (
+    <span className="inline-flex items-center gap-1">
+      <span className="text-[10px] leading-none text-muted-foreground">
+        {formatTime(message.createdAt)}
+      </span>
+      {isOwn && <MessageStatusIcon status={message.status} />}
+    </span>
+  );
+
   return (
     <div
       className={cn(
-        "flex gap-3 group px-4 py-1 hover:bg-muted/30 rounded-lg transition-colors duration-300",
+        "flex gap-3 group px-4 py-0.5 hover:bg-muted/30 rounded-lg transition-colors duration-300",
         isOwn && "flex-row-reverse",
         isHighlighted && "bg-primary/10 ring-2 ring-primary/40",
+        showAvatar && "mt-3",
       )}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => {
-        setHovered(false);
-        setReactionsOpen(false);
-      }}
+      onMouseEnter={() => setReactionsOpen(false)}
       ref={setRefs}
     >
-      {/* Avatar */}
+      {/* Avatar column */}
       <div className="w-8 shrink-0 mt-1">
-        {showAvatar && !isOwn && (
+        {isFirstInGroup && !isOwn && (
           <Avatar className="h-8 w-8">
             {message.sender?.avatar ? (
               <AvatarImage
@@ -141,9 +175,10 @@ export default function MessageBubble({
         )}
       </div>
 
-      {/* Content */}
+      {/* Content column */}
       <div className={cn("flex flex-col max-w-[70%]", isOwn && "items-end")}>
-        {showAvatar && (
+        {/* Sender name (first message in group only) */}
+        {isFirstInGroup && (
           <div
             className={cn(
               "flex items-baseline gap-2 mb-1",
@@ -153,9 +188,6 @@ export default function MessageBubble({
             <span className="text-sm font-semibold text-foreground">
               {isOwn ? "You" : message.sender?.name}
             </span>
-            <span className="text-[11px] text-muted-foreground">
-              {formatTime(message.createdAt)}
-            </span>
           </div>
         )}
 
@@ -163,13 +195,13 @@ export default function MessageBubble({
         {(message.parent || hasText) && (
           <div
             className={cn(
-              "rounded-2xl overflow-hidden max-w-full",
+              "overflow-hidden max-w-full",
+              bubbleRadius,
               isOwn
-                ? "bg-primary text-primary-foreground rounded-tr-sm"
-                : "bg-muted text-foreground rounded-tl-sm",
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-foreground",
             )}
           >
-            {/* Reply preview — inside the bubble */}
             {message.parent && (
               <MessageReplyPreview
                 parent={message.parent}
@@ -179,21 +211,31 @@ export default function MessageBubble({
               />
             )}
 
-            {/* Text content */}
             {hasText && (
-              <div className="px-3.5 py-2 text-sm leading-relaxed">
+              <div className="px-3.5 py-2 text-sm leading-relaxed overflow-hidden">
+                {inlineMetaNode}
                 {message.content}
+              </div>
+            )}
+
+            {/* reply-only bubble: no text, just show meta below the preview */}
+            {!hasText && message.parent && (
+              <div className="px-3.5 pb-2 flex justify-end">
+                {inlineMetaNode}
               </div>
             )}
           </div>
         )}
 
-        {/* Attachments */}
+        {/* Attachments — meta is embedded inside the tiles */}
         {hasAttachments && (
           <MessageAttachmentsList
             attachments={message.attachments}
             tempAttachments={message.tempAttachments}
             isOwn={isOwn}
+            metaNode={
+              !hasText && !message.parent ? attachmentMetaNode : undefined
+            }
           />
         )}
 
@@ -213,26 +255,6 @@ export default function MessageBubble({
                 onReact={(emoji) => onReact(message.id, emoji)}
               />
             ))}
-          </div>
-        )}
-
-        {/* Timestamp + status */}
-        {!showAvatar && (
-          <div
-            className={cn(
-              "flex items-center gap-1 mt-0.5",
-              isOwn ? "justify-end" : "justify-start",
-            )}
-          >
-            <span
-              className={cn(
-                "text-[10px] text-muted-foreground transition-opacity duration-200",
-                hovered ? "opacity-100" : "opacity-0",
-              )}
-            >
-              {formatTime(message.createdAt)}
-            </span>
-            {isOwn && <MessageStatusIcon status={message.status} />}
           </div>
         )}
       </div>

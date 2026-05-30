@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import type {
   Message,
   QuickMessageReactions,
@@ -19,10 +19,12 @@ export default function RoomScreen() {
   // refs
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<InfiniteScrollContainerHandle>(null);
+  const initialLastReadAtRef = useRef<Date | null>(null);
 
   // local states
   const [hasUnreadBelow, setHasUnreadBelow] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+  const [, forceRender] = useState(0);
 
   // global client states
   const activeRoom = useRoomStore((state) => state.activeRoom);
@@ -65,6 +67,13 @@ export default function RoomScreen() {
     mutateReact(data);
   };
 
+  useEffect(() => {
+    if (initialLastReadAtRef.current === null && data?.pages[0]?.lastReadAt) {
+      initialLastReadAtRef.current = data.pages[0].lastReadAt;
+      forceRender((x) => x + 1);
+    }
+  }, [data]);
+
   return (
     <div className="flex flex-col flex-1 min-h-0">
       {/* Scrollable area — contains header + messages */}
@@ -82,6 +91,7 @@ export default function RoomScreen() {
         onReact={handleReact}
         scrollRef={scrollRef}
         isRoom={true}
+        lastReadAt={initialLastReadAtRef.current}
       />
 
       {/* Typing indicator */}

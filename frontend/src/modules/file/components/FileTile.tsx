@@ -1,3 +1,4 @@
+import { ReactNode } from "react";
 import { NormalizedAttachment } from "../file.types";
 import { getFileIcon, formatFileSize } from "../file.utils";
 import { cn } from "@/shared/lib/utils";
@@ -6,9 +7,11 @@ import { Download } from "lucide-react";
 export default function FileTile({
   item,
   isOwn,
+  metaNode,
 }: {
   item: NormalizedAttachment;
   isOwn?: boolean;
+  metaNode?: ReactNode;
 }) {
   // getFileIcon expects a File — fall back to a synthetic object shape.
   const Icon = getFileIcon({
@@ -36,9 +39,25 @@ export default function FileTile({
         <span className="text-xs font-medium truncate text-foreground">
           {item.filename}
         </span>
-        <span className="text-[10px] text-muted-foreground">
-          {formatFileSize(item.size || 0)}
-        </span>
+
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-[10px] text-muted-foreground">
+            {formatFileSize(item.size || 0)}
+          </span>
+
+          {metaNode && (
+            <span
+              className={cn(
+                "text-[10px]",
+                isOwn
+                  ? "[&_span]:text-primary-foreground/70 [&_svg]:text-primary-foreground"
+                  : "",
+              )}
+            >
+              {metaNode}
+            </span>
+          )}
+        </div>
       </div>
 
       {item.src && (

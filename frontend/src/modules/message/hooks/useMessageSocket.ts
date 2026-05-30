@@ -19,8 +19,6 @@ export default function useMessageSocket() {
   const activeRoomId = useRoomStore((state) => state.roomId);
 
   const handleNewMessage = ({ message, roomId }: NewMessage) => {
-    console.log("new message received: ", message);
-
     addMessage(queryClient, roomId, message, {
       currentUserId: personalInfo?.id,
       activeRoomId: activeRoomId,
@@ -31,19 +29,19 @@ export default function useMessageSocket() {
     messageId,
     status,
     roomId,
+    userId,
   }: {
     messageId: string;
     status: MessageStatus;
     roomId: string;
+    userId: string;
   }) => {
-    console.log("new message read: ", { messageId, status, roomId });
+    console.log("new message read: ", { messageId, status, roomId, userId });
 
-    updateMessageStatus(queryClient, roomId, messageId, status);
+    updateMessageStatus(queryClient, roomId, userId, messageId, status);
   };
 
   const handleMessageReaction = (data: MessageReactionEventPayload) => {
-    console.log("new message reaction: ", data);
-
     updateMessageReaction(queryClient, data);
   };
 
