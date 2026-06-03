@@ -19,4 +19,5 @@ export const env = {
   AWS_ACCESS_KEY: process.env.AWS_ACCESS_KEY!,
   AWS_SECRET_KEY: process.env.AWS_SECRET_KEY!,
   AWS_BUCKET: process.env.AWS_BUCKET!,
+  FILE_EXPIRES_IN_SECONDS: process.env.FILE_EXPIRES_IN_SECONDS!,
 };

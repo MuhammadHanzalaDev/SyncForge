@@ -4,6 +4,7 @@ import { getFileUrl, uploadFiles } from "@/modules/storage/storage.service";
 import * as storageRepo from "./storage.repository";
 import { parseMultipart } from "@/utils/multipart";
 import { validateCreateFile } from "./storage.validation";
+import { env } from "@/config/env";
 
 const getFileUrlController = async (
   request: FastifyRequest<{ Params: { id: string } }>,
@@ -17,7 +18,7 @@ const getFileUrlController = async (
 
   const url = await getFileUrl(file.key);
 
-  return { url };
+  return { url, expiresIn: env.FILE_EXPIRES_IN_SECONDS };
 };
 
 const uploadAttachmentsController = async (

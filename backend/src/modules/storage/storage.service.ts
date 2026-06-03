@@ -66,7 +66,9 @@ async function getFileUrl(fileId: string) {
     Key: file.key,
   });
 
-  return await getSignedUrl(s3, command, { expiresIn: 3600 });
+  return await getSignedUrl(s3, command, {
+    expiresIn: Number(env.FILE_EXPIRES_IN_SECONDS),
+  });
 }
 
 const createAndUploadFile = async (
@@ -82,7 +84,7 @@ const createAndUploadFile = async (
     key,
     userId,
   };
-  console.log("fileObj", fileObj)
+  console.log("fileObj", fileObj);
   const parsed = validateCreateFile.parse(fileObj);
 
   const fileDoc = await createFile(parsed);
