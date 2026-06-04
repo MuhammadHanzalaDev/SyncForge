@@ -29,6 +29,7 @@ function normalize(
     src: a.url,
     mimetype: a.mimetype,
     durationSec: a.durationSec,
+    isLocal: false,
   }));
 
   const fromLocal: NormalizedAttachment[] = (tempAttachments ?? []).map(
@@ -40,6 +41,7 @@ function normalize(
       src: a.previewUrl,
       mimetype: a.file.type,
       durationSec: a.durationSec,
+      isLocal: true,
     }),
   );
 

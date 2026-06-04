@@ -2,7 +2,8 @@ import { ReactNode } from "react";
 import { NormalizedAttachment } from "../file.types";
 import { getFileIcon, formatFileSize } from "../file.utils";
 import { cn } from "@/shared/lib/utils";
-import { Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
+import { useFileUrl } from "../file.query";
 
 export default function FileTile({
   item,
@@ -13,6 +14,10 @@ export default function FileTile({
   isOwn?: boolean;
   metaNode?: ReactNode;
 }) {
+  const { data, isLoading, isFetching } = useFileUrl(item.id, !item.isLocal);
+  const src = item.isLocal ? item.src : data?.url;
+  const fetching = isFetching && !src;
+
   // getFileIcon expects a File — fall back to a synthetic object shape.
   const Icon = getFileIcon({
     name: item.filename,
@@ -60,17 +65,18 @@ export default function FileTile({
         </div>
       </div>
 
-      {item.src && (
+      {fetching ? (
+        <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin text-foreground" />
+      ) : src ? (
         <Download className="h-3.5 w-3.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-foreground" />
-      )}
+      ) : null}
     </>
   );
 
-  // Only render as a link when we have a real URL (backend attachment).
-  if (item.src) {
+  if (src) {
     return (
       <a
-        href={item.src}
+        href={src}
         target="_blank"
         rel="noopener noreferrer"
         download={item.filename}
@@ -80,6 +86,8 @@ export default function FileTile({
       </a>
     );
   }
-
-  return <div className={className}>{content}</div>;
+  // not-yet-loaded state: render as div, optionally disabled/pulsing
+  return (
+    <div className={cn(className, isLoading && "opacity-60")}>{content}</div>
+  );
 }

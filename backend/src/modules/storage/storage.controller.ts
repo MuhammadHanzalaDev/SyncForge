@@ -16,9 +16,11 @@ const getFileUrlController = async (
 
   if (!file) throw new ApiError("File not found", 404);
 
-  const url = await getFileUrl(file.key);
+  const url = await getFileUrl(file.id);
 
-  return { url, expiresIn: env.FILE_EXPIRES_IN_SECONDS };
+  const data = { url, expiresIn: env.FILE_EXPIRES_IN_SECONDS };
+
+  return { data };
 };
 
 const uploadAttachmentsController = async (

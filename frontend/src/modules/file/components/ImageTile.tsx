@@ -1,9 +1,10 @@
 "use client";
 import Image from "next/image";
+import { useState } from "react";
 import { cn } from "@/shared/lib/utils";
 import { useFileUrl } from "../file.query";
-import { useQueryClient } from "@tanstack/react-query";
 import type { NormalizedAttachment } from "../file.types";
+import { Skeleton } from "@/shared/components/ui/skeleton";
 
 export default function ImageTile({
   item,
@@ -12,9 +13,23 @@ export default function ImageTile({
   item: NormalizedAttachment;
   single: boolean;
 }) {
-  const qc = useQueryClient();
-  const { data } = useFileUrl(item.id);
-  const src = false ? item.src : data?.url;
+  const { data, isError, refetch } = useFileUrl(item.id, !item.isLocal);
+  const src = item.isLocal ? item.src : data?.url;
+
+  const [imgFailed, setImgFailed] = useState(false);
+  const [gaveUp, setGaveUp] = useState(false);
+  const [retries, setRetries] = useState(0);
+  const [prevSrc, setPrevSrc] = useState(src);
+
+  // New URL arrived → reset failure + retry state (all state, no refs)
+  if (src !== prevSrc) {
+    setPrevSrc(src);
+    setImgFailed(false);
+    setGaveUp(false);
+    setRetries(0);
+  }
+
+  const showImage = src && !imgFailed;
 
   return (
     <div
@@ -23,22 +38,28 @@ export default function ImageTile({
         single ? "w-80 max-h-80" : "h-40 w-40",
       )}
     >
-      {src ? (
+      {showImage ? (
         <Image
           src={src}
           alt={item.filename}
           className="h-full w-full object-cover transition-opacity"
           width={single ? 320 : 160}
           height={single ? 320 : 160}
-          onError={() =>
-            qc.invalidateQueries({ queryKey: ["fileUrl", item.id] })
-          }
-          // unoptimized={item.isLocal} // blob URLs can't be optimized
+          onError={() => {
+            setImgFailed(true);
+            if (retries < 2 && !item.isLocal) {
+              setRetries((r) => r + 1);
+              refetch();
+            } else {
+              setGaveUp(true);
+            }
+          }}
+          // unoptimized={item.isLocal}
         />
+      ) : isError || gaveUp ? (
+        <div className="...">Failed to load</div>
       ) : (
-        <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
-          {item.filename}
-        </div>
+        <Skeleton className="h-full w-full" />
       )}
     </div>
   );

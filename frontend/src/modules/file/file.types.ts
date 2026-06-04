@@ -32,6 +32,7 @@ type NormalizedAttachment = {
   /** For file-icon lookup when kind === "FILE" */
   mimetype?: string;
   durationSec?: number;
+  isLocal: boolean;
 };
 
 export type {

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Play, Pause, Loader2 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import type { NormalizedAttachment } from "@/modules/file/file.types";
+import { useFileUrl } from "@/modules/file/file.query";
 
 type Props = {
   item: NormalizedAttachment;
@@ -37,6 +38,9 @@ const generateBars = (seed: string): number[] => {
 };
 
 export default function VoiceMessageTile({ item, isOwn, metaNode }: Props) {
+  const [activated, setActivated] = useState(false);
+  const { data, isFetching } = useFileUrl(item.id, activated && !item.isLocal);
+  const src = item.isLocal ? item.src : data?.url;
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -98,6 +102,7 @@ export default function VoiceMessageTile({ item, isOwn, metaNode }: Props) {
   }, [duration, item.durationSec]);
 
   const togglePlay = async () => {
+    if (!activated) setActivated(true); // triggers URL fetch
     const audio = audioRef.current;
     if (!audio) return;
     if (isPlaying) {
@@ -142,7 +147,7 @@ export default function VoiceMessageTile({ item, isOwn, metaNode }: Props) {
       <button
         type="button"
         onClick={togglePlay}
-        disabled={!item.src}
+        disabled={!activated && !src}
         aria-label={isPlaying ? "Pause voice message" : "Play voice message"}
         className={cn(
           "flex items-center justify-center h-9 w-9 rounded-full shrink-0 transition-colors",
@@ -151,7 +156,7 @@ export default function VoiceMessageTile({ item, isOwn, metaNode }: Props) {
             : "bg-background hover:bg-background/80 text-foreground border",
         )}
       >
-        {isLoading ? (
+        {isLoading || (activated && isFetching && !data) ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : isPlaying ? (
           <Pause className="h-4 w-4" />
@@ -218,9 +223,8 @@ export default function VoiceMessageTile({ item, isOwn, metaNode }: Props) {
       </div>
 
       <audio
-        key={item.src}
         ref={audioRef}
-        src={item.src}
+        src={src}
         preload="auto"
         className="hidden"
       />
