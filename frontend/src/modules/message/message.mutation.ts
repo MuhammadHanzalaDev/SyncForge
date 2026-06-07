@@ -89,8 +89,7 @@ const useReadMessage = () => {
   return useMutation({
     mutationFn: readMessage,
 
-    onMutate: async ({ roomId, messageCreatedAt }: ReadMessage) => {
-      console.log("marking message as read: ", messageCreatedAt);
+    onMutate: async ({ roomId, messageId, messageCreatedAt }: ReadMessage) => {
       // stop overwrites
       await queryClient.cancelQueries({
         queryKey: ["messages", roomId],
@@ -116,10 +115,14 @@ const useReadMessage = () => {
 
           const incoming = new Date(messageCreatedAt).getTime();
 
+          const shouldUpdate = incoming > current;
+
           pages[0] = {
             ...pages[0],
-            lastReadAt:
-              incoming > current ? messageCreatedAt : pages[0].lastReadAt,
+            lastReadAt: shouldUpdate ? messageCreatedAt : pages[0].lastReadAt,
+            lastReadMessageId: shouldUpdate
+              ? messageId
+              : pages[0].lastReadMessageId,
           };
 
           return {

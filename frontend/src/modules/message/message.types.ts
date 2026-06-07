@@ -97,6 +97,7 @@ interface GetMessagesParams {
 interface MessagesPage {
   data: Message[];
   lastReadAt: string | Date;
+  lastReadMessageId?: string;
   nextCursor: string | null;
 }
 

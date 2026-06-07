@@ -47,7 +47,7 @@ const getMessagesService = async ({
         roomId,
       },
     },
-    select: { lastReadAt: true },
+    select: { lastReadAt: true, lastReadMessageId: true },
   });
 
   if (!roomMember) {
@@ -175,6 +175,7 @@ const getMessagesService = async ({
     nextCursor,
     hasMore: !!nextCursor,
     lastReadAt: roomMember.lastReadAt,
+    lastReadMessageId: roomMember.lastReadMessageId,
   };
 };
 
@@ -413,7 +414,7 @@ const readMessageService = async ({
           roomId,
         },
       },
-      data: { lastReadAt: message?.createdAt },
+      data: { lastReadAt: message?.createdAt, lastReadMessageId: messageId },
     });
 
     const receipts = await tx.messageReceipt.findMany({

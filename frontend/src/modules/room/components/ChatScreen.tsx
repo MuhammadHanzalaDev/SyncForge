@@ -18,7 +18,7 @@ export default function ChatScreen() {
   // refs
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<InfiniteScrollContainerHandle>(null);
-  const initialLastReadAtRef = useRef<Date | null>(null);
+  const initialLastReadRef = useRef<string | null>(null);
 
   // local states
   const [hasUnreadBelow, setHasUnreadBelow] = useState(false);
@@ -33,6 +33,7 @@ export default function ChatScreen() {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useMessages(roomId);
   const { data: personalInfo } = usePersonalInfo();
+  console.log("lastReadMessageId from API:", data?.pages[0]?.lastReadMessageId);
 
   // mutations
   const { mutate: mutateReact } = useReactMessage();
@@ -69,8 +70,12 @@ export default function ChatScreen() {
   };
 
   useEffect(() => {
-    if (initialLastReadAtRef.current === null && data?.pages[0]?.lastReadAt) {
-      initialLastReadAtRef.current = data.pages[0].lastReadAt;
+    if (
+      initialLastReadRef.current === null &&
+      data?.pages[0]?.lastReadMessageId
+    ) {
+      console.log("pages", data.pages);
+      initialLastReadRef.current = data.pages[0].lastReadMessageId;
       forceRender((x) => x + 1);
     }
   }, [data]);
@@ -93,7 +98,7 @@ export default function ChatScreen() {
         scrollRef={scrollRef}
         isRoom={false}
         isPersonalChat={isPersonalChat}
-        lastReadAt={initialLastReadAtRef.current}
+        lastReadMessageId={initialLastReadRef.current}
       />
 
       {/* Typing indicator */}

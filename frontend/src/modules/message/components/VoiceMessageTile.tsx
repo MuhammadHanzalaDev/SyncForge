@@ -42,6 +42,7 @@ export default function VoiceMessageTile({ item, isOwn, metaNode }: Props) {
   const { data, isFetching } = useFileUrl(item.id, activated && !item.isLocal);
   const src = item.isLocal ? item.src : data?.url;
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const pendingPlay = useRef(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -102,7 +103,12 @@ export default function VoiceMessageTile({ item, isOwn, metaNode }: Props) {
   }, [duration, item.durationSec]);
 
   const togglePlay = async () => {
-    if (!activated) setActivated(true); // triggers URL fetch
+    if (!activated) {
+      setActivated(true);
+      setIsLoading(true);
+      pendingPlay.current = true;
+      return;
+    }
     const audio = audioRef.current;
     if (!audio) return;
     if (isPlaying) {
@@ -112,13 +118,25 @@ export default function VoiceMessageTile({ item, isOwn, metaNode }: Props) {
     }
     try {
       setIsLoading(true);
-      audio.load();
       await audio.play();
     } catch (err) {
       console.error(err);
       setIsLoading(false);
     }
   };
+
+  // Auto-play once src lands after first activation
+  useEffect(() => {
+    if (!src || !pendingPlay.current) return;
+    pendingPlay.current = false;
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.load();
+    audio.play().catch((err) => {
+      console.error(err);
+      setIsLoading(false);
+    });
+  }, [src]);
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
     const audio = audioRef.current;
@@ -147,7 +165,7 @@ export default function VoiceMessageTile({ item, isOwn, metaNode }: Props) {
       <button
         type="button"
         onClick={togglePlay}
-        disabled={!activated && !src}
+        disabled={activated && isFetching && !src}
         aria-label={isPlaying ? "Pause voice message" : "Play voice message"}
         className={cn(
           "flex items-center justify-center h-9 w-9 rounded-full shrink-0 transition-colors",
@@ -222,12 +240,7 @@ export default function VoiceMessageTile({ item, isOwn, metaNode }: Props) {
         </div>
       </div>
 
-      <audio
-        ref={audioRef}
-        src={src}
-        preload="auto"
-        className="hidden"
-      />
+      <audio ref={audioRef} src={src} preload="auto" className="hidden" />
     </div>
   );
 }

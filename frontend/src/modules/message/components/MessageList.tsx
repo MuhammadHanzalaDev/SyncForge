@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import type {
   Message,
   QuickMessageReactions,
@@ -38,7 +38,7 @@ type MessageListProps = {
 
   isRoom: boolean;
   isPersonalChat?: boolean;
-  lastReadAt: Date | null;
+  lastReadMessageId: string | null;
 };
 
 export default function MessageList({
@@ -56,7 +56,7 @@ export default function MessageList({
   onReact,
   isRoom,
   isPersonalChat,
-  lastReadAt,
+  lastReadMessageId,
 }: MessageListProps) {
   const messageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const hasScrolledToUnread = useRef(false);
@@ -103,26 +103,34 @@ export default function MessageList({
     [],
   );
 
+  const lastReadIndex = useMemo(
+    () => messages.findIndex((m) => m.id === lastReadMessageId),
+    [messages, lastReadMessageId],
+  );
+
   useEffect(() => {
     if (hasScrolledToUnread.current) return;
 
-    if (!lastReadAt || messages.length === 0) return;
+    if (!lastReadMessageId || messages.length === 0) return;
 
-    const lastReadTime = new Date(lastReadAt);
+    const nextMessage = messages[lastReadIndex + 1];
+    const scrollToLastRead =
+      lastReadIndex >= 0 && nextMessage?.sender.id !== currentUserId;
 
-    const firstUnreadMessage = messages.find(
-      (m) =>
-        new Date(m.createdAt) > lastReadTime && m.sender.id !== currentUserId,
-    );
-
-    if (!firstUnreadMessage) return;
+    if (!scrollToLastRead) return;
 
     hasScrolledToUnread.current = true;
 
     requestAnimationFrame(() => {
-      scrollToMessage(firstUnreadMessage.id, false);
+      scrollToMessage(nextMessage.id, false);
     });
-  }, [messages, lastReadAt, scrollToMessage]);
+  }, [
+    currentUserId,
+    lastReadIndex,
+    lastReadMessageId,
+    messages,
+    scrollToMessage,
+  ]);
 
   return (
     <>
@@ -162,18 +170,11 @@ export default function MessageList({
 
           const showDateDivider = currDate !== prevDate;
 
-          const isUnread = lastReadAt
-            ? new Date(message.createdAt) > new Date(lastReadAt)
-            : false;
-
-          const wasPrevUnread =
-            prevMessage && lastReadAt
-              ? new Date(prevMessage.createdAt) > new Date(lastReadAt)
-              : false;
-
-          const isOwn = message.sender.id === currentUserId;
-
-          const showLastReadAtDivider = isUnread && !wasPrevUnread && !isOwn;
+          const nextMessage = messages[lastReadIndex + 1];
+          const showLastReadDivider =
+            lastReadIndex >= 0 &&
+            idx === lastReadIndex + 1 &&
+            nextMessage?.sender.id !== currentUserId;
 
           const showAvatar =
             !prevMessage ||
@@ -191,7 +192,7 @@ export default function MessageList({
                 </div>
               )}
 
-              {showLastReadAtDivider && (
+              {showLastReadDivider && (
                 <div className="flex items-center gap-3 px-4 py-3">
                   <Separator className="flex-1 bg-primary" />
 
