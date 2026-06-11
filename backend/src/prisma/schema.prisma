@@ -25,10 +25,12 @@ model User {
   memberships WorkspaceMember[]
   messages    Message[]
 
-  files            File[]            @relation("UserFiles")
-  roomMembers      RoomMember[]
-  messageReceipts  MessageReceipt[]
-  messageReactions MessageReaction[]
+  files                 File[]            @relation("UserFiles")
+  roomMembers           RoomMember[]
+  messageReceipts       MessageReceipt[]
+  messageReactions      MessageReaction[]
+  notificationsReceived Notification[]    @relation("NotificationRecipient")
+  notificationsActed    Notification[]    @relation("NotificationActor")
 }
 
 model Workspace {
@@ -41,8 +43,9 @@ model Workspace {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members WorkspaceMember[]
-  rooms   Room[]
+  members       WorkspaceMember[]
+  rooms         Room[]
+  notifications Notification[]
 }
 
 enum WorkspaceRole {
@@ -91,6 +94,7 @@ model Room {
   messages       Message[]
   roomMembers    RoomMember[]
   pinnedMessages PinnedMessage[]
+  notifications  Notification[]
 }
 
 enum RoomType {
@@ -100,10 +104,10 @@ enum RoomType {
 }
 
 model RoomMember {
-  userId     String
-  roomId     String
-  isAdmin    Boolean   @default(false)
-  lastReadAt DateTime?
+  userId            String
+  roomId            String
+  isAdmin           Boolean   @default(false)
+  lastReadAt        DateTime?
   lastReadMessageId String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -135,6 +139,7 @@ model Message {
   messageReceipts  MessageReceipt[]
   messageReactions MessageReaction[]
   pinnedMessages   PinnedMessage[]
+  notifications    Notification[]
 
   @@index([parentId])
 }
@@ -223,9 +228,38 @@ enum FileKind {
 }
 
 model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  message   String
-  isRead    Boolean  @default(false)
+  id          String @id @default(uuid())
+  workspaceId String
+  userId      String // recipient
+
+  type   NotificationType
+  isRead Boolean          @default(false)
+
+  roomId    String? // so you can mark-all-read when a room is opened
+  messageId String? // the message that triggered it (mention, reply, reaction)
+  actorId   String? // who caused it (the mentioner, replier, inviter)
+
+  title String
+  body  String
+
   createdAt DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  actor     User?     @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  room      Room?     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  message   Message?  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead]) // "my unread notifications"
+  @@index([userId, createdAt]) // "my notification feed, newest first"
+  @@index([roomId]) // "mark all read for this room"
+}
+
+enum NotificationType {
+  MENTION
+  REPLY
+  REACTION
+  ROOM_INVITE
+  WORKSPACE_INVITE
+  SYSTEM
 }
