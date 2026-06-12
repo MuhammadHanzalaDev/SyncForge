@@ -11,25 +11,25 @@ import { env } from "@/config/env";
 
 const mainPlugin: FastifyPluginAsync = async (app) => {
   // builtin plugins
-  await app.register(fastifyCors, {
+  app.register(fastifyCors, {
     origin: env.CLIENT_URL,
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });
-  await app.register(fastifyCookie);
-  await app.register(multipart, {
+  app.register(fastifyCookie);
+  app.register(multipart, {
     limits: {
-      fileSize: 21 * 1024 * 1024, // 21 MB 
+      fileSize: 21 * 1024 * 1024, // 21 MB
       files: 5, //  max number of files per request
       fields: 20, // max non-file fields
     },
   });
 
   // custom plugins
-  await app.register(errorHandlerPlugin);
-  await app.register(responseWrapperPlugin);
-  await app.register(authPlugin);
-  await app.register(socketPlugin);
+  app.register(errorHandlerPlugin);
+  app.register(responseWrapperPlugin);
+  app.register(authPlugin);
+  app.register(socketPlugin);
 };
 
 export default fp(mainPlugin);

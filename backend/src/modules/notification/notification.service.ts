@@ -1,45 +1,55 @@
 import prisma from "@/lib/prisma";
+import * as NotificationSchema from "./notification.schema";
 
-// Mark ALL of a user's notifications read (across the whole workspace)
-export async function markAllNotificationsRead(args: {
-  userId: string;
-  workspaceId: string;
-}) {
+// Mark ALL of a user's notifications reads
+export async function markAllNotificationsRead(
+  userId: string,
+  workspaceId: string,
+) {
+  const parsed = NotificationSchema.markAllNotificationsReadSchema.parse({
+    userId,
+    workspaceId,
+  });
+
   return prisma.notification.updateMany({
     where: {
-      userId: args.userId,
-      workspaceId: args.workspaceId,
+      userId: parsed.userId,
+      workspaceId: parsed.workspaceId,
       isRead: false,
     },
     data: { isRead: true },
   });
 }
 
-// Mark all notifications read for ONE room (call when user opens that room)
-export async function markRoomNotificationsRead(args: {
-  userId: string;
-  roomId: string;
-}) {
+// Mark all notifications read for ONE room
+export async function markRoomNotificationsRead(
+  userId: string,
+  roomId: string,
+) {
   return prisma.notification.updateMany({
     where: {
-      userId: args.userId,
-      roomId: args.roomId,
+      userId: userId,
+      roomId: roomId,
       isRead: false,
     },
     data: { isRead: true },
   });
 }
 
-// Mark a single notification read (e.g. user clicks one in the feed)
-export async function markNotificationRead(args: {
-  userId: string;
-  notificationId: string;
-}) {
-  // userId in the where clause prevents User A marking User B's notification read
+// Mark a single notification read
+export async function markNotificationRead(
+  userId: string,
+  notificationId: string,
+) {
+  const parsed = NotificationSchema.markNotificationReadSchema.parse({
+    userId,
+    notificationId,
+  });
+
   return prisma.notification.updateMany({
     where: {
-      id: args.notificationId,
-      userId: args.userId,
+      id: parsed.notificationId,
+      userId: parsed.userId,
     },
     data: { isRead: true },
   });
@@ -49,24 +59,27 @@ type GetNotificationsArgs = {
   userId: string;
   workspaceId: string;
   limit?: number;
-  cursor?: string;        // the id of the last notification from the previous page
-  unreadOnly?: boolean;   // optional filter
+  cursor?: string;
+  unreadOnly?: boolean;
 };
 
 export async function getNotifications(args: GetNotificationsArgs) {
-  const limit = Math.min(args.limit ?? 20, 50); // cap it — don't let clients ask for 10,000
+  const parsed = NotificationSchema.getNotificationsSchema.parse(args);
+
+  const limit = Math.min(parsed.limit ?? 20, 50);
 
   const items = await prisma.notification.findMany({
     where: {
-      userId: args.userId,
-      workspaceId: args.workspaceId,
-      ...(args.unreadOnly ? { isRead: false } : {}),
+      userId: parsed.userId,
+      workspaceId: parsed.workspaceId,
+      ...(parsed.unreadOnly ? { isRead: false } : {}),
     },
+
     orderBy: { createdAt: "desc" },
-    take: limit + 1, // fetch one extra to detect if there's a next page
-    ...(args.cursor
-      ? { cursor: { id: args.cursor }, skip: 1 } // skip the cursor row itself
-      : {}),
+
+    take: limit + 1,
+    ...(parsed.cursor ? { cursor: { id: parsed.cursor }, skip: 1 } : {}),
+
     include: {
       actor: {
         select: { id: true, firstName: true, lastName: true, avatarId: true },
@@ -85,11 +98,17 @@ export async function getNotifications(args: GetNotificationsArgs) {
   };
 }
 
-export async function getUnreadCount(args: {
-  userId: string;
-  workspaceId: string;
-}) {
+export async function getUnreadCount(userId: string, workspaceId: string) {
+  const parsed = NotificationSchema.getUnreadCountSchema.parse({
+    userId,
+    workspaceId,
+  });
+
   return prisma.notification.count({
-    where: { userId: args.userId, workspaceId: args.workspaceId, isRead: false },
+    where: {
+      userId: parsed.userId,
+      workspaceId: parsed.workspaceId,
+      isRead: false,
+    },
   });
 }

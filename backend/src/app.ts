@@ -7,9 +7,9 @@ export async function buildApp() {
   const app = fastify();
 
   // Error Handler
-  await app.register(mainPlugin);
+  app.register(mainPlugin);
 
-  await app.register(routes, { prefix: "/api/v1" });
+  app.register(routes, { prefix: "/api/v1" });
 
   return app;
 }

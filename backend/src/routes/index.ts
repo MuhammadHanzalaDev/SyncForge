@@ -5,14 +5,16 @@ import storageRoutes from "@/modules/storage/storage.routes";
 import userRoutes from "@/modules/user/user.routes";
 import roomRoutes from "@/modules/room/room.routes";
 import messageRoutes from "@/modules/message/message.routes";
+import notificationRoutes from "@/modules/notification/notification.routes";
 
 const routes: FastifyPluginAsync = async (app) => {
-  await app.register(authRoutes, { prefix: "/auth" });
-  await app.register(workspaceRoutes, { prefix: "/workspaces" });
-  await app.register(storageRoutes, { prefix: "/files" });
-  await app.register(userRoutes, { prefix: "/users" });
-  await app.register(roomRoutes, { prefix: "/rooms" });
-  await app.register(messageRoutes, { prefix: "/messages" });
+  app.register(authRoutes, { prefix: "/auth" });
+  app.register(workspaceRoutes, { prefix: "/workspaces" });
+  app.register(storageRoutes, { prefix: "/files" });
+  app.register(userRoutes, { prefix: "/users" });
+  app.register(roomRoutes, { prefix: "/rooms" });
+  app.register(messageRoutes, { prefix: "/messages" });
+  app.register(notificationRoutes, { prefix: "/notifications" });
 };
 
 export default routes;
