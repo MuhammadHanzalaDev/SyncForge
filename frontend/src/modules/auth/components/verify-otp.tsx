@@ -16,12 +16,11 @@ import { useAuthStore } from "@/shared/store/authStore";
 import { useRouter } from "next/navigation";
 import { useCountdown } from "../hooks/useCountDown";
 import { CustomButton } from "@/shared/components";
+import { useSearchParams } from "next/navigation";
 
-interface VerifyOtpProps {
-  email: string;
-}
-
-export default function VerifyOtp({ email }: VerifyOtpProps) {
+export default function VerifyOtp() {
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") || "";
   const router = useRouter();
   const { setAccessToken, otpExpiresAt, setOtpExpiresAt } = useAuthStore();
   const { mutate, isError, error, isPending, reset } = useVerifyEmail();

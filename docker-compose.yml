@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:17
+
+    container_name: postgres
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: MyPostgresqlServer
+      POSTGRES_DB: syncforge
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+
+    container_name: backend
+
+    restart: unless-stopped
+
+    depends_on:
+      - postgres
+
+    ports:
+      - "5000:5000"
+
+    env_file:
+      - ./backend/.env
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+      - NEXT_PUBLIC_SERVER_URL=http://localhost:5000
+
+    container_name: frontend
+
+    restart: unless-stopped
+
+    depends_on:
+      - backend
+
+    ports:
+      - "4000:4000"
+
+volumes:
+  postgres_data:

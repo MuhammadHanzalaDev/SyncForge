@@ -1,7 +1,12 @@
 import SetPassword from "@/modules/auth/components/set-password";
+import { Suspense } from "react";
 
 const page = () => {
-  return <SetPassword />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SetPassword />
+    </Suspense>
+  );
 };
 
 export default page;

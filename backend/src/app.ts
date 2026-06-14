@@ -10,6 +10,9 @@ export async function buildApp() {
   app.register(mainPlugin);
 
   app.register(routes, { prefix: "/api/v1" });
+  app.get("/test", async () => {
+    return { message: "Hello World" };
+  });
 
   return app;
 }

@@ -1,13 +1,14 @@
 "use client";
 
 import VerifyOtp from "@/modules/auth/components/verify-otp";
-import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 const Page = () => {
-  const searchParams = useSearchParams();
-  const email = searchParams.get("email");
-
-  return <VerifyOtp email={email || ""} />;
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <VerifyOtp />
+    </Suspense>
+  );
 };
 
 export default Page;

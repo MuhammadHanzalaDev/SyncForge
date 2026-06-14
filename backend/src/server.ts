@@ -6,7 +6,7 @@ async function start() {
 
   try {
     const port = Number(env.PORT);
-    await app.listen({ port: port });
+    await app.listen({ port: port, host: "0.0.0.0" });
     console.log(`Server running on port: ${port}`);
   } catch (err) {
     console.error("CRASHED:", err);
