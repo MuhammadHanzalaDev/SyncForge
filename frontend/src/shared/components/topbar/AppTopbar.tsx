@@ -7,6 +7,7 @@ import { SidebarTrigger } from "../ui/sidebar";
 import ModeToggle from "../common/ModeToggle";
 import { WorkspaceSection } from "./WorkspaceSection";
 import ProfileSection from "./ProfileSection";
+import NotificationPopover from "./NotificationPopover";
 import { useWorkspaces } from "@/modules/workspace/workspace.query";
 import { CustomInputFieldWithContent } from "..";
 
@@ -47,15 +48,7 @@ export default function TopBar() {
 
         {/* Notifications */}
 
-        <div className="relative inline-flex cursor-pointer">
-          <Bell className="h-6 w-6 text-muted-foreground" />
-          <Badge
-            variant="destructive"
-            className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center rounded-full p-0 text-xs bg-primary"
-          >
-            {notificationCount}
-          </Badge>
-        </div>
+        <NotificationPopover />
 
         {/* Profile dropdown */}
         <ProfileSection />
