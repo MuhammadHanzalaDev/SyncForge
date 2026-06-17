@@ -248,14 +248,14 @@ export default function NotificationPopover() {
         </Tabs>
 
         {/* Footer */}
-        <div className="border-t p-1">
+        {/* <div className="border-t p-1">
           <Button
             variant="ghost"
             className="w-full justify-center text-xs text-muted-foreground hover:text-foreground"
           >
             View all notifications
           </Button>
-        </div>
+        </div> */}
       </PopoverContent>
     </Popover>
   );
