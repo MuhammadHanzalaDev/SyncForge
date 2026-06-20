@@ -9,7 +9,3 @@
 # Ignore build/dist folders
 /frontend/.next/
 /backend/dist/
-
-# Ignore lock files
-/frontend/pnpm-lock.yaml
-/backend/pnpm-lock.yaml
