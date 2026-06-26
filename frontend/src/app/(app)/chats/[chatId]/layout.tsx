@@ -33,6 +33,7 @@ import useChatSocket from "@/modules/room/hooks/useChatSocket";
 import useRoomStore from "@/modules/room/room.store";
 import useUserStatusStore from "@/shared/store/userStatusStore";
 import { usePersonalInfo } from "@/modules/user/user.query";
+import useCallStore from "@/modules/call/call.store";
 
 export default function ChatLayout({
   children,
@@ -42,12 +43,22 @@ export default function ChatLayout({
   const params = useParams();
   const { data: personalInfo } = usePersonalInfo();
   const activeChat = useRoomStore((state) => state.activeChat);
+  const activeRoomId = useRoomStore((state) => state.roomId);
   const id = params?.chatId as string;
   const getUserStatus = useUserStatusStore((state) => state.getUserStatus);
+  const startCall = useCallStore((s) => s.startCall);
+  const callStatus = useCallStore((s) => s.status);
   useChatSocket(id);
 
   const userStatus = getUserStatus(activeChat?.id || "");
   const isPersonalChat = personalInfo?.id === activeChat?.id;
+  const peerUserId = activeChat?.id;
+  const canCall =
+    !isPersonalChat &&
+    !!peerUserId &&
+    !!activeRoomId &&
+    callStatus === "idle" &&
+    !!startCall;
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-background">
@@ -84,30 +95,63 @@ export default function ChatLayout({
           {/* Action Buttons */}
           <div className="flex items-center gap-0.5 shrink-0">
             <TooltipProvider>
-              {[
-                ...(!isPersonalChat
-                  ? [
-                      { icon: Phone, label: "Voice Call" },
-                      { icon: Video, label: "Video Call" },
-                    ]
-                  : []),
-                { icon: Search, label: "Search" },
-              ].map(({ icon: Icon, label }) => (
-                <Tooltip key={label}>
-                  <TooltipTrigger asChild>
-                    <CustomButton
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                    >
-                      <Icon className="h-4 w-4" />
-                    </CustomButton>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-xs">
-                    {label}
-                  </TooltipContent>
-                </Tooltip>
-              ))}
+              {!isPersonalChat && (
+                <>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <CustomButton
+                        variant="ghost"
+                        size="icon"
+                        disabled={!canCall}
+                        onClick={() =>
+                          startCall?.(activeRoomId!, peerUserId!, "AUDIO")
+                        }
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      >
+                        <Phone className="h-4 w-4" />
+                      </CustomButton>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs">
+                      Voice Call
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <CustomButton
+                        variant="ghost"
+                        size="icon"
+                        disabled={!canCall}
+                        onClick={() =>
+                          startCall?.(activeRoomId!, peerUserId!, "VIDEO")
+                        }
+                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                      >
+                        <Video className="h-4 w-4" />
+                      </CustomButton>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="text-xs">
+                      Video Call
+                    </TooltipContent>
+                  </Tooltip>
+                </>
+              )}
+
+              {/* Search stays in its own Tooltip */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <CustomButton
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  >
+                    <Search className="h-4 w-4" />
+                  </CustomButton>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-xs">
+                  Search
+                </TooltipContent>
+              </Tooltip>
 
               <Tooltip>
                 <TooltipTrigger asChild>
