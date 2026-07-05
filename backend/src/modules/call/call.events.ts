@@ -63,29 +63,38 @@ export function registerCallEvents(socket: Socket) {
   });
 
   // Callee accepted — mark active
-  socket.on("call:accept", async (payload: CallActionPayload) => {
-    await callService.markActive(payload.callId, userId);
-    io.to(`user:${payload.toUserId}`).emit("call:accepted", {
-      callId: payload.callId,
-      from: userId,
-    });
-  });
+  socket.on(
+    "call:accept",
+    socketHandler(async (payload: CallActionPayload) => {
+      await callService.markActive(payload.callId, userId);
+      io.to(`user:${payload.toUserId}`).emit("call:accepted", {
+        callId: payload.callId,
+        from: userId,
+      });
+    }),
+  );
 
   // Callee declined
-  socket.on("call:reject", async (payload: CallActionPayload) => {
-    await callService.markEnded(payload.callId, "DECLINED");
-    io.to(`user:${payload.toUserId}`).emit("call:rejected", {
-      callId: payload.callId,
-      from: userId,
-    });
-  });
+  socket.on(
+    "call:reject",
+    socketHandler(async (payload: CallActionPayload) => {
+      await callService.markEnded(payload.callId, "DECLINED");
+      io.to(`user:${payload.toUserId}`).emit("call:rejected", {
+        callId: payload.callId,
+        from: userId,
+      });
+    }),
+  );
 
   // Either side hangs up
-  socket.on("call:hangup", async (payload: CallActionPayload) => {
-    await callService.markEnded(payload.callId, "ENDED");
-    io.to(`user:${payload.toUserId}`).emit("call:hangup", {
-      callId: payload.callId,
-      from: userId,
-    });
-  });
+  socket.on(
+    "call:hangup",
+    socketHandler(async (payload: CallActionPayload) => {
+      await callService.markEnded(payload.callId, "ENDED");
+      io.to(`user:${payload.toUserId}`).emit("call:hangup", {
+        callId: payload.callId,
+        from: userId,
+      });
+    }),
+  );
 }

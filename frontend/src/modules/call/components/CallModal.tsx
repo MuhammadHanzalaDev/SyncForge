@@ -38,7 +38,7 @@ export function CallModal({
 
   return (
     <Dialog open={open}>
-      <DialogContent className="max-w-3xl p-0" hideClose>
+      <DialogContent className="max-w-3xl p-0">
         <div className="relative h-[60vh] w-full bg-black">
           {/* remote = main view */}
           <VideoTile

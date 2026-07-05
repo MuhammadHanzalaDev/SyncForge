@@ -18,7 +18,7 @@ export function IncomingCallModal({
 
   return (
     <Dialog open={open}>
-      <DialogContent className="max-w-sm text-center" hideClose>
+      <DialogContent className="max-w-sm text-center">
         <div className="flex flex-col items-center gap-4 py-4">
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-zinc-200 text-2xl font-semibold">
             {callerName.charAt(0).toUpperCase()}
