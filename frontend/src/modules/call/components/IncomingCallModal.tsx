@@ -15,6 +15,7 @@ export function IncomingCallModal({
   const status = useCallStore((s) => s.status);
   const type = useCallStore((s) => s.callType);
   const open = status === "incoming";
+  
 
   return (
     <Dialog open={open}>
